@@ -1,0 +1,13 @@
+@import './base.css';
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: 'Stack Sans Text', sans-serif;
+}
+
+#app {
+  width: 100%;
+  font-weight: normal;
+}
