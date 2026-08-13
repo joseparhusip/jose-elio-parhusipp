@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const navLinks = [
   { label: 'Beranda', href: '#beranda' },
@@ -24,16 +24,8 @@ function handleScroll() {
   isScrolled.value = window.scrollY > 12
 }
 
-// Kunci scroll body pas menu mobile lagi kebuka, biar nggak scroll dobel
-watch(isMenuOpen, (open) => {
-  document.body.style.overflow = open ? 'hidden' : ''
-})
-
 onMounted(() => window.addEventListener('scroll', handleScroll))
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-  document.body.style.overflow = ''
-})
+onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 </script>
 
 <template>
@@ -43,11 +35,14 @@ onUnmounted(() => {
         Jose<span class="navbar__logo-dot">.</span>
       </a>
 
-      <ul class="navbar__links navbar__links--desktop">
+      <ul class="navbar__links" :class="{ 'navbar__links--open': isMenuOpen }">
         <li v-for="link in navLinks" :key="link.href">
           <a :href="link.href" class="navbar__link" @click="closeMenu">
             {{ link.label }}
           </a>
+        </li>
+        <li class="navbar__cta-wrap navbar__cta-wrap--mobile">
+          <a href="#kontak" class="navbar__cta" @click="closeMenu">Hubungi Saya</a>
         </li>
       </ul>
 
@@ -68,25 +63,6 @@ onUnmounted(() => {
         </button>
       </div>
     </nav>
-
-    <!-- Overlay gelap di belakang menu mobile -->
-    <Transition name="fade">
-      <div v-if="isMenuOpen" class="navbar__overlay" @click="closeMenu"></div>
-    </Transition>
-
-    <!-- Panel menu mobile, solid & di atas semua konten -->
-    <Transition name="slide">
-      <div v-if="isMenuOpen" class="navbar__mobile-panel">
-        <ul class="navbar__mobile-links">
-          <li v-for="link in navLinks" :key="link.href">
-            <a :href="link.href" class="navbar__mobile-link" @click="closeMenu">
-              {{ link.label }}
-            </a>
-          </li>
-        </ul>
-        <a href="#kontak" class="navbar__cta navbar__cta--mobile" @click="closeMenu">Hubungi Saya</a>
-      </div>
-    </Transition>
   </header>
 </template>
 
@@ -113,6 +89,9 @@ onUnmounted(() => {
   justify-content: space-between;
 }
 
+/* Discroll: lebar TETAP SAMA (full width), cuma dikasih jarak dikit dari atas
+   biar ga mepet ke tepi layar, warna jadi gelap, ujung kiri-kanan jadi bulat,
+   dan hover link jadi ijau. */
 .navbar--scrolled {
   top: 0.75rem;
   background: rgba(37, 54, 50, 0.92);
@@ -120,6 +99,7 @@ onUnmounted(() => {
   box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.45);
 }
 
+/* Saat kapsul (scrolled), teks & logo otomatis kontras terang di atas background gelap */
 .navbar--scrolled .navbar__logo,
 .navbar--scrolled .navbar__link {
   color: #f1f4f1;
@@ -154,7 +134,7 @@ onUnmounted(() => {
   color: var(--color-accent, #f2a488);
 }
 
-.navbar__links--desktop {
+.navbar__links {
   display: flex;
   align-items: center;
   gap: 2.1rem;
@@ -176,6 +156,7 @@ onUnmounted(() => {
   transition: color 0.2s ease, background-color 0.2s ease;
 }
 
+/* State DEFAULT (belum discroll / masih di area Home): efek biasa saja, cuma garis bawah tipis */
 .navbar__link::after {
   content: '';
   position: absolute;
@@ -196,6 +177,7 @@ onUnmounted(() => {
   width: calc(100% - 1.8rem);
 }
 
+/* State SCROLLED: hover jadi pill highlight ala tab aktif di IDLIX, garis bawah dimatikan */
 .navbar--scrolled .navbar__link::after {
   display: none;
 }
@@ -209,6 +191,10 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+}
+
+.navbar__cta-wrap--mobile {
+  display: none;
 }
 
 .navbar__cta {
@@ -229,6 +215,7 @@ onUnmounted(() => {
   transform: translateY(-1px);
 }
 
+/* tombol hamburger dibuat bulat penuh (setengah lingkaran kanan-kiri), bukan kotak */
 .navbar__toggle {
   display: none;
   flex-direction: column;
@@ -243,8 +230,6 @@ onUnmounted(() => {
   cursor: pointer;
   padding: 0;
   transition: background-color 0.2s ease;
-  position: relative;
-  z-index: 210;
 }
 
 .navbar__toggle:hover {
@@ -260,10 +245,6 @@ onUnmounted(() => {
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
-.navbar--scrolled .navbar__toggle--open span {
-  background: #f1f4f1;
-}
-
 .navbar__toggle--open span:nth-child(1) {
   transform: translateY(7px) rotate(45deg);
 }
@@ -276,92 +257,47 @@ onUnmounted(() => {
   transform: translateY(-7px) rotate(-45deg);
 }
 
-/* Overlay gelap di belakang panel mobile */
-.navbar__overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 20, 0.55);
-  z-index: 190;
-}
-
-/* Panel menu mobile — dropdown dari atas, full width, solid */
-.navbar__mobile-panel {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: #ffffff;
-  box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.35);
-  z-index: 200;
-  padding: 6.5rem 1.75rem 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.navbar__mobile-links {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.navbar__mobile-link {
-  display: block;
-  font-family: 'Stack Sans Text', sans-serif;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--color-text, #253632);
-  text-decoration: none;
-  padding: 0.85rem 0.25rem;
-  border-bottom: 1px solid rgba(107, 144, 128, 0.14);
-  transition: color 0.2s ease;
-}
-
-.navbar__mobile-link:hover {
-  color: var(--color-primary, #6b9080);
-}
-
-.navbar__cta--mobile {
-  text-align: center;
-  display: block;
-}
-
-.navbar__cta--desktop {
-  display: inline-block;
-}
-
-/* Transisi overlay */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* Transisi slide panel dari atas */
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
-}
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateY(-100%);
-}
-
 @media (max-width: 820px) {
   .navbar__toggle {
     display: flex;
   }
 
-  .navbar__links--desktop {
+  .navbar__links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--color-surface, #fff);
+    border-bottom: 1px solid rgba(107, 144, 128, 0.15);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .navbar__links--open {
+    max-height: 400px;
+  }
+
+  .navbar__link {
+    display: block;
+    padding: 1rem 1.5rem;
+  }
+
+  .navbar__link::after {
     display: none;
+  }
+
+  .navbar__cta-wrap--mobile {
+    display: block;
+    margin: 0.5rem 1.5rem 1.25rem;
+  }
+
+  .navbar__cta {
+    display: block;
+    text-align: center;
   }
 
   .navbar__cta--desktop {
