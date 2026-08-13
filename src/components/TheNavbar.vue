@@ -311,5 +311,13 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
     background: rgba(37, 54, 50, 0.98);
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
+
+  /* Khusus mobile: pas discroll TIDAK usah jadi kapsul/pill.
+     Biarkan tetap kotak, full width, rata kanan-kiri layar seperti biasa.
+     Bentuk pill/bulat cuma dipakai di desktop (di luar media query ini). */
+  .navbar--scrolled {
+    top: 0;
+    border-radius: 0;
+  }
 }
 </style>
