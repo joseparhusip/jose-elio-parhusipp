@@ -253,6 +253,7 @@ const toolsRow2 = tools.slice(3)
 
 .about__tools-label {
   display: block;
+  text-align: center;
   font-family: 'Stack Sans Text', sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
