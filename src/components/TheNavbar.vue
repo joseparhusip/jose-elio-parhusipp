@@ -284,20 +284,20 @@ onUnmounted(() => {
   z-index: 190;
 }
 
-/* Panel menu mobile — solid, nggak transparan sama sekali */
+/* Panel menu mobile — dropdown dari atas, full width, solid */
 .navbar__mobile-panel {
   position: fixed;
   top: 0;
+  left: 0;
   right: 0;
-  bottom: 0;
-  width: min(78vw, 320px);
   background: #ffffff;
-  box-shadow: -18px 0 40px -20px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.35);
   z-index: 200;
   padding: 6.5rem 1.75rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
+  max-height: 85vh;
   overflow-y: auto;
 }
 
@@ -345,14 +345,14 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* Transisi slide panel dari kanan */
+/* Transisi slide panel dari atas */
 .slide-enter-active,
 .slide-leave-active {
   transition: transform 0.3s ease;
 }
 .slide-enter-from,
 .slide-leave-to {
-  transform: translateX(100%);
+  transform: translateY(-100%);
 }
 
 @media (max-width: 820px) {
