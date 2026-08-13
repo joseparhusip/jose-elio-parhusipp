@@ -265,6 +265,7 @@ const toolsRow2 = tools.slice(3)
 .about__tools-list {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.6rem;
   list-style: none;
   margin: 0;
