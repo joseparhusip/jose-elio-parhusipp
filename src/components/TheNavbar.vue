@@ -274,7 +274,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
     border-bottom: 1px solid rgba(107, 144, 128, 0.15);
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease;
+    transition: max-height 0.3s ease, background-color 0.3s ease;
   }
 
   .navbar__links--open {
@@ -302,6 +302,14 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 
   .navbar__cta--desktop {
     display: none;
+  }
+
+  /* FIX: dropdown mobile ikut gelap saat navbar dalam state scrolled,
+     supaya teks link (yang jadi terang di state ini) tetap kebaca.
+     Sebelumnya background dropdown tetap putih -> teks terang jadi invisible. */
+  .navbar--scrolled .navbar__links {
+    background: rgba(37, 54, 50, 0.98);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
 }
 </style>
