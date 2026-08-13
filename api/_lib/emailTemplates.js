@@ -1,4 +1,9 @@
-const path = require('path')
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+// __dirname nggak otomatis ada di ES Module, jadi dibikin manual
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // ------------------------------------------------------------------
 // GANTI dua link ini kalau nanti berubah
@@ -132,7 +137,7 @@ function buildOwnerNotificationEmail({ name, email, message }) {
       </tr>
     </table>
 
-    <a
+
       href="${gmailReplyUrl}"
       target="_blank"
       style="display:inline-block; background:#6b9080; color:#ffffff; font-size:14px; font-weight:600; text-decoration:none; padding:12px 24px; border-radius:999px;"
@@ -193,7 +198,4 @@ function buildVisitorConfirmationEmail({ name }) {
   }
 }
 
-module.exports = {
-  buildOwnerNotificationEmail,
-  buildVisitorConfirmationEmail,
-}
+export { buildOwnerNotificationEmail, buildVisitorConfirmationEmail }

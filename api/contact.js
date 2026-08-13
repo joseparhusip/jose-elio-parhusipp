@@ -1,5 +1,5 @@
-const nodemailer = require('nodemailer')
-const { buildOwnerNotificationEmail, buildVisitorConfirmationEmail } = require('./_lib/emailTemplates')
+import nodemailer from 'nodemailer'
+import { buildOwnerNotificationEmail, buildVisitorConfirmationEmail } from './_lib/emailTemplates.js'
 
 const { EMAIL_USER, EMAIL_PASS, SMTP_HOST, SMTP_PORT } = process.env
 
@@ -20,7 +20,7 @@ function isValidEmail(email) {
 }
 
 // Vercel otomatis menjadikan file ini endpoint: POST /api/contact
-module.exports = async (req, res) => {
+export default async (req, res) => {
   // Izinkan dipanggil dari domain frontend kamu (ganti kalau perlu dibatasi)
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
