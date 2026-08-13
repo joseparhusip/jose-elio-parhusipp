@@ -31,6 +31,10 @@ const tools = [
   { name: 'Streamlit', icon: streamlitIcon },
   { name: 'Vue.js', icon: vueIcon },
 ]
+
+// Dipisah manual jadi 2 baris tetap: baris 1 = 3 icon, baris 2 = 4 icon
+const toolsRow1 = tools.slice(0, 3)
+const toolsRow2 = tools.slice(3)
 </script>
 
 <template>
@@ -75,9 +79,28 @@ const tools = [
 
         <div class="about__tools">
           <span class="about__tools-label">Yang saya kuasai</span>
+
           <ul class="about__tools-list">
             <li
-              v-for="tool in tools"
+              v-for="tool in toolsRow1"
+              :key="tool.name"
+              class="about__tools-item"
+              :title="tool.name"
+            >
+              <img
+                :src="tool.icon"
+                :alt="tool.name"
+                class="about__tools-icon"
+                loading="lazy"
+                width="32"
+                height="32"
+              />
+            </li>
+          </ul>
+
+          <ul class="about__tools-list about__tools-list--second">
+            <li
+              v-for="tool in toolsRow2"
               :key="tool.name"
               class="about__tools-item"
               :title="tool.name"
@@ -246,6 +269,10 @@ const tools = [
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.about__tools-list--second {
+  margin-top: 0.6rem;
 }
 
 .about__tools-item {
