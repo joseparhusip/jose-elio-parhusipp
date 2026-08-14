@@ -390,6 +390,7 @@ onUnmounted(() => {
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   overflow: hidden;
   isolation: isolate;

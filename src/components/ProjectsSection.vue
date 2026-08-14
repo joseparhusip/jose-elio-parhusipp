@@ -60,7 +60,7 @@ const projects = [
   {
     title: 'Secura Kost',
     desc: 'Landing page dan sistem informasi untuk kost, dibangun sebagai proyek frontend murni menggunakan React JS dan Tailwind CSS. Menampilkan daftar kamar, fasilitas, dan informasi kost dengan tampilan yang responsif, tanpa terhubung ke backend atau database.',
-    thumb: securaKostThumb,
+    thumb: tokoKelontongThumb,
     techStack: [
       { name: 'React', icon: reactIcon },
       { name: 'Tailwind CSS', icon: tailwindIcon },
@@ -71,7 +71,7 @@ const projects = [
   {
     title: 'Toko Kelontong Online',
     desc: 'Aplikasi katalog toko kelontong online, dikembangkan murni di sisi frontend menggunakan React JS. Menampilkan daftar produk dan fitur belanja sederhana secara statis tanpa koneksi ke database maupun backend.',
-    thumb: tokoKelontongThumb,
+    thumb: securaKostThumb,
     techStack: [
       { name: 'React', icon: reactIcon },
     ],
@@ -89,6 +89,23 @@ function toggleSheet(index) {
 
 function closeSheet() {
   activeIndex.value = null
+}
+
+// Lightbox: klik gambar project untuk melihat versi penuhnya
+const lightboxProject = ref(null)
+
+function openLightbox(project) {
+  lightboxProject.value = project
+}
+
+function closeLightbox() {
+  lightboxProject.value = null
+}
+
+// Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
+function preventImageAction(event) {
+  event.preventDefault()
+  return false
 }
 </script>
 
@@ -113,9 +130,25 @@ function closeSheet() {
           <div class="project-card__thumb">
             <div class="project-card__photo-card">
               <span class="project-card__blob" aria-hidden="true"></span>
-              <div class="project-card__glass">
-                <img :src="project.thumb" :alt="project.title" class="project-card__thumb-img" loading="lazy" />
-              </div>
+              <button
+                type="button"
+                class="project-card__glass project-card__glass-btn"
+                aria-label="Perbesar gambar proyek"
+                oncontextmenu="return false"
+                @click="openLightbox(project)"
+                @contextmenu.prevent="preventImageAction"
+              >
+                <img
+                  :src="project.thumb"
+                  :alt="project.title"
+                  class="project-card__thumb-img"
+                  loading="lazy"
+                  draggable="false"
+                  oncontextmenu="return false"
+                  @contextmenu.prevent="preventImageAction"
+                  @dragstart.prevent="preventImageAction"
+                />
+              </button>
             </div>
           </div>
 
@@ -141,8 +174,19 @@ function closeSheet() {
                   :key="tech.name"
                   class="project-card__stack-item"
                   :title="tech.name"
+                  oncontextmenu="return false"
+                  @contextmenu.prevent="preventImageAction"
                 >
-                  <img :src="tech.icon" :alt="tech.name" class="project-card__stack-icon" loading="lazy" />
+                  <img
+                    :src="tech.icon"
+                    :alt="tech.name"
+                    class="project-card__stack-icon"
+                    loading="lazy"
+                    draggable="false"
+                    oncontextmenu="return false"
+                    @contextmenu.prevent="preventImageAction"
+                    @dragstart.prevent="preventImageAction"
+                  />
                 </li>
               </ul>
 
@@ -218,6 +262,41 @@ function closeSheet() {
           </div>
         </article>
       </div>
+    </div>
+
+    <!-- Lightbox: menampilkan gambar proyek secara penuh saat thumbnail diklik -->
+    <div
+      v-if="lightboxProject"
+      class="project-lightbox"
+      role="dialog"
+      aria-modal="true"
+      oncontextmenu="return false"
+      @click.self="closeLightbox"
+      @contextmenu.prevent="preventImageAction"
+    >
+      <button
+        type="button"
+        class="project-lightbox__close"
+        aria-label="Tutup gambar"
+        @click="closeLightbox"
+      >
+        <svg viewBox="0 0 24 24" class="project-lightbox__close-icon" aria-hidden="true">
+          <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18" />
+        </svg>
+      </button>
+
+      <img
+        :src="lightboxProject.thumb"
+        :alt="lightboxProject.title"
+        class="project-lightbox__img"
+        draggable="false"
+        oncontextmenu="return false"
+        @contextmenu.prevent="preventImageAction"
+        @dragstart.prevent="preventImageAction"
+        @click.stop
+      />
+
+      <p class="project-lightbox__caption">{{ lightboxProject.title }}</p>
     </div>
   </section>
 </template>
@@ -365,6 +444,22 @@ function closeSheet() {
   backdrop-filter: blur(6px);
 }
 
+.project-card__glass-btn {
+  all: unset;
+  position: absolute;
+  inset: 5px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  overflow: hidden;
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(6px);
+  cursor: zoom-in;
+}
+
 .project-card__thumb-img {
   width: 100%;
   height: 100%;
@@ -372,6 +467,74 @@ function closeSheet() {
   object-fit: contain;
   object-position: center;
   display: block;
+  /* Proteksi: cegah seleksi, drag, dan long-press save di mobile */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
+}
+
+/* --- Lightbox: overlay gambar penuh --- */
+.project-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: rgba(15, 23, 21, 0.88);
+  backdrop-filter: blur(4px);
+}
+
+.project-lightbox__img {
+  max-width: min(90vw, 1100px);
+  max-height: 78vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
+}
+
+.project-lightbox__caption {
+  font-family: 'Stack Sans Text', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.project-lightbox__close {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.project-lightbox__close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.project-lightbox__close-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .project-card__body {
@@ -521,6 +684,12 @@ function closeSheet() {
   max-width: 100%;
   object-fit: contain;
   display: block;
+  /* Proteksi: cegah seleksi, drag, dan long-press save di mobile */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
 }
 
 /* --- Tombol GitHub / Demo: icon-only --- */
