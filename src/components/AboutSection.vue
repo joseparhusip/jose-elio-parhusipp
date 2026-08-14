@@ -14,7 +14,7 @@ const highlights = [
   },
   {
     title: 'Analitis & terstruktur',
-    desc: 'Berpengalaman sebagai System Analyst — merancang ERD, UML, dan flowchart, serta mengelola jadwal dan anggaran proyek.',
+    desc: 'Berpengalaman sebagai System Analyst, merancang ERD, UML, dan flowchart, serta mengelola jadwal dan anggaran proyek.',
   },
   {
     title: 'Kolaboratif',
@@ -60,7 +60,7 @@ const toolsRow2 = tools.slice(3)
           Saya Jose, mahasiswa Bisnis Digital semester akhir di Universitas
           Logistik dan Bisnis Internasional (ULBI) Bandung. Saya punya minat
           besar pada pengolahan data serta pengembangan website dan aplikasi
-          mobile — mulai dari mengolah basis data dengan Google Colab,
+          mobile, mulai dari mengolah basis data dengan Google Colab,
           merancang sistem e-commerce dengan integrasi Midtrans dan
           RajaOngkir, sampai membangun aplikasi mobile dengan Flutter dan
           Dart. Saya terbiasa bekerja terstruktur, berpikir analitis, dan

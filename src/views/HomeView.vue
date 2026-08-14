@@ -75,13 +75,19 @@ onUnmounted(() => {
             Mahasiswa Bisnis Digital semester akhir dengan minat besar pada
             pengolahan data serta pengembangan web landing page, web
             e-commerce, dan aplikasi mobile. Terbiasa membangun sistem
-            end-to-end — dari desain di Figma, frontend, backend, sampai
-            visualisasi data.
+            end-to-end, mulai dari desain di Figma, frontend, backend,
+            hingga visualisasi data.
           </p>
 
           <div class="hero__actions">
             <a href="#proyek" class="hero__btn hero__btn--primary">Lihat Proyek</a>
-            <a href="/cv.pdf" class="hero__btn hero__btn--ghost" download>Unduh CV</a>
+            <a
+              href="/CV_Jose_Elio_Parhusip.pdf"
+              class="hero__btn hero__btn--ghost"
+              download="CV_Jose_Elio_Parhusip.pdf"
+            >
+              Unduh CV
+            </a>
 
             <div class="hero__socials">
               <a
