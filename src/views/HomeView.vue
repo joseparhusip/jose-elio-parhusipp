@@ -154,7 +154,7 @@ onUnmounted(() => {
             <span>Tahun Belajar</span>
           </div>
           <div class="hero__badge hero__badge--bottom">
-            <strong>3</strong>
+            <strong>5</strong>
             <span>Proyek Selesai</span>
           </div>
         </div>
