@@ -15,6 +15,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 })
 
+// Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
+function preventImageAction(event) {
+  event.preventDefault()
+  return false
+}
+
 const form = ref({
   name: '',
   email: '',
@@ -134,8 +140,21 @@ async function handleSubmit() {
 
         <ul class="contact__list">
           <li v-for="item in contactInfo" :key="item.label" class="contact__item">
-            <span class="contact__item-icon" aria-hidden="true">
-              <img :src="item.icon" :alt="item.iconAlt" class="contact__item-icon-img" />
+            <span
+              class="contact__item-icon"
+              aria-hidden="true"
+              oncontextmenu="return false"
+              @contextmenu.prevent="preventImageAction"
+            >
+              <img
+                :src="item.icon"
+                :alt="item.iconAlt"
+                class="contact__item-icon-img"
+                draggable="false"
+                oncontextmenu="return false"
+                @contextmenu.prevent="preventImageAction"
+                @dragstart.prevent="preventImageAction"
+              />
             </span>
             <span class="contact__item-text">
               <span class="contact__item-label">{{ item.label }}</span>
@@ -157,7 +176,12 @@ async function handleSubmit() {
 
         <div class="contact__map-block">
           <span class="contact__item-label">Lokasi</span>
-          <div ref="mapContainer" class="contact__map"></div>
+          <div
+            ref="mapContainer"
+            class="contact__map"
+            oncontextmenu="return false"
+            @contextmenu.prevent="preventImageAction"
+          ></div>
         </div>
       </div>
 
@@ -350,6 +374,12 @@ async function handleSubmit() {
   height: 24px;
   object-fit: contain;
   display: block;
+  /* Proteksi: cegah seleksi, drag, dan long-press save di mobile */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
 }
 
 .contact__item-text {
@@ -404,6 +434,14 @@ async function handleSubmit() {
   box-shadow: 0 20px 40px -25px rgba(37, 54, 50, 0.35);
   border: 1px solid rgba(107, 144, 128, 0.2);
   z-index: 0;
+}
+
+/* Proteksi gambar tile & marker peta: cegah save/drag, peta tetap bisa digeser & zoom */
+.contact__map :deep(img) {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 
 .contact__form {

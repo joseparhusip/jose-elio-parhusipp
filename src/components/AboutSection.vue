@@ -35,6 +35,12 @@ const tools = [
 // Dipisah manual jadi 2 baris tetap: baris 1 = 3 icon, baris 2 = 4 icon
 const toolsRow1 = tools.slice(0, 3)
 const toolsRow2 = tools.slice(3)
+
+// Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
+function preventImageAction(event) {
+  event.preventDefault()
+  return false
+}
 </script>
 
 <template>
@@ -86,6 +92,8 @@ const toolsRow2 = tools.slice(3)
               :key="tool.name"
               class="about__tools-item"
               :title="tool.name"
+              oncontextmenu="return false"
+              @contextmenu.prevent="preventImageAction"
             >
               <img
                 :src="tool.icon"
@@ -94,6 +102,10 @@ const toolsRow2 = tools.slice(3)
                 loading="lazy"
                 width="32"
                 height="32"
+                draggable="false"
+                oncontextmenu="return false"
+                @contextmenu.prevent="preventImageAction"
+                @dragstart.prevent="preventImageAction"
               />
             </li>
           </ul>
@@ -104,6 +116,8 @@ const toolsRow2 = tools.slice(3)
               :key="tool.name"
               class="about__tools-item"
               :title="tool.name"
+              oncontextmenu="return false"
+              @contextmenu.prevent="preventImageAction"
             >
               <img
                 :src="tool.icon"
@@ -112,6 +126,10 @@ const toolsRow2 = tools.slice(3)
                 loading="lazy"
                 width="32"
                 height="32"
+                draggable="false"
+                oncontextmenu="return false"
+                @contextmenu.prevent="preventImageAction"
+                @dragstart.prevent="preventImageAction"
               />
             </li>
           </ul>
@@ -300,6 +318,12 @@ const toolsRow2 = tools.slice(3)
   max-height: 100%;
   object-fit: contain;
   display: block;
+  /* Proteksi: cegah seleksi, drag, dan long-press save di mobile */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
 }
 
 @media (max-width: 900px) {

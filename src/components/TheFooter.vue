@@ -30,6 +30,12 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
+
+// Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
+function preventImageAction(event) {
+  event.preventDefault()
+  return false
+}
 </script>
 
 <template>
@@ -38,8 +44,7 @@ onUnmounted(() => {
       <div class="footer__brand">
         <a href="#beranda" class="footer__logo">Jose<span class="footer__logo-dot">.</span></a>
         <p class="footer__tagline">
-          Membangun antarmuka web yang rapi, cepat, dan enak dipakai —
-          satu proyek pada satu waktu.
+          Membangun antarmuka web yang rapi, cepat, dan enak dipakai — satu proyek pada satu waktu.
         </p>
       </div>
 
@@ -85,8 +90,18 @@ onUnmounted(() => {
             rel="noopener noreferrer"
             aria-label="LinkedIn"
             title="LinkedIn"
+            oncontextmenu="return false"
+            @contextmenu.prevent="preventImageAction"
           >
-            <img :src="linkedinIcon" alt="LinkedIn" class="footer__social-img" />
+            <img
+              :src="linkedinIcon"
+              alt="LinkedIn"
+              class="footer__social-img"
+              draggable="false"
+              oncontextmenu="return false"
+              @contextmenu.prevent="preventImageAction"
+              @dragstart.prevent="preventImageAction"
+            />
           </a>
 
           <a
@@ -96,8 +111,18 @@ onUnmounted(() => {
             rel="noopener noreferrer"
             aria-label="Instagram"
             title="Instagram"
+            oncontextmenu="return false"
+            @contextmenu.prevent="preventImageAction"
           >
-            <img :src="instagramIcon" alt="Instagram" class="footer__social-img" />
+            <img
+              :src="instagramIcon"
+              alt="Instagram"
+              class="footer__social-img"
+              draggable="false"
+              oncontextmenu="return false"
+              @contextmenu.prevent="preventImageAction"
+              @dragstart.prevent="preventImageAction"
+            />
           </a>
         </div>
       </div>
@@ -106,7 +131,9 @@ onUnmounted(() => {
         <h3 class="footer__heading">Kontak</h3>
         <ul class="footer__list">
           <li>
-            <a href="mailto:joseparhusip7@gmail.com" class="footer__link">joseparhusip7@gmail.com</a>
+            <a href="mailto:joseparhusip7@gmail.com" class="footer__link"
+              >joseparhusip7@gmail.com</a
+            >
           </li>
         </ul>
       </div>
@@ -128,7 +155,14 @@ onUnmounted(() => {
       title="Kembali ke atas"
     >
       <svg viewBox="0 0 24 24" class="top-btn__icon" aria-hidden="true">
-        <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7" />
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 19V5M5 12l7-7 7 7"
+        />
       </svg>
     </button>
   </Transition>
@@ -227,7 +261,10 @@ onUnmounted(() => {
   background: rgba(238, 243, 239, 0.1);
   border: 1px solid rgba(238, 243, 239, 0.2);
   color: #eef3ef;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .footer__social-link:hover {
@@ -248,6 +285,12 @@ onUnmounted(() => {
   display: block;
   /* Ikon logo aslinya berwarna; dijadikan putih agar senada dengan tema footer gelap */
   filter: brightness(0) invert(1);
+  /* Proteksi: cegah seleksi, drag, dan long-press save di mobile */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
 }
 
 .footer__bottom {
@@ -284,7 +327,10 @@ onUnmounted(() => {
   color: #fff;
   cursor: pointer;
   box-shadow: 0 14px 28px -12px rgba(37, 54, 50, 0.5);
-  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .top-btn:hover {
@@ -300,7 +346,9 @@ onUnmounted(() => {
 
 .top-btn-fade-enter-active,
 .top-btn-fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .top-btn-fade-enter-from,
