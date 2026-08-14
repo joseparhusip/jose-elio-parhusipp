@@ -109,6 +109,12 @@ async function handleDownloadCV(event) {
 onUnmounted(() => {
   clearTimeout(resetTimeoutId)
 })
+
+// Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
+function preventImageAction(event) {
+  event.preventDefault()
+  return false
+}
 </script>
 
 <template>
@@ -193,6 +199,8 @@ onUnmounted(() => {
                 rel="noopener noreferrer"
                 aria-label="GitHub"
                 title="GitHub"
+                oncontextmenu="return false"
+                @contextmenu.prevent="preventImageAction"
               >
                 <svg viewBox="0 0 24 24" class="hero__social-icon" aria-hidden="true">
                   <path
@@ -216,8 +224,18 @@ onUnmounted(() => {
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
                 title="LinkedIn"
+                oncontextmenu="return false"
+                @contextmenu.prevent="preventImageAction"
               >
-                <img :src="linkedinIcon" alt="LinkedIn" class="hero__social-img" />
+                <img
+                  :src="linkedinIcon"
+                  alt="LinkedIn"
+                  class="hero__social-img"
+                  draggable="false"
+                  oncontextmenu="return false"
+                  @contextmenu.prevent="preventImageAction"
+                  @dragstart.prevent="preventImageAction"
+                />
               </a>
 
               <a
@@ -227,8 +245,18 @@ onUnmounted(() => {
                 rel="noopener noreferrer"
                 aria-label="Instagram"
                 title="Instagram"
+                oncontextmenu="return false"
+                @contextmenu.prevent="preventImageAction"
               >
-                <img :src="instagramIcon" alt="Instagram" class="hero__social-img" />
+                <img
+                  :src="instagramIcon"
+                  alt="Instagram"
+                  class="hero__social-img"
+                  draggable="false"
+                  oncontextmenu="return false"
+                  @contextmenu.prevent="preventImageAction"
+                  @dragstart.prevent="preventImageAction"
+                />
               </a>
             </div>
           </div>
@@ -246,8 +274,9 @@ onUnmounted(() => {
               alt="Jose Elio Parhusip"
               class="hero__photo"
               draggable="false"
-              @contextmenu.prevent
-              @dragstart.prevent
+              oncontextmenu="return false"
+              @contextmenu.prevent="preventImageAction"
+              @dragstart.prevent="preventImageAction"
             />
           </div>
 
@@ -505,6 +534,9 @@ onUnmounted(() => {
 .hero__social-icon {
   width: 20px;
   height: 20px;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .hero__social-img {
@@ -512,6 +544,12 @@ onUnmounted(() => {
   height: 20px;
   object-fit: contain;
   display: block;
+  /* Proteksi: cegah seleksi, drag, dan long-press save di mobile */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
 }
 
 .hero__stack {
@@ -575,6 +613,8 @@ onUnmounted(() => {
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
 }
 
 .hero__badge {
