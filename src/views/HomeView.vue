@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import AboutSection from '@/components/AboutSection.vue'
 import ExperienceSection from '@/components/ExperienceSection.vue'
 import ProjectsSection from '@/components/ProjectsSection.vue'
@@ -55,6 +55,60 @@ onMounted(() => {
 onUnmounted(() => {
   clearTimeout(timeoutId)
 })
+
+// --- Unduh CV: state loading & selesai, dengan animasi custom ---
+const CV_PATH = '/CV_Jose_Elio_Parhusip.pdf'
+const CV_FILENAME = 'CV_Jose_Elio_Parhusip.pdf'
+const downloadState = ref('idle') // idle | loading | done
+let resetTimeoutId = null
+
+const downloadLabel = computed(() => {
+  if (downloadState.value === 'loading') return 'Menyiapkan berkas...'
+  if (downloadState.value === 'done') return 'Terunduh!'
+  return 'Unduh CV'
+})
+
+async function handleDownloadCV(event) {
+  event.preventDefault()
+
+  if (downloadState.value !== 'idle') return
+
+  downloadState.value = 'loading'
+
+  // Jeda minimum biar animasinya kerasa halus, bukan cuma kedip sekilas
+  const minDelay = new Promise((resolve) => setTimeout(resolve, 850))
+
+  try {
+    const [response] = await Promise.all([fetch(CV_PATH), minDelay])
+    if (!response.ok) throw new Error('Gagal mengambil berkas')
+
+    const blob = await response.blob()
+    const blobUrl = URL.createObjectURL(blob)
+
+    const tempLink = document.createElement('a')
+    tempLink.href = blobUrl
+    tempLink.download = CV_FILENAME
+    document.body.appendChild(tempLink)
+    tempLink.click()
+    document.body.removeChild(tempLink)
+    URL.revokeObjectURL(blobUrl)
+
+    downloadState.value = 'done'
+  } catch {
+    // Fallback: kalau fetch gagal, buka langsung di tab baru
+    window.open(CV_PATH, '_blank')
+    downloadState.value = 'idle'
+    return
+  }
+
+  resetTimeoutId = setTimeout(() => {
+    downloadState.value = 'idle'
+  }, 2400)
+}
+
+onUnmounted(() => {
+  clearTimeout(resetTimeoutId)
+})
 </script>
 
 <template>
@@ -83,10 +137,52 @@ onUnmounted(() => {
             <a href="#proyek" class="hero__btn hero__btn--primary">Lihat Proyek</a>
             <a
               href="/CV_Jose_Elio_Parhusip.pdf"
-              class="hero__btn hero__btn--ghost"
+              class="hero__btn hero__btn--ghost hero__btn--download"
+              :class="{
+                'is-loading': downloadState === 'loading',
+                'is-done': downloadState === 'done',
+              }"
+              :aria-disabled="downloadState !== 'idle'"
               download="CV_Jose_Elio_Parhusip.pdf"
+              @click="handleDownloadCV"
             >
-              Unduh CV
+              <span class="hero__btn-fill" aria-hidden="true"></span>
+
+              <span class="hero__btn-icon" aria-hidden="true">
+                <svg
+                  v-if="downloadState !== 'done'"
+                  viewBox="0 0 24 24"
+                  class="hero__btn-icon-svg hero__btn-icon-svg--arrow"
+                >
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 3.5v11m0 0-3.5-3.5M12 14.5 15.5 11"
+                  />
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    d="M5 18.5h14"
+                  />
+                </svg>
+                <svg v-else viewBox="0 0 24 24" class="hero__btn-icon-svg hero__btn-icon-svg--check">
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M5 12.5 10 17.5 19 7"
+                  />
+                </svg>
+              </span>
+
+              <span class="hero__btn-label" aria-live="polite">{{ downloadLabel }}</span>
             </a>
 
             <div class="hero__socials">
@@ -287,6 +383,97 @@ onUnmounted(() => {
 .hero__btn--ghost:hover {
   border-color: var(--color-primary, #6b9080);
   transform: translateY(-2px);
+}
+
+/* --- Tombol Unduh CV: fill bar + ikon animasi, tanpa spinner generik --- */
+.hero__btn--download {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.hero__btn--download.is-loading {
+  cursor: progress;
+  border-color: var(--color-primary, #6b9080);
+}
+
+.hero__btn--download.is-done {
+  border-color: var(--color-primary, #6b9080);
+  color: var(--color-primary-dark, #4f7566);
+}
+
+.hero__btn-fill {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--color-mint, #cfe3dd);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero__btn--download.is-loading .hero__btn-fill {
+  transform: scaleX(1);
+}
+
+.hero__btn--download.is-done .hero__btn-fill {
+  transform: scaleX(1);
+  transition: transform 0.3s ease;
+}
+
+.hero__btn-icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: 17px;
+  height: 17px;
+}
+
+.hero__btn-icon-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.hero__btn--download.is-loading .hero__btn-icon-svg--arrow {
+  animation: hero-download-bounce 0.9s ease-in-out infinite;
+}
+
+.hero__btn-icon-svg--check {
+  animation: hero-download-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hero__btn-label {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes hero-download-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(3px);
+    opacity: 0.55;
+  }
+}
+
+@keyframes hero-download-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .hero__socials {

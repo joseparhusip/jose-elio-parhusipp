@@ -46,18 +46,28 @@ const mapLocations = [
   { name: 'Bekasi', lat: -6.2383, lng: 106.9756 },
 ]
 
+// Batas wilayah Jawa Barat: peta tidak bisa digeser atau di-zoom out
+// sampai keluar provinsi (apalagi keluar Indonesia).
+const WEST_JAVA_BOUNDS = L.latLngBounds([-8.05, 105.75], [-5.6, 108.95])
+
 const mapContainer = ref(null)
 let mapInstance = null
 
 onMounted(() => {
   mapInstance = L.map(mapContainer.value, {
     scrollWheelZoom: false,
+    maxBounds: WEST_JAVA_BOUNDS,
+    maxBoundsViscosity: 1.0,
+    minZoom: 8,
+    maxZoom: 15,
   })
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 18,
+    maxZoom: 15,
+    minZoom: 8,
+    bounds: WEST_JAVA_BOUNDS,
   }).addTo(mapInstance)
 
   const markers = mapLocations.map((loc) =>
@@ -66,6 +76,7 @@ onMounted(() => {
 
   const group = L.featureGroup(markers)
   mapInstance.fitBounds(group.getBounds().pad(0.5))
+  mapInstance.setMaxBounds(WEST_JAVA_BOUNDS)
 })
 
 onBeforeUnmount(() => {
