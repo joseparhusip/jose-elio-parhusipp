@@ -10,11 +10,14 @@ import nodeIcon from './icons/icons-about/Node.js_logo.svg'
 import mysqlIcon from './icons/icons-about/mysql-ar21.svg'
 import googleIcon from './icons/icons-about/google-icon-logo-svgrepo-com.svg'
 import reactIcon from './icons/icons-about/React-icon.svg'
+import tailwindIcon from './icons/icons-about/Tailwind_CSS_Logo.svg'
 
 // Thumbnail proyek
 import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.png'
 import mobileJecThumb from './img-proyek/img-jec/IMG-JEC-1.jpeg'
 import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.png'
+import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.png'
+import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.png'
 
 const projects = [
   {
@@ -53,6 +56,27 @@ const projects = [
     ],
     demoHref: 'https://administrator-jec.vercel.app/',
     codeHref: 'https://github.com/joseparhusip/administrator-jec',
+  },
+  {
+    title: 'Secura Kost',
+    desc: 'Landing page dan sistem informasi untuk kost, dibangun sebagai proyek frontend murni menggunakan React JS dan Tailwind CSS. Menampilkan daftar kamar, fasilitas, dan informasi kost dengan tampilan yang responsif, tanpa terhubung ke backend atau database.',
+    thumb: securaKostThumb,
+    techStack: [
+      { name: 'React', icon: reactIcon },
+      { name: 'Tailwind CSS', icon: tailwindIcon },
+    ],
+    demoHref: 'https://secura-kost.vercel.app/',
+    codeHref: 'https://github.com/joseparhusip/secura-kost',
+  },
+  {
+    title: 'Toko Kelontong Online',
+    desc: 'Aplikasi katalog toko kelontong online, dikembangkan murni di sisi frontend menggunakan React JS. Menampilkan daftar produk dan fitur belanja sederhana secara statis tanpa koneksi ke database maupun backend.',
+    thumb: tokoKelontongThumb,
+    techStack: [
+      { name: 'React', icon: reactIcon },
+    ],
+    demoHref: 'https://toko-kelontong-online.vercel.app/',
+    codeHref: 'https://github.com/joseparhusip/toko-kelontong-online',
   },
 ]
 
