@@ -570,6 +570,10 @@ function closeSheet() {
     padding: 3.5rem 1.25rem;
   }
 
+  .projects__desc {
+    text-align: justify;
+  }
+
   .projects__grid {
     grid-template-columns: 1fr;
   }
@@ -627,6 +631,7 @@ function closeSheet() {
   .project-card__sheet-desc {
     font-size: 0.88rem;
     line-height: 1.65;
+    text-align: justify;
   }
 }
 </style>

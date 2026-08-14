@@ -576,6 +576,15 @@ async function handleSubmit() {
     padding: 3.5rem 1.25rem;
   }
 
+  .contact__eyebrow {
+    display: table;
+    margin: 0 auto;
+  }
+
+  .contact__desc {
+    text-align: justify;
+  }
+
   .contact__info {
     padding: 1.75rem;
   }

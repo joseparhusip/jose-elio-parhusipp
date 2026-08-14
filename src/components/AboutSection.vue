@@ -317,5 +317,18 @@ const toolsRow2 = tools.slice(3)
   .about {
     padding: 3.5rem 1.25rem;
   }
+
+  .about__eyebrow {
+    display: table;
+    margin: 0 auto;
+  }
+
+  .about__desc {
+    text-align: justify;
+  }
+
+  .about__highlight-desc {
+    text-align: justify;
+  }
 }
 </style>

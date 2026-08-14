@@ -212,6 +212,14 @@ const experiences = [
     padding: 3.5rem 1.25rem;
   }
 
+  .experience__desc {
+    text-align: justify;
+  }
+
+  .experience__item-desc {
+    text-align: justify;
+  }
+
   .experience__item {
     grid-template-columns: 20px 1fr;
     gap: 1rem;

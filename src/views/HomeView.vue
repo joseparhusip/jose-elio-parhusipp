@@ -450,6 +450,15 @@ onUnmounted(() => {
     padding: 3rem 1.25rem 3.5rem;
   }
 
+  .hero__eyebrow {
+    display: table;
+    margin: 0 auto;
+  }
+
+  .hero__desc {
+    text-align: justify;
+  }
+
   .hero__actions {
     flex-direction: column;
     align-items: stretch;
