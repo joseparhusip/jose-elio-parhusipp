@@ -320,7 +320,7 @@ function preventImageAction(event) {
 
 .projects__eyebrow {
   display: inline-flex;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-primary-dark, #4f7566);
@@ -330,7 +330,7 @@ function preventImageAction(event) {
 }
 
 .projects__title {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: clamp(1.8rem, 3vw, 2.4rem);
   line-height: 1.25;
   font-weight: 600;
@@ -339,7 +339,7 @@ function preventImageAction(event) {
 }
 
 .projects__desc {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.7;
   color: var(--color-text-soft, #5c6f69);
@@ -504,7 +504,7 @@ function preventImageAction(event) {
 }
 
 .project-lightbox__caption {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.95rem;
   font-weight: 600;
   color: #fff;
@@ -542,7 +542,7 @@ function preventImageAction(event) {
 }
 
 .project-card__title {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--color-text, #253632);
@@ -554,7 +554,7 @@ function preventImageAction(event) {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--color-primary-dark, #4f7566);
@@ -631,7 +631,7 @@ function preventImageAction(event) {
 }
 
 .project-card__sheet-title {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--color-text, #253632);
@@ -640,7 +640,7 @@ function preventImageAction(event) {
 }
 
 .project-card__sheet-desc {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.92rem;
   line-height: 1.7;
   color: var(--color-text-soft, #5c6f69);

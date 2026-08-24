@@ -125,7 +125,7 @@ onMounted(() => {
   width: 0;
   border-right: 3px solid var(--color-accent, #f2a488);
   padding-right: 4px;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: clamp(2.8rem, 9vw, 4.6rem);
   letter-spacing: 0.01em;
@@ -156,7 +156,7 @@ onMounted(() => {
 .loader__dot {
   display: inline-block;
   margin-left: 2px;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: clamp(2.8rem, 9vw, 4.6rem);
   color: var(--color-accent, #f2a488);
@@ -195,7 +195,7 @@ onMounted(() => {
 
 .loader__progress-num {
   min-width: 2.6ch;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.04em;

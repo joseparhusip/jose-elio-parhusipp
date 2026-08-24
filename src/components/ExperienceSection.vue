@@ -85,7 +85,7 @@ const experiences = [
 
 .experience__eyebrow {
   display: inline-flex;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-primary-dark, #4f7566);
@@ -95,7 +95,7 @@ const experiences = [
 }
 
 .experience__title {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: clamp(1.8rem, 3vw, 2.4rem);
   line-height: 1.25;
   font-weight: 600;
@@ -104,7 +104,7 @@ const experiences = [
 }
 
 .experience__desc {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.7;
   color: var(--color-text-soft, #5c6f69);
@@ -156,14 +156,14 @@ const experiences = [
 
 .experience__period {
   display: inline-block;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.78rem;
   color: var(--color-accent, #f2a488);
   margin-bottom: 0.5rem;
 }
 
 .experience__role {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: 1.3rem;
   font-weight: 600;
   color: var(--color-text, #253632);
@@ -172,7 +172,7 @@ const experiences = [
 
 .experience__company {
   display: block;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--color-text-soft, #5c6f69);
@@ -180,7 +180,7 @@ const experiences = [
 }
 
 .experience__item-desc {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.95rem;
   line-height: 1.7;
   color: var(--color-text-soft, #5c6f69);
@@ -198,7 +198,7 @@ const experiences = [
 }
 
 .experience__tag {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.72rem;
   color: var(--color-primary-dark, #4f7566);
   background: var(--color-bg, #f1f4f1);

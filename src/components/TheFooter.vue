@@ -186,7 +186,7 @@ function preventImageAction(event) {
 }
 
 .footer__logo {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 600;
   color: #fff;
@@ -200,14 +200,14 @@ function preventImageAction(event) {
 .footer__tagline {
   margin-top: 0.9rem;
   max-width: 320px;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.92rem;
   line-height: 1.6;
   color: rgba(238, 243, 239, 0.75);
 }
 
 .footer__heading {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -226,7 +226,7 @@ function preventImageAction(event) {
 }
 
 .footer__link {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.94rem;
   color: rgba(238, 243, 239, 0.85);
   text-decoration: none;
@@ -305,7 +305,7 @@ function preventImageAction(event) {
 }
 
 .footer__copyright {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   color: rgba(238, 243, 239, 0.6);
   margin: 0;

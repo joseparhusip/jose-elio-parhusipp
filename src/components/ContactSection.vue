@@ -304,7 +304,7 @@ async function handleSubmit() {
 
 .contact__eyebrow {
   display: inline-flex;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-primary-dark, #4f7566);
@@ -314,7 +314,7 @@ async function handleSubmit() {
 }
 
 .contact__title {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: clamp(1.8rem, 3vw, 2.4rem);
   line-height: 1.25;
   font-weight: 600;
@@ -323,7 +323,7 @@ async function handleSubmit() {
 }
 
 .contact__desc {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.75;
   color: var(--color-text-soft, #5c6f69);
@@ -390,7 +390,7 @@ async function handleSubmit() {
 }
 
 .contact__item-label {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -399,7 +399,7 @@ async function handleSubmit() {
 }
 
 .contact__item-value {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.98rem;
   font-weight: 600;
   color: var(--color-text, #253632);
@@ -461,14 +461,14 @@ async function handleSubmit() {
 }
 
 .contact__label {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-text, #253632);
 }
 
 .contact__input {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.95rem;
   color: var(--color-text, #253632);
   background: var(--color-bg, #f1f4f1);
@@ -486,7 +486,7 @@ async function handleSubmit() {
 .contact__textarea {
   resize: vertical;
   min-height: 100px;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
 }
 
 .contact__submit {
@@ -494,7 +494,7 @@ async function handleSubmit() {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.95rem;
   font-weight: 600;
   color: #fff;
@@ -578,7 +578,7 @@ async function handleSubmit() {
 }
 
 .contact__success-text {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-primary-dark, #4f7566);
@@ -605,7 +605,7 @@ async function handleSubmit() {
 }
 
 .contact__submit-status {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   margin: -0.5rem 0 0;
 }

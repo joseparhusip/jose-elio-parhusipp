@@ -181,7 +181,7 @@ function preventImageAction(event) {
 
 .about__quote-text {
   margin: 0;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-style: italic;
   font-size: 1.05rem;
   line-height: 1.5;
@@ -190,7 +190,7 @@ function preventImageAction(event) {
 
 .about__eyebrow {
   display: inline-flex;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-primary-dark, #4f7566);
@@ -200,7 +200,7 @@ function preventImageAction(event) {
 }
 
 .about__title {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: clamp(1.8rem, 3vw, 2.4rem);
   line-height: 1.25;
   font-weight: 600;
@@ -210,7 +210,7 @@ function preventImageAction(event) {
 }
 
 .about__desc {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.75;
   color: var(--color-text-soft, #5c6f69);
@@ -250,7 +250,7 @@ function preventImageAction(event) {
 
 .about__highlight-title {
   margin: 0 0 0.2rem;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-text, #253632);
@@ -258,7 +258,7 @@ function preventImageAction(event) {
 
 .about__highlight-desc {
   margin: 0;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   line-height: 1.6;
   color: var(--color-text-soft, #5c6f69);
@@ -272,7 +272,7 @@ function preventImageAction(event) {
 .about__tools-label {
   display: block;
   text-align: center;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;

@@ -122,7 +122,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 }
 
 .navbar__logo {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: 1.4rem;
   font-weight: 600;
   color: var(--color-text, #253632);
@@ -146,7 +146,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 .navbar__link {
   position: relative;
   display: inline-block;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--color-text-soft, #5c6f69);
@@ -198,7 +198,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 }
 
 .navbar__cta {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   font-weight: 600;
   color: #fff;

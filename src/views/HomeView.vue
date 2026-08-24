@@ -272,7 +272,7 @@ function preventImageAction(event) {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-primary-dark, #4f7566);
@@ -282,7 +282,7 @@ function preventImageAction(event) {
 }
 
 .hero__title {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: clamp(2.2rem, 4.2vw, 3.4rem);
   line-height: 1.15;
   font-weight: 600;
@@ -314,7 +314,7 @@ function preventImageAction(event) {
 }
 
 .hero__desc {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 1.05rem;
   line-height: 1.7;
   color: var(--color-text-soft, #5c6f69);
@@ -330,7 +330,7 @@ function preventImageAction(event) {
 }
 
 .hero__btn {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.95rem;
   font-weight: 600;
   padding: 0.85rem 1.7rem;
@@ -490,7 +490,7 @@ function preventImageAction(event) {
 }
 
 .hero__stack-item {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.78rem;
   color: var(--color-primary-dark, #4f7566);
   background: #fff;
@@ -553,13 +553,13 @@ function preventImageAction(event) {
 }
 
 .hero__badge strong {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-heading);
   font-size: 1.3rem;
   color: var(--color-text, #253632);
 }
 
 .hero__badge span {
-  font-family: 'Stack Sans Text', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.75rem;
   color: var(--color-text-soft, #5c6f69);
 }
