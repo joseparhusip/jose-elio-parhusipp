@@ -10,7 +10,7 @@ import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-sv
 
 const stack = ['Web Landing Page', 'Web E-commerce', 'Mobile App', 'Data']
 
-const roles = ['Full Stack Developer', 'Flutter Developer', 'Data Analyst', 'System Analyst']
+const roles = ['Full Stack Developer', 'Flutter Developer', 'Data Analyst', 'Business Analyst']
 const typedRole = ref('')
 
 let roleIndex = 0
@@ -56,10 +56,9 @@ onUnmounted(() => {
   clearTimeout(timeoutId)
 })
 
-// --- Unduh CV: state loading & selesai, dengan animasi custom ---
 const CV_PATH = '/CV_Jose_Elio_Parhusip.pdf'
 const CV_FILENAME = 'CV_Jose_Elio_Parhusip.pdf'
-const downloadState = ref('idle') // idle | loading | done
+const downloadState = ref('idle')
 let resetTimeoutId = null
 
 const downloadLabel = computed(() => {
@@ -75,7 +74,6 @@ async function handleDownloadCV(event) {
 
   downloadState.value = 'loading'
 
-  // Jeda minimum biar animasinya kerasa halus, bukan cuma kedip sekilas
   const minDelay = new Promise((resolve) => setTimeout(resolve, 850))
 
   try {
@@ -95,7 +93,6 @@ async function handleDownloadCV(event) {
 
     downloadState.value = 'done'
   } catch {
-    // Fallback: kalau fetch gagal, buka langsung di tab baru
     window.open(CV_PATH, '_blank')
     downloadState.value = 'idle'
     return
@@ -110,7 +107,6 @@ onUnmounted(() => {
   clearTimeout(resetTimeoutId)
 })
 
-// Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
 function preventImageAction(event) {
   event.preventDefault()
   return false
@@ -144,10 +140,7 @@ function preventImageAction(event) {
             <a
               href="/CV_Jose_Elio_Parhusip.pdf"
               class="hero__btn hero__btn--ghost hero__btn--download"
-              :class="{
-                'is-loading': downloadState === 'loading',
-                'is-done': downloadState === 'done',
-              }"
+              :class="{ 'is-loading': downloadState === 'loading', 'is-done': downloadState === 'done' }"
               :aria-disabled="downloadState !== 'idle'"
               download="CV_Jose_Elio_Parhusip.pdf"
               @click="handleDownloadCV"
@@ -155,36 +148,12 @@ function preventImageAction(event) {
               <span class="hero__btn-fill" aria-hidden="true"></span>
 
               <span class="hero__btn-icon" aria-hidden="true">
-                <svg
-                  v-if="downloadState !== 'done'"
-                  viewBox="0 0 24 24"
-                  class="hero__btn-icon-svg hero__btn-icon-svg--arrow"
-                >
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M12 3.5v11m0 0-3.5-3.5M12 14.5 15.5 11"
-                  />
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    d="M5 18.5h14"
-                  />
+                <svg v-if="downloadState !== 'done'" viewBox="0 0 24 24" class="hero__btn-icon-svg hero__btn-icon-svg--arrow">
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3.5v11m0 0-3.5-3.5M12 14.5 15.5 11" />
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 18.5h14" />
                 </svg>
                 <svg v-else viewBox="0 0 24 24" class="hero__btn-icon-svg hero__btn-icon-svg--check">
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.4"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M5 12.5 10 17.5 19 7"
-                  />
+                  <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5 10 17.5 19 7" />
                 </svg>
               </span>
 
@@ -199,21 +168,10 @@ function preventImageAction(event) {
                 rel="noopener noreferrer"
                 aria-label="GitHub"
                 title="GitHub"
-                oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
               >
                 <svg viewBox="0 0 24 24" class="hero__social-icon" aria-hidden="true">
-                  <path
-                    fill="currentColor"
-                    d="M12 .5C5.73.5.75 5.48.75 11.75c0 5.02 3.26 9.27 7.78 10.77.57.1.78-.25.78-.55
-                       0-.27-.01-1-.02-1.96-3.16.69-3.83-1.52-3.83-1.52-.52-1.31-1.26-1.66-1.26-1.66
-                       -1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94
-                       .1-.73.4-1.23.72-1.51-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04
-                       -.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.16a10.9 10.9 0 0 1 5.74 0
-                       c2.19-1.47 3.15-1.16 3.15-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04
-                       0 4.35-2.66 5.31-5.19 5.59.41.35.77 1.04.77 2.1 0 1.51-.01 2.73-.01 3.1
-                       0 .3.2.66.79.55A11.26 11.26 0 0 0 23.25 11.75C23.25 5.48 18.27.5 12 .5Z"
-                  />
+                  <path fill="currentColor" d="M12 .5C5.73.5.75 5.48.75 11.75c0 5.02 3.26 9.27 7.78 10.77.57.1.78-.25.78-.55 0-.27-.01-1-.02-1.96-3.16.69-3.83-1.52-3.83-1.52-.52-1.31-1.26-1.66-1.26-1.66-1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94.1-.73.4-1.23.72-1.51-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.16a10.9 10.9 0 0 1 5.74 0c2.19-1.47 3.15-1.16 3.15-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04 0 4.35-2.66 5.31-5.19 5.59.41.35.77 1.04.77 2.1 0 1.51-.01 2.73-.01 3.1 0 .3.2.66.79.55A11.26 11.26 0 0 0 23.25 11.75C23.25 5.48 18.27.5 12 .5Z" />
                 </svg>
               </a>
 
@@ -224,7 +182,6 @@ function preventImageAction(event) {
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
                 title="LinkedIn"
-                oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
               >
                 <img
@@ -232,7 +189,6 @@ function preventImageAction(event) {
                   alt="LinkedIn"
                   class="hero__social-img"
                   draggable="false"
-                  oncontextmenu="return false"
                   @contextmenu.prevent="preventImageAction"
                   @dragstart.prevent="preventImageAction"
                 />
@@ -245,7 +201,6 @@ function preventImageAction(event) {
                 rel="noopener noreferrer"
                 aria-label="Instagram"
                 title="Instagram"
-                oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
               >
                 <img
@@ -253,7 +208,6 @@ function preventImageAction(event) {
                   alt="Instagram"
                   class="hero__social-img"
                   draggable="false"
-                  oncontextmenu="return false"
                   @contextmenu.prevent="preventImageAction"
                   @dragstart.prevent="preventImageAction"
                 />
@@ -274,7 +228,6 @@ function preventImageAction(event) {
               alt="Jose Elio Parhusip"
               class="hero__photo"
               draggable="false"
-              oncontextmenu="return false"
               @contextmenu.prevent="preventImageAction"
               @dragstart.prevent="preventImageAction"
             />
@@ -356,14 +309,8 @@ function preventImageAction(event) {
 }
 
 @keyframes hero-cursor-blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  50.01%,
-  100% {
-    opacity: 0;
-  }
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
 }
 
 .hero__desc {
@@ -414,7 +361,6 @@ function preventImageAction(event) {
   transform: translateY(-2px);
 }
 
-/* --- Tombol Unduh CV: fill bar + ikon animasi, tanpa spinner generik --- */
 .hero__btn--download {
   position: relative;
   display: inline-flex;
@@ -481,29 +427,14 @@ function preventImageAction(event) {
 }
 
 @keyframes hero-download-bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  50% {
-    transform: translateY(3px);
-    opacity: 0.55;
-  }
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(3px); opacity: 0.55; }
 }
 
 @keyframes hero-download-pop {
-  0% {
-    transform: scale(0.4);
-    opacity: 0;
-  }
-  70% {
-    transform: scale(1.15);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(0.4); opacity: 0; }
+  70% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
 }
 
 .hero__socials {
@@ -534,7 +465,6 @@ function preventImageAction(event) {
 .hero__social-icon {
   width: 20px;
   height: 20px;
-  -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
@@ -544,8 +474,6 @@ function preventImageAction(event) {
   height: 20px;
   object-fit: contain;
   display: block;
-  /* Proteksi: cegah seleksi, drag, dan long-press save di mobile */
-  -webkit-user-select: none;
   user-select: none;
   -webkit-user-drag: none;
   -webkit-touch-callout: none;
@@ -607,12 +535,7 @@ function preventImageAction(event) {
   object-fit: cover;
   display: block;
   -webkit-user-drag: none;
-  -khtml-user-drag: none;
-  -moz-user-drag: none;
-  -o-user-drag: none;
   user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
   -webkit-touch-callout: none;
   pointer-events: none;
 }
