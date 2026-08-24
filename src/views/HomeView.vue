@@ -56,8 +56,8 @@ onUnmounted(() => {
   clearTimeout(timeoutId)
 })
 
-const CV_PATH = '/CV_Jose_Elio_Parhusip.pdf'
-const CV_FILENAME = 'CV_Jose_Elio_Parhusip.pdf'
+const CV_PATH = '/CV JOSE-ELIO-PARHUSIP.pdf'
+const CV_FILENAME = 'CV JOSE-ELIO-PARHUSIP.pdf'
 const downloadState = ref('idle')
 let resetTimeoutId = null
 
@@ -138,11 +138,11 @@ function preventImageAction(event) {
           <div class="hero__actions">
             <a href="#proyek" class="hero__btn hero__btn--primary">Lihat Proyek</a>
             <a
-              href="/CV_Jose_Elio_Parhusip.pdf"
+              href="/CV JOSE-ELIO-PARHUSIP.pdf"
               class="hero__btn hero__btn--ghost hero__btn--download"
               :class="{ 'is-loading': downloadState === 'loading', 'is-done': downloadState === 'done' }"
               :aria-disabled="downloadState !== 'idle'"
-              download="CV_Jose_Elio_Parhusip.pdf"
+              download="CV JOSE-ELIO-PARHUSIP.pdf"
               @click="handleDownloadCV"
             >
               <span class="hero__btn-fill" aria-hidden="true"></span>
