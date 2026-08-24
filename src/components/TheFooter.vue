@@ -142,6 +142,8 @@ function preventImageAction(event) {
     <div class="footer__bottom">
       <p class="footer__copyright">&copy; {{ year }} Jose Elio Parhusip. Semua hak dilindungi.</p>
     </div>
+
+    <span class="footer__deco-text" aria-hidden="true">JOSE</span>
   </footer>
 
   <!-- Tombol kembali ke atas: melayang di pojok kanan bawah layar -->
@@ -170,12 +172,67 @@ function preventImageAction(event) {
 
 <style scoped>
 .footer {
+  position: relative;
   background: var(--color-primary-dark, #3f5f53);
   color: #eef3ef;
   padding: 3.5rem 1.5rem 1.5rem;
+  overflow: hidden;
+}
+
+/* Teks dekoratif "JOSE" 3D bergaris, nempel di pojok kanan bawah footer */
+.footer__deco-text {
+  position: absolute;
+  right: -0.1rem;
+  bottom: -0.55rem;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(3.5rem, 12vw, 8rem);
+  line-height: 1;
+  letter-spacing: 0.01em;
+
+  /* Pola garis-garis (stripe) sebagai isi teks */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(238, 243, 239, 0.55) 0px,
+    rgba(238, 243, 239, 0.55) 3px,
+    transparent 3px,
+    transparent 8px
+  );
+  background-color: rgba(238, 243, 239, 0.06);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  /* Efek 3D: tumpukan bayangan teks berlapis */
+  text-shadow:
+    1px 1px 0 rgba(0, 0, 0, 0.18),
+    2px 2px 0 rgba(0, 0, 0, 0.16),
+    3px 3px 0 rgba(0, 0, 0, 0.14),
+    4px 4px 0 rgba(0, 0, 0, 0.12),
+    5px 5px 0 rgba(0, 0, 0, 0.1),
+    6px 6px 10px rgba(0, 0, 0, 0.25);
+
+  opacity: 0.9;
+}
+
+@media (max-width: 820px) {
+  .footer__deco-text {
+    font-size: clamp(2.8rem, 16vw, 5rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .footer__deco-text {
+    display: none;
+  }
 }
 
 .footer__top {
+  position: relative;
+  z-index: 1;
   max-width: 1160px;
   margin: 0 auto;
   display: grid;
@@ -294,6 +351,8 @@ function preventImageAction(event) {
 }
 
 .footer__bottom {
+  position: relative;
+  z-index: 1;
   max-width: 1160px;
   margin: 0 auto;
   padding-top: 1.5rem;
