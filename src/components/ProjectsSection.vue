@@ -22,7 +22,13 @@ import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelonto
 const projects = [
   {
     title: 'Dashboard KOL',
-    desc: 'Dashboard analitik untuk memantau performa Key Opinion Leader (KOL), dibangun dengan Python dan Streamlit. Data konten dan engagement diolah langsung dari file Excel, lalu divisualisasikan dalam bentuk grafik dan tabel interaktif agar tren dan performa lebih mudah dibaca untuk pengambilan keputusan.',
+    desc: [
+      'Membangun pipeline ETL dengan Python (Pandas) untuk membersihkan dan mentransformasi data ekspor TikTok Shop.',
+      'Mengidentifikasi dan memperbaiki bug double-counting pada metrik views dan likes yang menyebabkan data performa creator terhitung berulang.',
+      'Merancang metrik turunan (GMV, Conversion Rate, GMV per View, Engagement Rate) serta sistem scoring creator berbasis percentile-rank yang tahan terhadap outlier.',
+      'Membangun dan menghosting dashboard BI interaktif 5 halaman (Streamlit + Plotly) mencakup Overview, Campaign & Produk, Creator Intelligence, Risk & Anomali, dan AI Insights untuk monitoring GMV dan performa campaign secara real time.',
+      'Mengintegrasikan Gemini AI API untuk menghasilkan analisis strategi dan rencana aksi 30 hari secara otomatis berdasarkan ringkasan performa bulanan.',
+    ],
     thumb: kolThumb,
     techStack: [
       { name: 'Python', icon: pythonIcon },
@@ -34,7 +40,14 @@ const projects = [
   },
   {
     title: 'Mobile JEC',
-    desc: 'Aplikasi mobile untuk JEC Eye Hospitals & Clinics, dibangun dengan Flutter di sisi frontend dan Node.js di backend, dengan MySQL sebagai basis data. Dilengkapi fitur OCR untuk membaca data KTP secara otomatis saat pendaftaran, serta login dengan akun Google agar proses masuk lebih cepat dan aman.',
+    desc: [
+      'Mengumpulkan data melalui kuesioner ke pengguna baru non-JEC sebagai dasar analisis kebutuhan aplikasi.',
+      'Merancang UI aplikasi di Figma serta mendokumentasikan arsitektur sistem melalui Use Case, Activity, Class Diagram, dan ERD.',
+      'Membangun backend menggunakan Node.js & Express.js untuk mendukung komunikasi data antara aplikasi dan server.',
+      'Mengimplementasikan sistem autentikasi (auth) dan fitur keamanan aplikasi untuk melindungi data pengguna.',
+      'Merancang database relasional menggunakan MySQL dengan metode pengembangan sistem Waterfall yang diintegrasikan pendekatan User-Centered Design (UCD).',
+      'Mengimplementasikan UI ke aplikasi Android menggunakan Flutter & Dart, termasuk fitur OCR untuk membaca data KTP secara otomatis saat pendaftaran, serta login dengan akun Google.',
+    ],
     thumb: mobileJecThumb,
     techStack: [
       { name: 'Flutter', icon: flutterIcon },
@@ -47,7 +60,13 @@ const projects = [
   },
   {
     title: 'Dashboard JEC',
-    desc: 'Dashboard admin untuk JEC Eye Hospitals & Clinics, dikembangkan dengan React di frontend dan Node.js di backend, didukung basis data MySQL. Digunakan untuk mengelola data pasien, jadwal, dan operasional klinik secara terpusat dalam satu tampilan yang ringkas.',
+    desc: [
+      'Merancang dan mengembangkan antarmuka admin dashboard menggunakan React JS untuk mengelola data pasien, jadwal, dan operasional klinik secara terpusat.',
+      'Membangun backend menggunakan Node.js & Express.js, satu ekosistem yang sama dengan backend Mobile JEC, untuk mendukung komunikasi data antara dashboard dan server.',
+      'Mengimplementasikan sistem autentikasi (auth) dan fitur keamanan aplikasi untuk melindungi akses data admin.',
+      'Menggunakan database relasional MySQL yang sama dan terintegrasi dengan aplikasi Mobile JEC, sehingga data pasien dan operasional tetap konsisten di kedua platform.',
+      'Menyediakan tampilan ringkas berupa statistik, antrian pasien, dan manajemen data secara terpusat untuk mempermudah operasional klinik sehari-hari.',
+    ],
     thumb: dashboardJecThumb,
     techStack: [
       { name: 'React', icon: reactIcon },
@@ -59,7 +78,14 @@ const projects = [
   },
   {
     title: 'Secura Kost',
-    desc: 'Landing page dan sistem informasi untuk kost, dibangun sebagai proyek frontend murni menggunakan React JS dan Tailwind CSS. Menampilkan daftar kamar, fasilitas, dan informasi kost dengan tampilan yang responsif, tanpa terhubung ke backend atau database.',
+    desc: [
+      'Mengembangkan prototype platform marketplace kost secara end-to-end, mencakup perancangan UI/UX, arsitektur komponen, dan alur navigasi antar halaman.',
+      'Membangun frontend menggunakan Vue.js dan Tailwind CSS.',
+      'Membangun sistem autentikasi dua peran (penyewa & pemilik kost) dengan tab switching dinamis dan validasi form interaktif.',
+      'Mengimplementasikan fitur Virtual Tour 360° pada detail kost untuk meningkatkan transparansi dan kepercayaan pengguna.',
+      'Merancang landing page responsif dengan komponen dinamis: hero carousel, grid solusi, timeline cara kerja, dan segmentasi target audiens.',
+      'Membangun modul profil tim dengan struktur visual (tree layout) menggunakan komponen reusable.',
+    ],
     thumb: tokoKelontongThumb,
     techStack: [
       { name: 'React', icon: reactIcon },
@@ -70,7 +96,15 @@ const projects = [
   },
   {
     title: 'Toko Kelontong Online',
-    desc: 'Aplikasi katalog toko kelontong online, dikembangkan murni di sisi frontend menggunakan React JS. Menampilkan daftar produk dan fitur belanja sederhana secara statis tanpa koneksi ke database maupun backend.',
+    desc: [
+      'Mengembangkan prototype website e-commerce "Toko Kelontong Online" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi halaman.',
+      'Membangun frontend menggunakan Vue.js (Composition API) dan Tailwind CSS.',
+      'Mengimplementasikan state management dengan Pinia untuk mengelola keranjang belanja dan filter kategori produk secara reaktif.',
+      'Membangun katalog produk dinamis dengan filter kategori, fallback gambar error, dan format Rupiah otomatis.',
+      'Merancang alur pemesanan lengkap dari katalog, detail pesanan, hingga riwayat pesanan pengguna.',
+      'Membangun komponen reusable (navbar, footer, page header, promo banner, testimonial) untuk konsistensi desain.',
+      'Menyusun halaman informasi pendukung (FAQ, cara pemesanan, kebijakan privasi, syarat & ketentuan, hubungi kami).',
+    ],
     thumb: securaKostThumb,
     techStack: [
       { name: 'React', icon: reactIcon },
@@ -258,7 +292,15 @@ function preventImageAction(event) {
             </button>
 
             <h4 class="project-card__sheet-title">{{ project.title }}</h4>
-            <p class="project-card__sheet-desc">{{ project.desc }}</p>
+            <ul class="project-card__sheet-desc-list">
+              <li
+                v-for="point in project.desc"
+                :key="point"
+                class="project-card__sheet-desc-point"
+              >
+                {{ point }}
+              </li>
+            </ul>
           </div>
         </article>
       </div>
@@ -639,13 +681,34 @@ function preventImageAction(event) {
   padding-right: 2rem;
 }
 
-.project-card__sheet-desc {
+.project-card__sheet-desc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.project-card__sheet-desc-point {
+  position: relative;
+  padding-left: 1.1rem;
   font-family: var(--font-body);
   font-size: 0.92rem;
-  line-height: 1.7;
+  line-height: 1.65;
   color: var(--color-text-soft, #5c6f69);
-  margin: 0;
-  overflow-y: auto;
+}
+
+.project-card__sheet-desc-point::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary, #6b9080);
 }
 
 /* --- Baris footer: tech stack di kiri, icon GitHub/Demo di kanan, sejajar --- */
@@ -797,9 +860,9 @@ function preventImageAction(event) {
     padding-right: 1.75rem;
   }
 
-  .project-card__sheet-desc {
+  .project-card__sheet-desc-point {
     font-size: 0.88rem;
-    line-height: 1.65;
+    line-height: 1.6;
     text-align: justify;
   }
 }
