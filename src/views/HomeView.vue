@@ -128,11 +128,18 @@ function preventImageAction(event) {
           </h1>
 
           <p class="hero__desc">
-            Mahasiswa Bisnis Digital semester akhir dengan minat besar pada
-            pengolahan data serta pengembangan web landing page, web
-            e-commerce, dan aplikasi mobile. Terbiasa membangun sistem
-            end-to-end, mulai dari desain di Figma, frontend, backend,
-            hingga visualisasi data.
+            Fresh Graduate S1 Bisnis Digital dengan IPK 3.75 dari 4.00,
+            memiliki minat besar di bidang teknologi, khususnya web,
+            mobile, data, dan AI. Berkompeten di Full Stack Development,
+            System Analysis, serta Data dan Business Intelligence.
+            Terbiasa membangun aplikasi web dan mobile secara menyeluruh
+            menggunakan React.js, Vue.js, Node.js, PHP, MySQL, dan
+            PostgreSQL, mulai dari analisis kebutuhan, pemodelan sistem
+            seperti UML, ERD, dan Flowchart, hingga visualisasi data
+            dengan Python dan Streamlit. Berpengalaman juga membangun
+            aplikasi mobile menggunakan Flutter dan Dart, didukung
+            sertifikasi SAP, serta terbiasa bekerja secara analitis,
+            terstruktur, dan kolaboratif dalam tim.
           </p>
 
           <div class="hero__actions">

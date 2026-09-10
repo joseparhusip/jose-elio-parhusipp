@@ -291,7 +291,10 @@ function preventImageAction(event) {
               </svg>
             </button>
 
+            <span class="project-card__sheet-eyebrow">Ringkasan Pengerjaan</span>
             <h4 class="project-card__sheet-title">{{ project.title }}</h4>
+            <span class="project-card__sheet-divider" aria-hidden="true"></span>
+
             <ul class="project-card__sheet-desc-list">
               <li
                 v-for="point in project.desc"
@@ -672,43 +675,104 @@ function preventImageAction(event) {
   height: 16px;
 }
 
+.project-card__sheet-eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-primary-dark, #4f7566);
+  background: var(--color-mint, #cfe3dd);
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  margin: 0 0 0.6rem;
+}
+
 .project-card__sheet-title {
   font-family: var(--font-heading);
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--color-text, #253632);
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.9rem;
   padding-right: 2rem;
+}
+
+.project-card__sheet-divider {
+  display: block;
+  height: 1px;
+  margin: 0 0 1.1rem;
+  background: linear-gradient(90deg, rgba(107, 144, 128, 0.35), rgba(107, 144, 128, 0));
 }
 
 .project-card__sheet-desc-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0.1rem 0 0.4rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.7rem;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
 }
 
 .project-card__sheet-desc-point {
   position: relative;
-  padding-left: 1.1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  counter-increment: sheet-point;
   font-family: var(--font-body);
   font-size: 0.92rem;
   line-height: 1.65;
   color: var(--color-text-soft, #5c6f69);
 }
 
+.project-card__sheet-desc-list {
+  counter-reset: sheet-point;
+}
+
 .project-card__sheet-desc-point::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.55em;
-  width: 6px;
-  height: 6px;
+  content: counter(sheet-point);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  margin-top: 0.1rem;
   border-radius: 50%;
-  background: var(--color-primary, #6b9080);
+  background: var(--color-mint, #cfe3dd);
+  color: var(--color-primary-dark, #4f7566);
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.project-card__sheet--open .project-card__sheet-desc-point {
+  animation: project-sheet-point-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.project-card__sheet-desc-point:nth-child(1) { animation-delay: 0.08s; }
+.project-card__sheet-desc-point:nth-child(2) { animation-delay: 0.13s; }
+.project-card__sheet-desc-point:nth-child(3) { animation-delay: 0.18s; }
+.project-card__sheet-desc-point:nth-child(4) { animation-delay: 0.23s; }
+.project-card__sheet-desc-point:nth-child(5) { animation-delay: 0.28s; }
+.project-card__sheet-desc-point:nth-child(6) { animation-delay: 0.33s; }
+.project-card__sheet-desc-point:nth-child(7) { animation-delay: 0.38s; }
+.project-card__sheet-desc-point:nth-child(n + 8) { animation-delay: 0.43s; }
+
+@keyframes project-sheet-point-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* --- Baris footer: tech stack di kiri, icon GitHub/Demo di kanan, sejajar --- */
@@ -858,6 +922,15 @@ function preventImageAction(event) {
   .project-card__sheet-title {
     font-size: 1rem;
     padding-right: 1.75rem;
+  }
+
+  .project-card__sheet-eyebrow {
+    font-size: 0.62rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .project-card__sheet-divider {
+    margin-bottom: 0.9rem;
   }
 
   .project-card__sheet-desc-point {
