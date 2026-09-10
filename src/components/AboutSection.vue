@@ -46,10 +46,6 @@ const tools = [
   { name: 'PHP', icon: phpIcon },
 ]
 
-// Dipisah manual jadi 2 baris tetap: baris 1 = 7 icon, baris 2 = 7 icon
-const toolsRow1 = tools.slice(0, 7)
-const toolsRow2 = tools.slice(7)
-
 // Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
 function preventImageAction(event) {
   event.preventDefault()
@@ -102,31 +98,7 @@ function preventImageAction(event) {
 
           <ul class="about__tools-list">
             <li
-              v-for="tool in toolsRow1"
-              :key="tool.name"
-              class="about__tools-item"
-              :title="tool.name"
-              oncontextmenu="return false"
-              @contextmenu.prevent="preventImageAction"
-            >
-              <img
-                :src="tool.icon"
-                :alt="tool.name"
-                class="about__tools-icon"
-                loading="lazy"
-                width="32"
-                height="32"
-                draggable="false"
-                oncontextmenu="return false"
-                @contextmenu.prevent="preventImageAction"
-                @dragstart.prevent="preventImageAction"
-              />
-            </li>
-          </ul>
-
-          <ul class="about__tools-list about__tools-list--second">
-            <li
-              v-for="tool in toolsRow2"
+              v-for="tool in tools"
               :key="tool.name"
               class="about__tools-item"
               :title="tool.name"
@@ -296,17 +268,14 @@ function preventImageAction(event) {
 }
 
 .about__tools-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.6rem;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  justify-items: center;
+  align-items: center;
+  gap: 1rem 0.5rem;
   list-style: none;
   margin: 0;
   padding: 0;
-}
-
-.about__tools-list--second {
-  margin-top: 0.6rem;
 }
 
 .about__tools-item {
@@ -348,6 +317,22 @@ function preventImageAction(event) {
   .about__visual {
     order: -1;
     min-height: 260px;
+  }
+
+  .about__tools-list {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .about__tools-list {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 400px) {
+  .about__tools-list {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
