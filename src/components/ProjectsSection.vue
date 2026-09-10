@@ -4,7 +4,7 @@ import { ref } from 'vue'
 // Tech stack icons
 import pythonIcon from './icons/icons-about/Python-logo-notext.svg'
 import streamlitIcon from './icons/icons-about/Streamlit.svg'
-import excelIcon from './icons/icons-about/Microsoft_Office_Excel_(2025–present).svg'
+import excelIcon from './icons/icons-about/excel-logo.svg'
 import flutterIcon from './icons/icons-about/lockup_flutter_horizontal.svg'
 import nodeIcon from './icons/icons-about/Node.js_logo.svg'
 import mysqlIcon from './icons/icons-about/mysql-ar21.svg'
