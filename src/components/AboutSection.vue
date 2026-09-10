@@ -6,6 +6,13 @@ import pythonIcon from './icons/icons-about/Python-logo-notext.svg'
 import reactIcon from './icons/icons-about/React-icon.svg'
 import streamlitIcon from './icons/icons-about/Streamlit.svg'
 import vueIcon from './icons/icons-about/Vue.js_Logo_2.svg'
+import excelIcon from './icons/icons-about/Microsoft_Office_Excel_(2025-present).svg'
+import plotlyIcon from './icons/icons-about/plotly-ar21.svg'
+import colabIcon from './icons/icons-about/Google_Colaboratory_SVG_Logo.svg'
+import postgresqlIcon from './icons/icons-about/Logo_PostgreSQL.png'
+import mysqlIcon from './icons/icons-about/mysql-ar21.svg'
+import nodejsIcon from './icons/icons-about/Node.js_logo.svg'
+import phpIcon from './icons/icons-about/new-php-logo.svg'
 
 const highlights = [
   {
@@ -30,11 +37,18 @@ const tools = [
   { name: 'React', icon: reactIcon },
   { name: 'Streamlit', icon: streamlitIcon },
   { name: 'Vue.js', icon: vueIcon },
+  { name: 'Excel', icon: excelIcon },
+  { name: 'Plotly', icon: plotlyIcon },
+  { name: 'Google Colab', icon: colabIcon },
+  { name: 'PostgreSQL', icon: postgresqlIcon },
+  { name: 'MySQL', icon: mysqlIcon },
+  { name: 'Node.js', icon: nodejsIcon },
+  { name: 'PHP', icon: phpIcon },
 ]
 
-// Dipisah manual jadi 2 baris tetap: baris 1 = 3 icon, baris 2 = 4 icon
-const toolsRow1 = tools.slice(0, 3)
-const toolsRow2 = tools.slice(3)
+// Dipisah manual jadi 2 baris tetap: baris 1 = 7 icon, baris 2 = 7 icon
+const toolsRow1 = tools.slice(0, 7)
+const toolsRow2 = tools.slice(7)
 
 // Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
 function preventImageAction(event) {
