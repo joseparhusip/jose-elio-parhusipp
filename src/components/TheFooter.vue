@@ -43,7 +43,7 @@ function preventImageAction(event) {
     <div class="footer__top">
       <div class="footer__brand">
         <a href="#beranda" class="footer__logo">
-          <img src="/logo-utama.png" alt="Jose Elio Parhusip" class="footer__logo-img" draggable="false" />
+          <img src="/logo-navbar-footer.png" alt="Jose Elio Parhusip" class="footer__logo-img" draggable="false" />
         </a>
         <p class="footer__tagline">
           Membangun antarmuka web yang rapi, cepat, dan enak dipakai — satu proyek pada satu waktu.
