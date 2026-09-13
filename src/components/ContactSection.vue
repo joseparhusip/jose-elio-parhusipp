@@ -6,7 +6,6 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import gmailIcon from './icons/icons-about/gmail.svg'
-import whatsappIcon from './icons/icons-about/whatsapp.svg'
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -33,17 +32,10 @@ const submitMessage = ref('')
 const contactInfo = [
   {
     label: 'Email',
-    value: 'joseparhusip9@gmail.com',
-    href: 'https://mail.google.com/mail/?view=cm&fs=1&to=joseparhusip9@gmail.com',
+    value: 'joseparhusip7@gmail.com',
+    href: 'https://mail.google.com/mail/?view=cm&fs=1&to=joseparhusip7@gmail.com',
     icon: gmailIcon,
     iconAlt: 'Gmail',
-  },
-  {
-    label: 'WhatsApp',
-    value: '0812-9269-0095',
-    href: 'https://wa.me/6281292690095',
-    icon: whatsappIcon,
-    iconAlt: 'WhatsApp',
   },
 ]
 
