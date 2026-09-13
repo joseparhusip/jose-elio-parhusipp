@@ -3,27 +3,9 @@ import { ref, onMounted } from 'vue'
 
 const isVisible = ref(true)
 const isExiting = ref(false)
-const typingDone = ref(false)
-const percent = ref(0)
 
 onMounted(() => {
   document.body.style.overflow = 'hidden'
-
-  // Progress % dihitung manual via rAF, disinkronkan kira-kira dengan efek ketik di CSS
-  const duration = 1300
-  const start = performance.now()
-
-  function tick(now) {
-    const elapsed = now - start
-    const t = Math.min(elapsed / duration, 1)
-    percent.value = Math.round(t * 100)
-    if (t < 1) {
-      requestAnimationFrame(tick)
-    } else {
-      typingDone.value = true
-    }
-  }
-  requestAnimationFrame(tick)
 
   const exitTimer = setTimeout(() => {
     isExiting.value = true
@@ -49,16 +31,15 @@ onMounted(() => {
     <div class="loader__panel loader__panel--bottom"></div>
 
     <div class="loader__content" :class="{ 'loader__content--fade': isExiting }">
-      <div class="loader__type">
-        <span class="loader__type-text" :class="{ 'loader__type-text--done': typingDone }">Jose</span>
-        <span class="loader__dot" :class="{ 'loader__dot--show': typingDone }">.</span>
-      </div>
-
-      <div class="loader__progress">
-        <span class="loader__progress-track">
-          <span class="loader__progress-fill" :style="{ width: percent + '%' }"></span>
-        </span>
-        <span class="loader__progress-num">{{ percent }}%</span>
+      <div class="loader__flip">
+        <div class="loader__flip-card">
+          <div class="loader__flip-face loader__flip-face--front">
+            <img src="/logo-navbar-sebelum-scroll.png" alt="Jose Elio Parhusip" class="loader__logo-img" draggable="false" />
+          </div>
+          <div class="loader__flip-face loader__flip-face--back">
+            <img src="/logo-navbar-sebelum-scroll.png" alt="Jose Elio Parhusip" class="loader__logo-img" draggable="false" />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -75,7 +56,7 @@ onMounted(() => {
   position: absolute;
   left: 0;
   right: 0;
-  background: var(--color-primary-dark, #4f7566);
+  background: #f1f4f1;
   transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
@@ -113,108 +94,71 @@ onMounted(() => {
   opacity: 0;
 }
 
-.loader__type {
-  display: inline-flex;
-  align-items: baseline;
+/* Panggung 3D tempat kartu logo berputar */
+.loader__flip {
+  perspective: 900px;
+  width: clamp(120px, 20vw, 180px);
+  height: clamp(120px, 20vw, 180px);
 }
 
-.loader__type-text {
-  display: inline-block;
-  overflow: hidden;
-  white-space: nowrap;
-  width: 0;
-  border-right: 3px solid var(--color-accent, #f2a488);
-  padding-right: 4px;
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: clamp(2.8rem, 9vw, 4.6rem);
-  letter-spacing: 0.01em;
-  color: #f4f7f5;
-  animation:
-    loader-type 1.1s steps(4, end) forwards,
-    loader-caret-blink 0.8s step-end infinite;
-}
-
-.loader__type-text--done {
-  border-right-color: transparent;
-  animation: none;
-  width: 4.4ch;
-}
-
-@keyframes loader-type {
-  to {
-    width: 4.4ch;
-  }
-}
-
-@keyframes loader-caret-blink {
-  50% {
-    border-color: transparent;
-  }
-}
-
-.loader__dot {
-  display: inline-block;
-  margin-left: 2px;
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: clamp(2.8rem, 9vw, 4.6rem);
-  color: var(--color-accent, #f2a488);
-  opacity: 0;
-  transform: scale(0.4);
-  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.loader__dot--show {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.loader__progress {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-}
-
-.loader__progress-track {
+/* Kartu yang diputar terus-menerus sepanjang sumbu Y (efek flip depan-belakang) */
+.loader__flip-card {
   position: relative;
-  width: 96px;
-  height: 2px;
-  background: rgba(244, 247, 245, 0.25);
-  border-radius: 999px;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: loader-flip 3.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
-.loader__progress-fill {
+/* Sisi depan & belakang kartu, masing-masing menampilkan logo yang sama.
+   Sisi belakang diputar 180deg lebih dulu supaya saat kartu berputar,
+   yang terlihat gantian adalah "depan" lalu "belakang" logo, bukan layar kosong. */
+.loader__flip-face {
   position: absolute;
   inset: 0;
-  width: 0;
-  background: var(--color-accent, #f2a488);
-  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
-.loader__progress-num {
-  min-width: 2.6ch;
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: rgba(244, 247, 245, 0.65);
-  font-variant-numeric: tabular-nums;
+.loader__flip-face--front {
+  transform: rotateY(0deg);
+}
+
+.loader__flip-face--back {
+  transform: rotateY(180deg);
+}
+
+.loader__logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+/* Flip bolak-balik: diam di depan (0deg) -> pelan-pelan buka ke belakang (180deg)
+   -> diam sejenak -> pelan-pelan balik lagi ke depan (0deg) -> diam -> ulang terus.
+   Bukan muter 360 satu arah terus-terusan, tapi kayak kartu dibolak-balik. */
+@keyframes loader-flip {
+  0%,
+  22% {
+    transform: rotateY(0deg);
+  }
+  50%,
+  72% {
+    transform: rotateY(180deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loader__type-text {
-    animation: none;
-    width: 4.4ch;
-    border-right-color: transparent;
-  }
-
-  .loader__dot {
-    opacity: 1;
-    transform: none;
-  }
-
   .loader__panel {
     transition: none;
   }
