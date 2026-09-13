@@ -32,7 +32,12 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   <header class="navbar" :class="{ 'navbar--scrolled': isScrolled }">
     <nav class="navbar__inner">
       <a href="#beranda" class="navbar__logo" @click="closeMenu">
-        <img src="/logo-navbar-footer.png" alt="Jose Elio Parhusip" class="navbar__logo-img" draggable="false" />
+        <img
+          :src="isScrolled ? '/logo-navbar-footer.png' : '/logo-utama.png'"
+          alt="Jose Elio Parhusip"
+          class="navbar__logo-img"
+          draggable="false"
+        />
       </a>
 
       <ul class="navbar__links" :class="{ 'navbar__links--open': isMenuOpen }">
