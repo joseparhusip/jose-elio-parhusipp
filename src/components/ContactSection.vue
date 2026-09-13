@@ -396,7 +396,7 @@ async function handleSubmit() {
   font-weight: 600;
   color: var(--color-text, #253632);
   text-decoration: none;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .contact__item-value:hover {
@@ -636,6 +636,15 @@ async function handleSubmit() {
 
   .contact__map {
     height: 180px;
+  }
+
+  .contact__item {
+    padding: 0.9rem 0.85rem;
+    gap: 0.75rem;
+  }
+
+  .contact__item-value {
+    font-size: 0.82rem;
   }
 }
 </style>
