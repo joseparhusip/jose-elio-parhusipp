@@ -32,7 +32,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   <header class="navbar" :class="{ 'navbar--scrolled': isScrolled }">
     <nav class="navbar__inner">
       <a href="#beranda" class="navbar__logo" @click="closeMenu">
-        Jose<span class="navbar__logo-dot">.</span>
+        <img src="/logo-utama.png" alt="Jose Elio Parhusip" class="navbar__logo-img" draggable="false" />
       </a>
 
       <ul class="navbar__links" :class="{ 'navbar__links--open': isMenuOpen }">
@@ -99,8 +99,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.45);
 }
 
-/* Saat kapsul (scrolled), teks & logo otomatis kontras terang di atas background gelap */
-.navbar--scrolled .navbar__logo,
+/* Saat kapsul (scrolled), teks link otomatis kontras terang di atas background gelap */
 .navbar--scrolled .navbar__link {
   color: #f1f4f1;
 }
@@ -122,16 +121,20 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 }
 
 .navbar__logo {
-  font-family: var(--font-heading);
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: var(--color-text, #253632);
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
-  letter-spacing: -0.02em;
 }
 
-.navbar__logo-dot {
-  color: var(--color-accent, #f2a488);
+.navbar__logo-img {
+  height: 38px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 
 .navbar__links {
@@ -255,6 +258,12 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 
 .navbar__toggle--open span:nth-child(3) {
   transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 480px) {
+  .navbar__logo-img {
+    height: 32px;
+  }
 }
 
 @media (max-width: 820px) {

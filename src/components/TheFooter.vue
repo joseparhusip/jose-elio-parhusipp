@@ -42,7 +42,9 @@ function preventImageAction(event) {
   <footer class="footer">
     <div class="footer__top">
       <div class="footer__brand">
-        <a href="#beranda" class="footer__logo">Jose<span class="footer__logo-dot">.</span></a>
+        <a href="#beranda" class="footer__logo">
+          <img src="/logo-utama.png" alt="Jose Elio Parhusip" class="footer__logo-img" draggable="false" />
+        </a>
         <p class="footer__tagline">
           Membangun antarmuka web yang rapi, cepat, dan enak dipakai — satu proyek pada satu waktu.
         </p>
@@ -186,15 +188,22 @@ function preventImageAction(event) {
 }
 
 .footer__logo {
-  font-family: var(--font-heading);
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
 }
 
-.footer__logo-dot {
-  color: var(--color-accent, #f2a488);
+.footer__logo-img {
+  height: 42px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  /* Logo aslinya berwarna; dijadikan putih agar senada dengan tema footer gelap */
+  filter: brightness(0) invert(1);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 
 .footer__tagline {
@@ -379,6 +388,10 @@ function preventImageAction(event) {
 @media (max-width: 480px) {
   .footer__top {
     grid-template-columns: 1fr;
+  }
+
+  .footer__logo-img {
+    height: 36px;
   }
 }
 </style>
