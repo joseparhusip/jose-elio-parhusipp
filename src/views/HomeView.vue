@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { loaderDone } from '@/composables/useLoaderState'
 import AboutSection from '@/components/AboutSection.vue'
 import ExperienceSection from '@/components/ExperienceSection.vue'
 import ProjectsSection from '@/components/ProjectsSection.vue'
@@ -111,6 +112,34 @@ function preventImageAction(event) {
   event.preventDefault()
   return false
 }
+
+/* ---------------------------------------------------------
+   Animasi foto hero: foto masuk dari kanan layar lalu meluncur
+   ke posisi aslinya. TIDAK bergantung pada scroll.
+   Animasi baru dimulai kalau DUA syarat terpenuhi:
+   1. Loader (TheLoader) sudah selesai & layar terbuka. Kalau tidak,
+      animasi habis di belakang loader dan tidak pernah terlihat.
+   2. Gambar sudah dimuat, supaya yang meluncur foto utuh, bukan
+      bingkai kosong. Ada fallback 1,5 detik kalau load lambat/gagal.
+--------------------------------------------------------- */
+const photoLoaded = ref(false)
+const photoReady = computed(() => loaderDone.value && photoLoaded.value)
+const photoEl = ref(null)
+let photoFallbackId = null
+
+function markPhotoLoaded() {
+  photoLoaded.value = true
+}
+
+onMounted(() => {
+  // Kalau gambar sudah ada di cache, event load bisa sudah lewat.
+  if (photoEl.value?.complete) markPhotoLoaded()
+  photoFallbackId = setTimeout(markPhotoLoaded, 1500)
+})
+
+onUnmounted(() => {
+  clearTimeout(photoFallbackId)
+})
 
 /* ---------------------------------------------------------
    v-reveal: animasi "muncul" halus saat elemen masuk viewport.
@@ -261,14 +290,18 @@ const vReveal = {
           </ul>
         </div>
 
-        <div class="hero__visual" v-reveal.right="150">
+        <div class="hero__visual" :class="{ 'is-in': photoReady }">
           <div class="hero__blob"></div>
           <div class="hero__photo-frame">
             <img
+              ref="photoEl"
               :src="myPhoto"
               alt="Jose Elio Parhusip"
               class="hero__photo"
               draggable="false"
+              fetchpriority="high"
+              @load="markPhotoLoaded"
+              @error="markPhotoLoaded"
               @contextmenu.prevent="preventImageAction"
               @dragstart.prevent="preventImageAction"
             />
@@ -635,29 +668,43 @@ const vReveal = {
   transform: translateX(28px);
 }
 
-/* Foto hero masuk dari KANAN lalu meluncur pelan ke posisi semula.
-   Jaraknya lebih jauh & durasinya lebih panjang dibanding teks di
-   sebelahnya biar efeknya kerasa. Hero punya overflow: hidden, jadi
-   bagian yang masih di luar layar terpotong rapi (tidak bikin scroll
-   horizontal). */
-.hero__visual.reveal {
-  transition:
-    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 1.1s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
+/* Foto hero: masuk dari KANAN layar, lalu meluncur pelan ke posisi
+   aslinya. Jalan otomatis saat halaman dibuka (class .is-in dipasang
+   dari script begitu gambar siap), jadi TIDAK perlu scroll dulu.
+   Hero punya overflow: hidden, jadi bagian yang masih di luar layar
+   terpotong rapi dan tidak memunculkan scroll horizontal. */
 .hero__visual {
-  --hero-slide-x: 140px;
+  --hero-slide-x: 100vw;
 }
 
-.hero__visual.reveal--right:not(.is-visible) {
-  transform: translateX(var(--hero-slide-x)) scale(0.96);
+/* Sebelum siap: sembunyi di luar layar sebelah kanan. */
+.hero__visual:not(.is-in) {
+  opacity: 0;
+  transform: translateX(var(--hero-slide-x));
+}
+
+.hero__visual.is-in {
+  animation: hero-visual-slide-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  will-change: transform, opacity;
+}
+
+@keyframes hero-visual-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--hero-slide-x));
+  }
+  15% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal,
-  .reveal:not(.is-visible),
-  .hero__visual.reveal--right:not(.is-visible) {
+  .reveal:not(.is-visible) {
     transition: none;
     opacity: 1;
     transform: none;
@@ -673,7 +720,6 @@ const vReveal = {
   .hero__visual {
     order: -1;
     min-height: 380px;
-    --hero-slide-x: 100px;
   }
 
   .hero__blob {

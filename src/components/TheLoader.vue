@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { loaderDone } from '@/composables/useLoaderState'
 
 const isVisible = ref(true)
 const isExiting = ref(false)
@@ -14,6 +15,7 @@ onMounted(() => {
   const removeTimer = setTimeout(() => {
     isVisible.value = false
     document.body.style.overflow = ''
+    loaderDone.value = true
   }, 2650)
 
   return () => {

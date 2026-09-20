@@ -67,6 +67,41 @@ const vReveal = {
   },
 }
 
+/* ---------------------------------------------------------
+   Animasi geser besar: kartu info + peta masuk dari KIRI, kartu
+   form masuk dari KANAN. Yang diamati IntersectionObserver adalah
+   WADAH tiap kartu (diam di tempat), bukan kartunya. Kalau kartu
+   yang meluncur yang diamati, posisinya yang di luar layar bikin
+   observer mengira "belum kelihatan" dan animasinya tidak mulai.
+   Tiap kartu punya pemicu sendiri, jadi di HP (kartu ditumpuk
+   atas-bawah) form baru meluncur saat kamu scroll sampai ke sana.
+--------------------------------------------------------- */
+const infoWrap = ref(null)
+const formWrap = ref(null)
+const infoIn = ref(false)
+const formIn = ref(false)
+let slideObserver = null
+
+onMounted(() => {
+  slideObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
+        if (entry.target === infoWrap.value) infoIn.value = true
+        else if (entry.target === formWrap.value) formIn.value = true
+        slideObserver.unobserve(entry.target)
+      })
+    },
+    { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
+  )
+  slideObserver.observe(infoWrap.value)
+  slideObserver.observe(formWrap.value)
+})
+
+onBeforeUnmount(() => {
+  slideObserver?.disconnect()
+})
+
 const form = ref({
   name: '',
   email: '',
@@ -169,157 +204,161 @@ async function handleSubmit() {
 <template>
   <section id="kontak" class="contact">
     <div class="contact__inner">
-      <div class="contact__info" v-reveal.left>
-        <span class="contact__eyebrow" v-reveal>Kontak</span>
-        <h2 class="contact__title" v-reveal="80">Yuk, mulai obrolan</h2>
-        <p class="contact__desc" v-reveal="160">
-          Ada proyek, ide kolaborasi, atau sekadar mau say hi? Kirim pesan lewat form di samping,
-          atau langsung hubungi lewat kontak berikut.
-        </p>
+      <div ref="infoWrap" class="contact__col" :class="{ 'is-in': infoIn }">
+        <div class="contact__info">
+          <span class="contact__eyebrow" v-reveal>Kontak</span>
+          <h2 class="contact__title" v-reveal="80">Yuk, mulai obrolan</h2>
+          <p class="contact__desc" v-reveal="160">
+            Ada proyek, ide kolaborasi, atau sekadar mau say hi? Kirim pesan lewat form di samping,
+            atau langsung hubungi lewat kontak berikut.
+          </p>
 
-        <ul class="contact__list">
-          <li
-            v-for="(item, index) in contactInfo"
-            :key="item.label"
-            class="contact__item"
-            v-reveal="260 + index * 90"
-          >
-            <span
-              class="contact__item-icon"
-              aria-hidden="true"
-              oncontextmenu="return false"
-              @contextmenu.prevent="preventImageAction"
+          <ul class="contact__list">
+            <li
+              v-for="(item, index) in contactInfo"
+              :key="item.label"
+              class="contact__item"
+              v-reveal="260 + index * 90"
             >
-              <img
-                :src="item.icon"
-                :alt="item.iconAlt"
-                class="contact__item-icon-img"
-                draggable="false"
+              <span
+                class="contact__item-icon"
+                aria-hidden="true"
                 oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
-                @dragstart.prevent="preventImageAction"
-              />
-            </span>
-            <span class="contact__item-text">
-              <span class="contact__item-label">{{ item.label }}</span>
-              <a
-                v-if="item.href"
-                :href="item.href"
-                class="contact__item-value"
-                target="_blank"
-                rel="noopener noreferrer"
               >
-                {{ item.value }}
-              </a>
-              <span v-else class="contact__item-value contact__item-value--static">{{
-                item.value
-              }}</span>
-            </span>
-          </li>
-        </ul>
+                <img
+                  :src="item.icon"
+                  :alt="item.iconAlt"
+                  class="contact__item-icon-img"
+                  draggable="false"
+                  oncontextmenu="return false"
+                  @contextmenu.prevent="preventImageAction"
+                  @dragstart.prevent="preventImageAction"
+                />
+              </span>
+              <span class="contact__item-text">
+                <span class="contact__item-label">{{ item.label }}</span>
+                <a
+                  v-if="item.href"
+                  :href="item.href"
+                  class="contact__item-value"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ item.value }}
+                </a>
+                <span v-else class="contact__item-value contact__item-value--static">{{
+                  item.value
+                }}</span>
+              </span>
+            </li>
+          </ul>
 
-        <div class="contact__map-block" v-reveal="360">
-          <span class="contact__item-label">Lokasi</span>
-          <div
-            ref="mapContainer"
-            class="contact__map"
-            oncontextmenu="return false"
-            @contextmenu.prevent="preventImageAction"
-          ></div>
+          <div class="contact__map-block" v-reveal="360">
+            <span class="contact__item-label">Lokasi</span>
+            <div
+              ref="mapContainer"
+              class="contact__map"
+              oncontextmenu="return false"
+              @contextmenu.prevent="preventImageAction"
+            ></div>
+          </div>
         </div>
       </div>
 
-      <form class="contact__form" v-reveal.right="120" @submit.prevent="handleSubmit">
-        <div class="contact__field">
-          <label for="name" class="contact__label">Nama</label>
-          <input
-            id="name"
-            v-model="form.name"
-            type="text"
-            class="contact__input"
-            placeholder="Nama kamu"
-            required
-            :disabled="submitState === 'loading'"
-          />
-        </div>
-
-        <div class="contact__field">
-          <label for="email" class="contact__label">Email</label>
-          <input
-            id="email"
-            v-model="form.email"
-            type="email"
-            class="contact__input"
-            placeholder="email@kamu.com"
-            required
-            :disabled="submitState === 'loading'"
-          />
-        </div>
-
-        <div class="contact__field">
-          <label for="message" class="contact__label">Pesan</label>
-          <textarea
-            id="message"
-            v-model="form.message"
-            class="contact__input contact__textarea"
-            rows="4"
-            placeholder="Ceritakan proyek atau ide kamu..."
-            required
-            :disabled="submitState === 'loading'"
-          ></textarea>
-        </div>
-
-        <button
-          type="submit"
-          class="contact__submit"
-          :disabled="submitState === 'loading'"
-        >
-          {{ submitState === 'loading' ? 'Mengirim...' : 'Kirim Pesan' }}
-          <svg
-            v-if="submitState !== 'loading'"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            class="contact__submit-icon"
-          >
-            <path
-              d="M4.5 12H19.5"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
+      <div ref="formWrap" class="contact__col" :class="{ 'is-in': formIn }">
+        <form class="contact__form" @submit.prevent="handleSubmit">
+          <div class="contact__field">
+            <label for="name" class="contact__label">Nama</label>
+            <input
+              id="name"
+              v-model="form.name"
+              type="text"
+              class="contact__input"
+              placeholder="Nama kamu"
+              required
+              :disabled="submitState === 'loading'"
             />
-            <path
-              d="M13.5 6L19.5 12L13.5 18"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </button>
-
-        <!-- Animasi checklist ketika berhasil -->
-        <Transition name="contact-fade">
-          <div v-if="submitState === 'success'" class="contact__success" role="status">
-            <svg class="contact__success-icon" viewBox="0 0 52 52" aria-hidden="true">
-              <circle class="contact__success-icon-circle" cx="26" cy="26" r="24" fill="none" />
-              <path class="contact__success-icon-check" fill="none" d="M14 27l7 7 16-16" />
-            </svg>
-            <span class="contact__success-text">
-              Pesan terkirim! Cek email kamu, sudah aku kirim konfirmasi ke sana ✨
-            </span>
           </div>
-        </Transition>
 
-        <Transition name="contact-fade">
-          <p
-            v-if="submitState === 'error'"
-            class="contact__submit-status contact__submit-status--error"
+          <div class="contact__field">
+            <label for="email" class="contact__label">Email</label>
+            <input
+              id="email"
+              v-model="form.email"
+              type="email"
+              class="contact__input"
+              placeholder="email@kamu.com"
+              required
+              :disabled="submitState === 'loading'"
+            />
+          </div>
+
+          <div class="contact__field">
+            <label for="message" class="contact__label">Pesan</label>
+            <textarea
+              id="message"
+              v-model="form.message"
+              class="contact__input contact__textarea"
+              rows="4"
+              placeholder="Ceritakan proyek atau ide kamu..."
+              required
+              :disabled="submitState === 'loading'"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            class="contact__submit"
+            :disabled="submitState === 'loading'"
           >
-            {{ submitMessage }}
-          </p>
-        </Transition>
-      </form>
+            {{ submitState === 'loading' ? 'Mengirim...' : 'Kirim Pesan' }}
+            <svg
+              v-if="submitState !== 'loading'"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              class="contact__submit-icon"
+            >
+              <path
+                d="M4.5 12H19.5"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+              <path
+                d="M13.5 6L19.5 12L13.5 18"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+
+          <!-- Animasi checklist ketika berhasil -->
+          <Transition name="contact-fade">
+            <div v-if="submitState === 'success'" class="contact__success" role="status">
+              <svg class="contact__success-icon" viewBox="0 0 52 52" aria-hidden="true">
+                <circle class="contact__success-icon-circle" cx="26" cy="26" r="24" fill="none" />
+                <path class="contact__success-icon-check" fill="none" d="M14 27l7 7 16-16" />
+              </svg>
+              <span class="contact__success-text">
+                Pesan terkirim! Cek email kamu, sudah aku kirim konfirmasi ke sana ✨
+              </span>
+            </div>
+          </Transition>
+
+          <Transition name="contact-fade">
+            <p
+              v-if="submitState === 'error'"
+              class="contact__submit-status contact__submit-status--error"
+            >
+              {{ submitMessage }}
+            </p>
+          </Transition>
+        </form>
+      </div>
     </div>
   </section>
 </template>
@@ -328,9 +367,10 @@ async function handleSubmit() {
 .contact {
   padding: 5rem 1.5rem;
   background: var(--color-bg, #f1f4f1);
-  /* FIX area kosong di kanan (mobile): form kontak sebelum muncul digeser
-     28px ke kanan (v-reveal.right), dan itu ikut melebarkan halaman.
-     Overflow horizontal dipotong di batas section. */
+  /* PENTING: kartu info (dari kiri) dan kartu form (dari kanan) mulai dari
+     luar layar. Overflow horizontal harus dipotong di batas section, kalau
+     tidak halaman melebar dan browser HP memunculkan strip kosong / scroll
+     ke samping. `clip` (bukan `hidden`) supaya tidak bikin scroll container. */
   overflow-x: hidden; /* fallback browser lama */
   overflow-x: clip;
 }
@@ -665,6 +705,55 @@ async function handleSubmit() {
 }
 
 /* ---------------------------------------------------------
+   Animasi geser besar kartu Kontak. Pakai properti `translate`
+   (bukan `transform`) supaya tidak bentrok dengan efek hover di
+   dalam kartu yang memakai `transform`. Warna tidak diubah.
+--------------------------------------------------------- */
+
+/* Sebelum masuk viewport: kartu sembunyi di luar layar. */
+.contact__col:not(.is-in) .contact__info {
+  opacity: 0;
+  translate: -100vw 0;
+}
+
+.contact__col:not(.is-in) .contact__form {
+  opacity: 0;
+  translate: 100vw 0;
+}
+
+/* Kartu info + peta: masuk dari KIRI layar ke posisi semula. */
+.contact__col.is-in .contact__info {
+  animation: contact-slide-in-left 1.3s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* Kartu form: masuk dari KANAN layar, menyusul sedikit (0.1 dtk). */
+.contact__col.is-in .contact__form {
+  animation: contact-slide-in-right 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards;
+}
+
+@keyframes contact-slide-in-left {
+  from {
+    opacity: 0;
+    translate: -100vw 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes contact-slide-in-right {
+  from {
+    opacity: 0;
+    translate: 100vw 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* ---------------------------------------------------------
    Reveal system: dipakai lewat directive v-reveal di template.
    Hanya memainkan opacity & transform (posisi/skala), warna
    elemen sama sekali tidak diubah oleh animasi ini.
@@ -693,6 +782,8 @@ async function handleSubmit() {
   transform: translateX(28px);
 }
 
+/* Reduce motion: hanya teks v-reveal yang langsung tampil. Animasi geser
+   kartu kiri/kanan sengaja TIDAK dimatikan, sesuai permintaan. */
 @media (prefers-reduced-motion: reduce) {
   .reveal,
   .reveal:not(.is-visible) {

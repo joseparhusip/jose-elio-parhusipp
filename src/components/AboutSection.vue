@@ -1,4 +1,5 @@
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import figmaIcon from './icons/icons-about/Figma-logo.svg'
 import flutterIcon from './icons/icons-about/lockup_flutter_horizontal.svg'
 import powerBiIcon from './icons/icons-about/New_Power_BI_Logo.svg'
@@ -51,6 +52,39 @@ function preventImageAction(event) {
   event.preventDefault()
   return false
 }
+
+/* ---------------------------------------------------------
+   Animasi geser besar (kutipan dari KIRI, ikon tools dari KANAN).
+   Yang diamati IntersectionObserver adalah WADAH-nya (tidak ikut
+   bergeser), bukan elemen yang meluncur. Kalau elemen yang meluncur
+   yang diamati, posisinya yang di luar layar bikin observer mengira
+   "belum kelihatan" dan animasinya tidak pernah mulai.
+--------------------------------------------------------- */
+const visualEl = ref(null)
+const toolsEl = ref(null)
+const visualIn = ref(false)
+const toolsIn = ref(false)
+let slideObserver = null
+
+onMounted(() => {
+  slideObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
+        if (entry.target === visualEl.value) visualIn.value = true
+        else if (entry.target === toolsEl.value) toolsIn.value = true
+        slideObserver.unobserve(entry.target)
+      })
+    },
+    { threshold: 0.25, rootMargin: '0px 0px -60px 0px' },
+  )
+  slideObserver.observe(visualEl.value)
+  slideObserver.observe(toolsEl.value)
+})
+
+onUnmounted(() => {
+  slideObserver?.disconnect()
+})
 
 /* ---------------------------------------------------------
    v-reveal: animasi "muncul" halus saat elemen masuk viewport
@@ -113,7 +147,7 @@ const vReveal = {
 <template>
   <section id="tentang" class="about">
     <div class="about__inner">
-      <div class="about__visual" v-reveal.left>
+      <div ref="visualEl" class="about__visual" :class="{ 'is-in': visualIn }">
         <div class="about__blob"></div>
         <div class="about__quote">
           <p class="about__quote-text">
@@ -156,7 +190,7 @@ const vReveal = {
           </li>
         </ul>
 
-        <div class="about__tools">
+        <div ref="toolsEl" class="about__tools" :class="{ 'is-in': toolsIn }">
           <span class="about__tools-label">Yang saya kuasai</span>
 
           <ul class="about__tools-list">
@@ -165,8 +199,8 @@ const vReveal = {
               :key="tool.name"
               class="about__tools-item"
               :title="tool.name"
+              :style="{ '--i': index }"
               oncontextmenu="return false"
-              v-reveal.right="index * 55"
               @contextmenu.prevent="preventImageAction"
             >
               <img
@@ -193,11 +227,11 @@ const vReveal = {
 .about {
   padding: 5rem 1.5rem;
   background: var(--color-surface, #fff);
-  /* FIX area kosong di kanan (mobile): ikon "Yang saya kuasai" sebelum muncul
-     posisinya digeser 55px ke kanan (translateX). Transform ikut dihitung
-     sebagai lebar halaman, jadi halaman melebar melewati layar & browser HP
-     memunculkan strip kosong. Overflow horizontal dipotong di batas section.
-     `clip` (bukan `hidden`) supaya tidak bikin scroll container baru. */
+  /* PENTING: ikon "Yang saya kuasai" (dari kanan) dan kutipan (dari kiri)
+     mulai dari luar layar. Overflow horizontal harus dipotong di batas
+     section, kalau tidak halaman melebar dan browser HP memunculkan strip
+     kosong / scroll ke samping. `clip` (bukan `hidden`) supaya tidak
+     bikin scroll container baru. */
   overflow-x: hidden; /* fallback browser lama */
   overflow-x: clip;
 }
@@ -422,29 +456,75 @@ const vReveal = {
   transform: translateX(28px);
 }
 
-/* Ikon "Yang saya kuasai" masuk dari kanan sambil sedikit membesar
-   (scale), satu per satu berurutan, lalu berhenti di posisi semula. */
-.about__tools-item.reveal--right:not(.is-visible) {
-  transform: translateX(60px) scale(0.8);
+/* ---------------------------------------------------------
+   Animasi geser besar. Pakai properti `translate` & `scale`
+   (bukan `transform`) supaya tidak bentrok dengan animasi blob
+   (about-blob-float) dan efek hover ikon yang memakai `transform`.
+   Warna elemen tidak diubah sama sekali.
+--------------------------------------------------------- */
+
+/* 1) Kutipan + blob: masuk dari KIRI layar ke posisi semula.
+   Sebelum masuk viewport: sembunyi di luar layar sebelah kiri. */
+.about__visual:not(.is-in) .about__blob,
+.about__visual:not(.is-in) .about__quote {
+  opacity: 0;
+  translate: -100vw 0;
 }
 
-.about__tools-item.reveal {
-  transition:
-    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+.about__visual.is-in .about__blob {
+  animation:
+    about-blob-float 9s ease-in-out infinite,
+    about-slide-in-left 1.3s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
-/* Animasi masuk sudah selesai: kembalikan transisi ke efek hover biasa
-   (cepat, tanpa delay). */
-.about__tools-item.reveal-done {
-  transition: transform 0.2s ease;
-  will-change: auto;
+/* Kartu kutipan menyusul sedikit di belakang blob (delay 0.12 dtk) */
+.about__visual.is-in .about__quote {
+  animation: about-slide-in-left 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.12s backwards;
 }
 
+@keyframes about-slide-in-left {
+  from {
+    opacity: 0;
+    translate: -100vw 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* 2) Ikon "Yang saya kuasai": masuk dari KANAN layar satu per satu
+   (berurutan, jeda 55 ms per ikon) sambil sedikit membesar. */
+.about__tools:not(.is-in) .about__tools-item {
+  opacity: 0;
+  translate: 100vw 0;
+  scale: 0.8;
+}
+
+.about__tools.is-in .about__tools-item {
+  animation: about-slide-in-right 1.2s cubic-bezier(0.22, 1, 0.36, 1)
+    calc(var(--i, 0) * 55ms) backwards;
+}
+
+@keyframes about-slide-in-right {
+  from {
+    opacity: 0;
+    translate: 100vw 0;
+    scale: 0.8;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+/* Reduce motion: teks (v-reveal) langsung tampil & blob berhenti
+   melayang terus-menerus. Animasi geser masuk kutipan dan ikon tools
+   sengaja TIDAK dimatikan, sesuai permintaan. */
 @media (prefers-reduced-motion: reduce) {
   .reveal,
-  .reveal:not(.is-visible),
-  .about__tools-item.reveal--right:not(.is-visible) {
+  .reveal:not(.is-visible) {
     transition: none;
     opacity: 1;
     transform: none;
@@ -452,6 +532,10 @@ const vReveal = {
 
   .about__blob {
     animation: none;
+  }
+
+  .about__visual.is-in .about__blob {
+    animation: about-slide-in-left 1.3s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   }
 }
 
