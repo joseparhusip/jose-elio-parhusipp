@@ -141,15 +141,62 @@ function preventImageAction(event) {
   event.preventDefault()
   return false
 }
+
+/* ---------------------------------------------------------
+   v-reveal: animasi "muncul" halus saat elemen masuk viewport
+   saat discroll. Cuma main di opacity & transform (posisi),
+   warna sama sekali tidak disentuh/diubah.
+   Pakai: v-reveal (fade+naik), v-reveal.scale (fade+membesar),
+   v-reveal.left / v-reveal.right (geser dari samping).
+   Value opsional = delay (ms), untuk efek berurutan/staggered.
+--------------------------------------------------------- */
+const revealObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        revealObserver.unobserve(entry.target)
+      }
+    })
+  },
+  { threshold: 0.12, rootMargin: '0px 0px -60px 0px' },
+)
+
+const vReveal = {
+  mounted(el, binding) {
+    let variant = 'up'
+    if (binding.modifiers.scale) variant = 'scale'
+    else if (binding.modifiers.left) variant = 'left'
+    else if (binding.modifiers.right) variant = 'right'
+
+    el.classList.add('reveal', `reveal--${variant}`)
+
+    const delay = typeof binding.value === 'number' ? binding.value : 0
+    el.style.transitionDelay = `${delay}ms`
+
+    // Paksa browser "melukis" kondisi tersembunyi ini dulu (tunggu 2 frame)
+    // sebelum mulai diobservasi. Tanpa ini, elemen yang sudah kelihatan
+    // duluan (misalnya pas reload / buka pertama kali) suka langsung
+    // "loncat" ke posisi akhir tanpa animasi sama sekali.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        revealObserver.observe(el)
+      })
+    })
+  },
+  unmounted(el) {
+    revealObserver.unobserve(el)
+  },
+}
 </script>
 
 <template>
   <section id="proyek" class="projects">
     <div class="projects__inner">
       <div class="projects__header">
-        <span class="projects__eyebrow">Proyek</span>
-        <h2 class="projects__title">Beberapa proyek yang pernah saya kerjakan</h2>
-        <p class="projects__desc">
+        <span class="projects__eyebrow" v-reveal>Proyek</span>
+        <h2 class="projects__title" v-reveal="90">Beberapa proyek yang pernah saya kerjakan</h2>
+        <p class="projects__desc" v-reveal="180">
           Kumpulan proyek yang menunjukkan cara saya berpikir, mulai dari
           menyusun struktur sampai menyelesaikan detail kecil.
         </p>
@@ -160,6 +207,7 @@ function preventImageAction(event) {
           v-for="(project, index) in projects"
           :key="project.title"
           class="project-card"
+          v-reveal.scale="(index % 3) * 100"
         >
           <div class="project-card__thumb">
             <div class="project-card__photo-card">
@@ -384,6 +432,7 @@ function preventImageAction(event) {
 }
 
 .projects__desc {
+  text-align: justify;
   font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.7;
@@ -719,6 +768,7 @@ function preventImageAction(event) {
 }
 
 .project-card__sheet-desc-point {
+  text-align: justify;
   position: relative;
   display: flex;
   align-items: flex-start;
@@ -855,6 +905,50 @@ function preventImageAction(event) {
   height: 18px;
 }
 
+/* ---------------------------------------------------------
+   Reveal system: dipakai lewat directive v-reveal di template.
+   Hanya memainkan opacity & transform (posisi/skala), warna
+   elemen sama sekali tidak diubah oleh animasi ini. Transform
+   memakai :not(.is-visible) supaya tidak bentrok dengan
+   transform hover yang sudah ada di .project-card.
+--------------------------------------------------------- */
+.reveal {
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.reveal--scale:not(.is-visible) {
+  transform: translateY(18px) scale(0.95);
+}
+
+.reveal--left:not(.is-visible) {
+  transform: translateX(-28px);
+}
+
+.reveal--right:not(.is-visible) {
+  transform: translateX(28px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal:not(.is-visible) {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .project-card__blob {
+    animation: none;
+  }
+}
+
 @media (max-width: 960px) {
   .projects__grid {
     grid-template-columns: repeat(2, 1fr);
@@ -864,10 +958,6 @@ function preventImageAction(event) {
 @media (max-width: 640px) {
   .projects {
     padding: 3.5rem 1.25rem;
-  }
-
-  .projects__desc {
-    text-align: justify;
   }
 
   .projects__grid {
@@ -936,7 +1026,6 @@ function preventImageAction(event) {
   .project-card__sheet-desc-point {
     font-size: 0.88rem;
     line-height: 1.6;
-    text-align: justify;
   }
 }
 </style>

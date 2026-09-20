@@ -51,12 +51,59 @@ function preventImageAction(event) {
   event.preventDefault()
   return false
 }
+
+/* ---------------------------------------------------------
+   v-reveal: animasi "muncul" halus saat elemen masuk viewport
+   saat discroll. Cuma main di opacity & transform (posisi),
+   warna sama sekali tidak disentuh/diubah.
+   Pakai: v-reveal (fade+naik), v-reveal.scale (fade+membesar),
+   v-reveal.left / v-reveal.right (geser dari samping).
+   Value opsional = delay (ms), untuk efek berurutan/staggered.
+--------------------------------------------------------- */
+const revealObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        revealObserver.unobserve(entry.target)
+      }
+    })
+  },
+  { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
+)
+
+const vReveal = {
+  mounted(el, binding) {
+    let variant = 'up'
+    if (binding.modifiers.scale) variant = 'scale'
+    else if (binding.modifiers.left) variant = 'left'
+    else if (binding.modifiers.right) variant = 'right'
+
+    el.classList.add('reveal', `reveal--${variant}`)
+
+    const delay = typeof binding.value === 'number' ? binding.value : 0
+    el.style.transitionDelay = `${delay}ms`
+
+    // Paksa browser "melukis" kondisi tersembunyi ini dulu (tunggu 2 frame)
+    // sebelum mulai diobservasi. Tanpa ini, elemen yang sudah kelihatan
+    // duluan (misalnya pas reload / buka pertama kali) suka langsung
+    // "loncat" ke posisi akhir tanpa animasi sama sekali.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        revealObserver.observe(el)
+      })
+    })
+  },
+  unmounted(el) {
+    revealObserver.unobserve(el)
+  },
+}
 </script>
 
 <template>
   <section id="tentang" class="about">
     <div class="about__inner">
-      <div class="about__visual">
+      <div class="about__visual" v-reveal.left>
         <div class="about__blob"></div>
         <div class="about__quote">
           <p class="about__quote-text">
@@ -66,25 +113,31 @@ function preventImageAction(event) {
       </div>
 
       <div class="about__content">
-        <span class="about__eyebrow">Tentang Saya</span>
+        <span class="about__eyebrow" v-reveal>Tentang Saya</span>
 
-        <h2 class="about__title">
+        <h2 class="about__title" v-reveal="90">
           Menghubungkan data, desain, dan kode jadi satu solusi
         </h2>
 
-        <p class="about__desc">
-          Saya Jose, mahasiswa Bisnis Digital semester akhir di Universitas
-          Logistik dan Bisnis Internasional (ULBI) Bandung. Saya punya minat
-          besar pada pengolahan data serta pengembangan website dan aplikasi
-          mobile, mulai dari mengolah basis data dengan Google Colab,
-          merancang sistem e-commerce dengan integrasi Midtrans dan
-          RajaOngkir, sampai membangun aplikasi mobile dengan Flutter dan
-          Dart. Saya terbiasa bekerja terstruktur, berpikir analitis, dan
-          nyaman berkolaborasi dalam tim.
+        <p class="about__desc" v-reveal="180">
+          Saya Jose, Fresh Graduate S1 Bisnis Digital (IPK 3,75/4,00) dari
+          Universitas Logistik dan Bisnis Internasional (ULBI) Bandung, dengan
+          minat besar di web, mobile, data, dan AI. Saya terbiasa membangun
+          aplikasi end-to-end dengan React.js, Vue.js, Node.js, PHP, MySQL,
+          dan PostgreSQL, mulai dari pemodelan sistem (UML, ERD, Flowchart),
+          merancang sistem e-commerce dengan integrasi Midtrans dan RajaOngkir,
+          mengolah data dengan Google Colab, sampai visualisasi data dengan
+          Python dan Streamlit. Di sisi mobile, saya mengembangkan aplikasi
+          dengan Flutter dan Dart. Saya juga bersertifikasi SAP.
         </p>
 
         <ul class="about__highlights">
-          <li v-for="item in highlights" :key="item.title" class="about__highlight">
+          <li
+            v-for="(item, index) in highlights"
+            :key="item.title"
+            class="about__highlight"
+            v-reveal="260 + index * 90"
+          >
             <span class="about__highlight-icon">✓</span>
             <div>
               <h3 class="about__highlight-title">{{ item.title }}</h3>
@@ -98,11 +151,12 @@ function preventImageAction(event) {
 
           <ul class="about__tools-list">
             <li
-              v-for="tool in tools"
+              v-for="(tool, index) in tools"
               :key="tool.name"
               class="about__tools-item"
               :title="tool.name"
               oncontextmenu="return false"
+              v-reveal.right="(index % 7) * 45"
               @contextmenu.prevent="preventImageAction"
             >
               <img
@@ -129,6 +183,13 @@ function preventImageAction(event) {
 .about {
   padding: 5rem 1.5rem;
   background: var(--color-surface, #fff);
+  /* FIX area kosong di kanan (mobile): ikon "Yang saya kuasai" sebelum muncul
+     posisinya digeser 55px ke kanan (translateX). Transform ikut dihitung
+     sebagai lebar halaman, jadi halaman melebar melewati layar & browser HP
+     memunculkan strip kosong. Overflow horizontal dipotong di batas section.
+     `clip` (bukan `hidden`) supaya tidak bikin scroll container baru. */
+  overflow-x: hidden; /* fallback browser lama */
+  overflow-x: clip;
 }
 
 .about__inner {
@@ -154,6 +215,17 @@ function preventImageAction(event) {
   height: 300px;
   background: linear-gradient(155deg, var(--color-mint, #cfe3dd), var(--color-accent-soft, #fbe4d8));
   border-radius: 42% 58% 65% 35% / 45% 45% 55% 55%;
+  animation: about-blob-float 9s ease-in-out infinite;
+}
+
+/* Gerakan sangat halus, cuma biar blob terasa "hidup", bukan animasi warna */
+@keyframes about-blob-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(3deg);
+  }
 }
 
 .about__quote {
@@ -196,6 +268,7 @@ function preventImageAction(event) {
 }
 
 .about__desc {
+  text-align: justify;
   font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.75;
@@ -243,6 +316,7 @@ function preventImageAction(event) {
 }
 
 .about__highlight-desc {
+  text-align: justify;
   margin: 0;
   font-family: var(--font-body);
   font-size: 0.9rem;
@@ -309,9 +383,58 @@ function preventImageAction(event) {
   pointer-events: none;
 }
 
+/* ---------------------------------------------------------
+   Reveal system: dipakai lewat directive v-reveal di template.
+   Hanya memainkan opacity & transform (posisi/skala), warna
+   elemen sama sekali tidak diubah oleh animasi ini.
+--------------------------------------------------------- */
+.reveal {
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.reveal--scale:not(.is-visible) {
+  transform: translateY(14px) scale(0.94);
+}
+
+.reveal--left:not(.is-visible) {
+  transform: translateX(-28px);
+}
+
+.reveal--right:not(.is-visible) {
+  transform: translateX(28px);
+}
+
+/* Ikon "Yang saya kuasai" geser dari kanan sedikit lebih jauh biar
+   efeknya lebih kerasa dan jelas kelihatan pas halaman dibuka. */
+.about__tools-item.reveal--right:not(.is-visible) {
+  transform: translateX(55px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal:not(.is-visible) {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .about__blob {
+    animation: none;
+  }
+}
+
 @media (max-width: 900px) {
   .about__inner {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr): kolom boleh menyusut, tidak melebar oleh isi yang panjang */
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .about__visual {
@@ -344,14 +467,6 @@ function preventImageAction(event) {
   .about__eyebrow {
     display: table;
     margin: 0 auto;
-  }
-
-  .about__desc {
-    text-align: justify;
-  }
-
-  .about__highlight-desc {
-    text-align: justify;
   }
 }
 </style>

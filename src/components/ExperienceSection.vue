@@ -1,4 +1,6 @@
 <script setup>
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+
 const experiences = [
   {
     period: 'Agustus 2025 — September 2025',
@@ -49,6 +51,76 @@ const experiences = [
     tags: ['Organisasi', 'Rekrutmen'],
   },
 ]
+
+/* ---------------------------------------------------------
+   Scroll-driven "connecting line" animation
+   - Setiap garis punya elemen `fill` yang di-scaleY() dari 0 -> 1
+     mengikuti posisi scroll (bukan cuma on/off, tapi bertahap).
+   - Dot menyala (glow) begitu garis di atasnya mulai tersambung.
+   - Warna dasar TIDAK diubah sama sekali, cuma ditambah box-shadow
+     (efek "menyala") di warna yang sama.
+--------------------------------------------------------- */
+
+const lineFillRefs = ref([])
+const dotRefs = ref([])
+
+function setLineFillRef(el, index) {
+  if (el) lineFillRefs.value[index] = el
+}
+
+function setDotRef(el, index) {
+  if (el) dotRefs.value[index] = el
+}
+
+let ticking = false
+
+function updateTimelineProgress() {
+  // Titik acuan di viewport tempat garis mulai "tersambung".
+  // Semakin kecil angka pengalinya, semakin cepat garis terisi
+  // saat item mulai muncul dari bawah layar.
+  const triggerY = window.innerHeight * 0.75
+
+  lineFillRefs.value.forEach((fillEl) => {
+    if (!fillEl) return
+    const track = fillEl.parentElement
+    const rect = track.getBoundingClientRect()
+    if (rect.height <= 0) return
+
+    // progress = 0 saat garis belum menyentuh triggerY,
+    // progress = 1 saat seluruh tinggi garis sudah melewati triggerY.
+    let progress = (triggerY - rect.top) / rect.height
+    progress = Math.min(1, Math.max(0, progress))
+
+    fillEl.style.transform = `scaleY(${progress})`
+  })
+
+  dotRefs.value.forEach((dotEl) => {
+    if (!dotEl) return
+    const rect = dotEl.getBoundingClientRect()
+    const isActive = rect.top < triggerY
+    dotEl.classList.toggle('is-active', isActive)
+  })
+
+  ticking = false
+}
+
+function onScroll() {
+  if (ticking) return
+  ticking = true
+  window.requestAnimationFrame(updateTimelineProgress)
+}
+
+onMounted(async () => {
+  await nextTick()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onScroll)
+  updateTimelineProgress()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', onScroll)
+})
 </script>
 
 <template>
@@ -64,10 +136,22 @@ const experiences = [
       </div>
 
       <ol class="experience__timeline">
-        <li v-for="item in experiences" :key="item.role + item.period" class="experience__item">
+        <li
+          v-for="(item, index) in experiences"
+          :key="item.role + item.period"
+          class="experience__item"
+        >
           <div class="experience__marker">
-            <span class="experience__dot"></span>
-            <span class="experience__line"></span>
+            <span
+              class="experience__dot"
+              :ref="(el) => setDotRef(el, index)"
+            ></span>
+            <span class="experience__line">
+              <span
+                class="experience__line-fill"
+                :ref="(el) => setLineFillRef(el, index)"
+              ></span>
+            </span>
           </div>
 
           <div class="experience__card">
@@ -76,13 +160,19 @@ const experiences = [
             <span class="experience__company">{{ item.company }}</span>
 
             <ol class="experience__item-desc">
-              <li v-for="(point, index) in item.desc" :key="index" class="experience__item-desc-point">
+              <li
+                v-for="(point, pIndex) in item.desc"
+                :key="pIndex"
+                class="experience__item-desc-point"
+              >
                 {{ point }}
               </li>
             </ol>
 
             <ul class="experience__tags">
-              <li v-for="tag in item.tags" :key="tag" class="experience__tag">{{ tag }}</li>
+              <li v-for="tag in item.tags" :key="tag" class="experience__tag">
+                {{ tag }}
+              </li>
             </ul>
           </div>
         </li>
@@ -129,6 +219,7 @@ const experiences = [
 }
 
 .experience__desc {
+  text-align: justify;
   font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.7;
@@ -154,6 +245,8 @@ const experiences = [
   align-items: center;
 }
 
+/* Dot tetap warna aslinya. Saat aktif cuma ditambah glow (box-shadow),
+   bukan ganti background-color. */
 .experience__dot {
   width: 14px;
   height: 14px;
@@ -162,13 +255,42 @@ const experiences = [
   border: 3px solid var(--color-mint, #cfe3dd);
   flex-shrink: 0;
   margin-top: 0.4rem;
+  box-shadow: 0 0 0 0 rgba(107, 144, 128, 0);
+  transition: box-shadow 0.4s ease;
 }
 
+.experience__dot.is-active {
+  box-shadow:
+    0 0 0 5px rgba(107, 144, 128, 0.18),
+    0 0 14px 4px rgba(107, 144, 128, 0.55);
+}
+
+/* Track dasar dibikin nyaris tak terlihat -> sebelum discroll,
+   garis "tidak ada". */
 .experience__line {
+  position: relative;
   flex: 1;
   width: 2px;
-  background: rgba(107, 144, 128, 0.25);
   margin: 0.3rem 0;
+  background: rgba(107, 144, 128, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* Fill inilah yang "menyambung" garis secara bertahap saat discroll,
+   warnanya sama persis dengan dot, cuma ditambah glow. */
+.experience__line-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-primary, #6b9080);
+  border-radius: 2px;
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 0.12s ease-out;
+  box-shadow: 0 0 10px 2px rgba(107, 144, 128, 0.6);
 }
 
 .experience__item:last-child .experience__line {
@@ -216,6 +338,7 @@ const experiences = [
 }
 
 .experience__item-desc-point {
+  text-align: justify;
   position: relative;
   padding-left: 1.7rem;
   font-family: var(--font-body);
@@ -259,10 +382,6 @@ const experiences = [
     padding: 3.5rem 1.25rem;
   }
 
-  .experience__desc {
-    text-align: justify;
-  }
-
   .experience__item {
     grid-template-columns: 20px 1fr;
     gap: 1rem;
@@ -272,7 +391,6 @@ const experiences = [
     padding-left: 1.5rem;
     font-size: 0.9rem;
     line-height: 1.65;
-    text-align: justify;
   }
 }
 </style>

@@ -111,6 +111,55 @@ function preventImageAction(event) {
   event.preventDefault()
   return false
 }
+
+/* ---------------------------------------------------------
+   v-reveal: animasi "muncul" halus saat elemen masuk viewport.
+   Untuk hero (di atas layar), ini otomatis jadi animasi
+   sambutan saat halaman pertama kali dibuka. Cuma main di
+   opacity & transform (posisi/skala), warna tidak diubah.
+   Pakai: v-reveal (fade+naik), v-reveal.scale (fade+membesar),
+   v-reveal.left / v-reveal.right (geser dari samping).
+   Value opsional = delay (ms), untuk efek berurutan/staggered.
+--------------------------------------------------------- */
+const revealObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        revealObserver.unobserve(entry.target)
+      }
+    })
+  },
+  { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
+)
+
+const vReveal = {
+  mounted(el, binding) {
+    let variant = 'up'
+    if (binding.modifiers.scale) variant = 'scale'
+    else if (binding.modifiers.left) variant = 'left'
+    else if (binding.modifiers.right) variant = 'right'
+
+    el.classList.add('reveal', `reveal--${variant}`)
+
+    const delay = typeof binding.value === 'number' ? binding.value : 0
+    el.style.transitionDelay = `${delay}ms`
+
+    // Paksa browser "melukis" kondisi tersembunyi ini dulu (tunggu 2 frame)
+    // sebelum mulai diobservasi. Ini PENTING khusus buat hero, karena hero
+    // langsung kelihatan penuh di layar begitu halaman dibuka/reload —
+    // tanpa jeda ini, browser suka langsung "loncat" ke posisi akhir dan
+    // animasinya jadi kelihatan diam sama sekali.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        revealObserver.observe(el)
+      })
+    })
+  },
+  unmounted(el) {
+    revealObserver.unobserve(el)
+  },
+}
 </script>
 
 <template>
@@ -118,31 +167,16 @@ function preventImageAction(event) {
     <section id="beranda" class="hero">
       <div class="hero__inner">
         <div class="hero__content">
-          <span class="hero__eyebrow">👋 Halo, saya</span>
+          <span class="hero__eyebrow" v-reveal>👋 Halo, saya</span>
 
-          <h1 class="hero__title">
+          <h1 class="hero__title" v-reveal="100">
             Jose Elio Parhusip,
             <span class="hero__title-accent">
               {{ typedRole }}<span class="hero__cursor" aria-hidden="true"></span>
             </span>
           </h1>
 
-          <p class="hero__desc">
-            Fresh Graduate S1 Bisnis Digital dengan IPK 3.75 dari 4.00,
-            memiliki minat besar di bidang teknologi, khususnya web,
-            mobile, data, dan AI. Berkompeten di Full Stack Development,
-            System Analysis, serta Data dan Business Intelligence.
-            Terbiasa membangun aplikasi web dan mobile secara menyeluruh
-            menggunakan React.js, Vue.js, Node.js, PHP, MySQL, dan
-            PostgreSQL, mulai dari analisis kebutuhan, pemodelan sistem
-            seperti UML, ERD, dan Flowchart, hingga visualisasi data
-            dengan Python dan Streamlit. Berpengalaman juga membangun
-            aplikasi mobile menggunakan Flutter dan Dart, didukung
-            sertifikasi SAP, serta terbiasa bekerja secara analitis,
-            terstruktur, dan kolaboratif dalam tim.
-          </p>
-
-          <div class="hero__actions">
+          <div class="hero__actions" v-reveal="200">
             <a href="#proyek" class="hero__btn hero__btn--primary">Lihat Proyek</a>
             <a
               href="/CV - Jose Elio Parhusip.pdf"
@@ -222,12 +256,12 @@ function preventImageAction(event) {
             </div>
           </div>
 
-          <ul class="hero__stack">
+          <ul class="hero__stack" v-reveal="300">
             <li v-for="tech in stack" :key="tech" class="hero__stack-item">{{ tech }}</li>
           </ul>
         </div>
 
-        <div class="hero__visual">
+        <div class="hero__visual" v-reveal.left="150">
           <div class="hero__blob"></div>
           <div class="hero__photo-frame">
             <img
@@ -294,7 +328,7 @@ function preventImageAction(event) {
   line-height: 1.15;
   font-weight: 600;
   color: var(--color-text, #253632);
-  margin: 1.2rem 0 1.1rem;
+  margin: 1.2rem 0 2rem;
   letter-spacing: -0.01em;
 }
 
@@ -318,15 +352,6 @@ function preventImageAction(event) {
 @keyframes hero-cursor-blink {
   0%, 50% { opacity: 1; }
   50.01%, 100% { opacity: 0; }
-}
-
-.hero__desc {
-  font-family: var(--font-body);
-  font-size: 1.05rem;
-  line-height: 1.7;
-  color: var(--color-text-soft, #5c6f69);
-  max-width: 480px;
-  margin: 0 0 2rem;
 }
 
 .hero__actions {
@@ -581,6 +606,50 @@ function preventImageAction(event) {
   left: -1rem;
 }
 
+/* ---------------------------------------------------------
+   Reveal system: dipakai lewat directive v-reveal di template.
+   Hanya memainkan opacity & transform (posisi/skala), warna
+   elemen sama sekali tidak diubah oleh animasi ini.
+--------------------------------------------------------- */
+.reveal {
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.reveal--scale:not(.is-visible) {
+  transform: translateY(14px) scale(0.94);
+}
+
+.reveal--left:not(.is-visible) {
+  transform: translateX(-28px);
+}
+
+.reveal--right:not(.is-visible) {
+  transform: translateX(28px);
+}
+
+/* Foto hero geser lebih jauh dari kiri ke tengah biar efeknya lebih kerasa
+   dibanding elemen teks di sebelahnya. */
+.hero__visual.reveal--left:not(.is-visible) {
+  transform: translateX(-90px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal:not(.is-visible) {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (max-width: 960px) {
   .hero__inner {
     grid-template-columns: 1fr;
@@ -611,10 +680,6 @@ function preventImageAction(event) {
   .hero__eyebrow {
     display: table;
     margin: 0 auto;
-  }
-
-  .hero__desc {
-    text-align: justify;
   }
 
   .hero__actions {

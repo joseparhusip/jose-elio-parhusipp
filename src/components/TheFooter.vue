@@ -207,6 +207,7 @@ function preventImageAction(event) {
 }
 
 .footer__tagline {
+  text-align: justify;
   margin-top: 0.9rem;
   max-width: 320px;
   font-family: var(--font-body);

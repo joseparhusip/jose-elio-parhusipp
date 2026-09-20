@@ -20,6 +20,53 @@ function preventImageAction(event) {
   return false
 }
 
+/* ---------------------------------------------------------
+   v-reveal: animasi "muncul" halus saat elemen masuk viewport
+   saat discroll. Cuma main di opacity & transform (posisi),
+   warna sama sekali tidak disentuh/diubah.
+   Pakai: v-reveal (fade+naik), v-reveal.scale (fade+membesar),
+   v-reveal.left / v-reveal.right (geser dari samping).
+   Value opsional = delay (ms), untuk efek berurutan/staggered.
+--------------------------------------------------------- */
+const revealObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        revealObserver.unobserve(entry.target)
+      }
+    })
+  },
+  { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
+)
+
+const vReveal = {
+  mounted(el, binding) {
+    let variant = 'up'
+    if (binding.modifiers.scale) variant = 'scale'
+    else if (binding.modifiers.left) variant = 'left'
+    else if (binding.modifiers.right) variant = 'right'
+
+    el.classList.add('reveal', `reveal--${variant}`)
+
+    const delay = typeof binding.value === 'number' ? binding.value : 0
+    el.style.transitionDelay = `${delay}ms`
+
+    // Paksa browser "melukis" kondisi tersembunyi ini dulu (tunggu 2 frame)
+    // sebelum mulai diobservasi. Tanpa ini, elemen yang sudah kelihatan
+    // duluan (misalnya pas reload / buka pertama kali) suka langsung
+    // "loncat" ke posisi akhir tanpa animasi sama sekali.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        revealObserver.observe(el)
+      })
+    })
+  },
+  unmounted(el) {
+    revealObserver.unobserve(el)
+  },
+}
+
 const form = ref({
   name: '',
   email: '',
@@ -122,16 +169,21 @@ async function handleSubmit() {
 <template>
   <section id="kontak" class="contact">
     <div class="contact__inner">
-      <div class="contact__info">
-        <span class="contact__eyebrow">Kontak</span>
-        <h2 class="contact__title">Yuk, mulai obrolan</h2>
-        <p class="contact__desc">
+      <div class="contact__info" v-reveal.left>
+        <span class="contact__eyebrow" v-reveal>Kontak</span>
+        <h2 class="contact__title" v-reveal="80">Yuk, mulai obrolan</h2>
+        <p class="contact__desc" v-reveal="160">
           Ada proyek, ide kolaborasi, atau sekadar mau say hi? Kirim pesan lewat form di samping,
           atau langsung hubungi lewat kontak berikut.
         </p>
 
         <ul class="contact__list">
-          <li v-for="item in contactInfo" :key="item.label" class="contact__item">
+          <li
+            v-for="(item, index) in contactInfo"
+            :key="item.label"
+            class="contact__item"
+            v-reveal="260 + index * 90"
+          >
             <span
               class="contact__item-icon"
               aria-hidden="true"
@@ -166,7 +218,7 @@ async function handleSubmit() {
           </li>
         </ul>
 
-        <div class="contact__map-block">
+        <div class="contact__map-block" v-reveal="360">
           <span class="contact__item-label">Lokasi</span>
           <div
             ref="mapContainer"
@@ -177,7 +229,7 @@ async function handleSubmit() {
         </div>
       </div>
 
-      <form class="contact__form" @submit.prevent="handleSubmit">
+      <form class="contact__form" v-reveal.right="120" @submit.prevent="handleSubmit">
         <div class="contact__field">
           <label for="name" class="contact__label">Nama</label>
           <input
@@ -276,6 +328,11 @@ async function handleSubmit() {
 .contact {
   padding: 5rem 1.5rem;
   background: var(--color-bg, #f1f4f1);
+  /* FIX area kosong di kanan (mobile): form kontak sebelum muncul digeser
+     28px ke kanan (v-reveal.right), dan itu ikut melebarkan halaman.
+     Overflow horizontal dipotong di batas section. */
+  overflow-x: hidden; /* fallback browser lama */
+  overflow-x: clip;
 }
 
 .contact__inner {
@@ -315,6 +372,7 @@ async function handleSubmit() {
 }
 
 .contact__desc {
+  text-align: justify;
   font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.75;
@@ -606,9 +664,48 @@ async function handleSubmit() {
   color: #c0524a;
 }
 
+/* ---------------------------------------------------------
+   Reveal system: dipakai lewat directive v-reveal di template.
+   Hanya memainkan opacity & transform (posisi/skala), warna
+   elemen sama sekali tidak diubah oleh animasi ini.
+--------------------------------------------------------- */
+.reveal {
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.reveal--scale:not(.is-visible) {
+  transform: translateY(14px) scale(0.94);
+}
+
+.reveal--left:not(.is-visible) {
+  transform: translateX(-28px);
+}
+
+.reveal--right:not(.is-visible) {
+  transform: translateX(28px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal:not(.is-visible) {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (max-width: 900px) {
   .contact__inner {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr): kolom tidak ikut melebar oleh teks yang tidak bisa patah */
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -620,10 +717,6 @@ async function handleSubmit() {
   .contact__eyebrow {
     display: table;
     margin: 0 auto;
-  }
-
-  .contact__desc {
-    text-align: justify;
   }
 
   .contact__info {
@@ -645,6 +738,10 @@ async function handleSubmit() {
 
   .contact__item-value {
     font-size: 0.82rem;
+    /* HP layar sempit (<= 360px): email/teks panjang boleh turun baris,
+       tidak menembus keluar kartu */
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
 </style>
