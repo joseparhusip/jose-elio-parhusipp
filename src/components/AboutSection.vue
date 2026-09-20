@@ -64,8 +64,18 @@ const revealObserver = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible')
-        revealObserver.unobserve(entry.target)
+        const el = entry.target
+        el.classList.add('is-visible')
+        revealObserver.unobserve(el)
+
+        // Setelah animasi masuk selesai, buang delay & tandai "selesai".
+        // Tanpa ini, delay stagger ikut kebawa ke efek hover (ikon terasa
+        // telat naik saat di-hover).
+        const delay = parseFloat(el.style.transitionDelay) || 0
+        setTimeout(() => {
+          el.style.transitionDelay = '0ms'
+          el.classList.add('reveal-done')
+        }, delay + 800)
       }
     })
   },
@@ -156,7 +166,7 @@ const vReveal = {
               class="about__tools-item"
               :title="tool.name"
               oncontextmenu="return false"
-              v-reveal.right="(index % 7) * 45"
+              v-reveal.right="index * 55"
               @contextmenu.prevent="preventImageAction"
             >
               <img
@@ -412,15 +422,29 @@ const vReveal = {
   transform: translateX(28px);
 }
 
-/* Ikon "Yang saya kuasai" geser dari kanan sedikit lebih jauh biar
-   efeknya lebih kerasa dan jelas kelihatan pas halaman dibuka. */
+/* Ikon "Yang saya kuasai" masuk dari kanan sambil sedikit membesar
+   (scale), satu per satu berurutan, lalu berhenti di posisi semula. */
 .about__tools-item.reveal--right:not(.is-visible) {
-  transform: translateX(55px);
+  transform: translateX(60px) scale(0.8);
+}
+
+.about__tools-item.reveal {
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Animasi masuk sudah selesai: kembalikan transisi ke efek hover biasa
+   (cepat, tanpa delay). */
+.about__tools-item.reveal-done {
+  transition: transform 0.2s ease;
+  will-change: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal,
-  .reveal:not(.is-visible) {
+  .reveal:not(.is-visible),
+  .about__tools-item.reveal--right:not(.is-visible) {
     transition: none;
     opacity: 1;
     transform: none;

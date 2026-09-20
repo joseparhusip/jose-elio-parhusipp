@@ -261,7 +261,7 @@ const vReveal = {
           </ul>
         </div>
 
-        <div class="hero__visual" v-reveal.left="150">
+        <div class="hero__visual" v-reveal.right="150">
           <div class="hero__blob"></div>
           <div class="hero__photo-frame">
             <img
@@ -635,15 +635,29 @@ const vReveal = {
   transform: translateX(28px);
 }
 
-/* Foto hero geser lebih jauh dari kiri ke tengah biar efeknya lebih kerasa
-   dibanding elemen teks di sebelahnya. */
-.hero__visual.reveal--left:not(.is-visible) {
-  transform: translateX(-90px);
+/* Foto hero masuk dari KANAN lalu meluncur pelan ke posisi semula.
+   Jaraknya lebih jauh & durasinya lebih panjang dibanding teks di
+   sebelahnya biar efeknya kerasa. Hero punya overflow: hidden, jadi
+   bagian yang masih di luar layar terpotong rapi (tidak bikin scroll
+   horizontal). */
+.hero__visual.reveal {
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero__visual {
+  --hero-slide-x: 140px;
+}
+
+.hero__visual.reveal--right:not(.is-visible) {
+  transform: translateX(var(--hero-slide-x)) scale(0.96);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal,
-  .reveal:not(.is-visible) {
+  .reveal:not(.is-visible),
+  .hero__visual.reveal--right:not(.is-visible) {
     transition: none;
     opacity: 1;
     transform: none;
@@ -659,6 +673,7 @@ const vReveal = {
   .hero__visual {
     order: -1;
     min-height: 380px;
+    --hero-slide-x: 100px;
   }
 
   .hero__blob {
