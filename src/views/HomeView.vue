@@ -117,10 +117,8 @@ function preventImageAction(event) {
    Animasi foto hero: foto masuk dari kanan layar lalu meluncur
    ke posisi aslinya. TIDAK bergantung pada scroll.
    Animasi baru dimulai kalau DUA syarat terpenuhi:
-   1. Loader (TheLoader) sudah selesai & layar terbuka. Kalau tidak,
-      animasi habis di belakang loader dan tidak pernah terlihat.
-   2. Gambar sudah dimuat, supaya yang meluncur foto utuh, bukan
-      bingkai kosong. Ada fallback 1,5 detik kalau load lambat/gagal.
+   1. Loader (TheLoader) sudah selesai & layar terbuka.
+   2. Gambar sudah dimuat. Ada fallback 1,5 detik.
 --------------------------------------------------------- */
 const photoLoaded = ref(false)
 const photoReady = computed(() => loaderDone.value && photoLoaded.value)
@@ -132,7 +130,6 @@ function markPhotoLoaded() {
 }
 
 onMounted(() => {
-  // Kalau gambar sudah ada di cache, event load bisa sudah lewat.
   if (photoEl.value?.complete) markPhotoLoaded()
   photoFallbackId = setTimeout(markPhotoLoaded, 1500)
 })
@@ -143,12 +140,6 @@ onUnmounted(() => {
 
 /* ---------------------------------------------------------
    v-reveal: animasi "muncul" halus saat elemen masuk viewport.
-   Untuk hero (di atas layar), ini otomatis jadi animasi
-   sambutan saat halaman pertama kali dibuka. Cuma main di
-   opacity & transform (posisi/skala), warna tidak diubah.
-   Pakai: v-reveal (fade+naik), v-reveal.scale (fade+membesar),
-   v-reveal.left / v-reveal.right (geser dari samping).
-   Value opsional = delay (ms), untuk efek berurutan/staggered.
 --------------------------------------------------------- */
 const revealObserver = new IntersectionObserver(
   (entries) => {
@@ -174,11 +165,6 @@ const vReveal = {
     const delay = typeof binding.value === 'number' ? binding.value : 0
     el.style.transitionDelay = `${delay}ms`
 
-    // Paksa browser "melukis" kondisi tersembunyi ini dulu (tunggu 2 frame)
-    // sebelum mulai diobservasi. Ini PENTING khusus buat hero, karena hero
-    // langsung kelihatan penuh di layar begitu halaman dibuka/reload —
-    // tanpa jeda ini, browser suka langsung "loncat" ke posisi akhir dan
-    // animasinya jadi kelihatan diam sama sekali.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         revealObserver.observe(el)
@@ -334,10 +320,10 @@ const vReveal = {
 }
 
 .hero__inner {
-  max-width: 1160px;
+  max-width: 1240px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: 3rem;
 }
@@ -545,10 +531,12 @@ const vReveal = {
   pointer-events: none;
 }
 
+/* Tech stack: 2 atas + 2 bawah (grid 2 kolom) */
 .hero__stack {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.6rem;
+  max-width: 340px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -557,33 +545,42 @@ const vReveal = {
 .hero__stack-item {
   font-family: var(--font-body);
   font-size: 0.78rem;
+  text-align: center;
   color: var(--color-primary-dark, #4f7566);
   background: #fff;
   border: 1px solid rgba(107, 144, 128, 0.25);
-  padding: 0.35rem 0.75rem;
+  padding: 0.45rem 0.75rem;
   border-radius: 6px;
 }
 
+/* ---------------------------------------------------------
+   FOTO HERO (DESKTOP) - sekitar 1.4x dari ukuran awal
+   Frame : 560 x 644  (awal 400 x 460)
+   Blob  : 640 x 640  (awal 460 x 460)
+   Kalau mau ubah ukuran, cukup ganti angka 560px & 640px.
+   Tinggi frame ikut otomatis lewat aspect-ratio.
+--------------------------------------------------------- */
 .hero__visual {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 500px;
+  width: 100%;
+  min-height: 680px;
 }
 
 .hero__blob {
   position: absolute;
-  width: 460px;
-  height: 460px;
+  width: min(640px, 105%);
+  aspect-ratio: 1 / 1;
   background: linear-gradient(155deg, var(--color-mint, #cfe3dd), var(--color-accent-soft, #fbe4d8));
   border-radius: 62% 38% 55% 45% / 45% 55% 45% 55%;
 }
 
 .hero__photo-frame {
   position: relative;
-  width: 400px;
-  height: 460px;
+  width: min(560px, 100%);
+  aspect-ratio: 560 / 644;
   border-radius: 46% 54% 58% 42% / 50% 45% 55% 50%;
   background: var(--color-surface, #fff);
   border: 2px solid rgba(255, 255, 255, 0.8);
@@ -630,19 +627,17 @@ const vReveal = {
 }
 
 .hero__badge--top {
-  top: 0.5rem;
-  right: -0.5rem;
+  top: 1.5rem;
+  right: 0;
 }
 
 .hero__badge--bottom {
-  bottom: 0.5rem;
-  left: -1rem;
+  bottom: 1.5rem;
+  left: 0;
 }
 
 /* ---------------------------------------------------------
-   Reveal system: dipakai lewat directive v-reveal di template.
-   Hanya memainkan opacity & transform (posisi/skala), warna
-   elemen sama sekali tidak diubah oleh animasi ini.
+   Reveal system
 --------------------------------------------------------- */
 .reveal {
   transition:
@@ -668,16 +663,11 @@ const vReveal = {
   transform: translateX(28px);
 }
 
-/* Foto hero: masuk dari KANAN layar, lalu meluncur pelan ke posisi
-   aslinya. Jalan otomatis saat halaman dibuka (class .is-in dipasang
-   dari script begitu gambar siap), jadi TIDAK perlu scroll dulu.
-   Hero punya overflow: hidden, jadi bagian yang masih di luar layar
-   terpotong rapi dan tidak memunculkan scroll horizontal. */
+/* Foto hero: masuk dari KANAN layar lalu meluncur ke posisi aslinya. */
 .hero__visual {
   --hero-slide-x: 100vw;
 }
 
-/* Sebelum siap: sembunyi di luar layar sebelah kanan. */
 .hero__visual:not(.is-in) {
   opacity: 0;
   transform: translateX(var(--hero-slide-x));
@@ -711,31 +701,63 @@ const vReveal = {
   }
 }
 
+/* ---------------------------------------------------------
+   TABLET & MOBILE (<= 960px): 1 kolom, foto di atas.
+--------------------------------------------------------- */
 @media (max-width: 960px) {
   .hero__inner {
     grid-template-columns: 1fr;
     text-align: left;
+    gap: 2rem;
   }
 
   .hero__visual {
     order: -1;
-    min-height: 380px;
+    min-height: 0;
+    padding: 1rem 0;
   }
 
   .hero__blob {
-    width: 340px;
-    height: 340px;
+    width: min(460px, 100%);
   }
 
   .hero__photo-frame {
-    width: 300px;
-    height: 350px;
+    width: min(400px, 86%);
+  }
+
+  .hero__badge--top {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .hero__badge--bottom {
+    bottom: 0.5rem;
+    left: 0.5rem;
   }
 }
 
+/* ---------------------------------------------------------
+   HP (<= 480px)
+--------------------------------------------------------- */
 @media (max-width: 480px) {
   .hero {
     padding: 3rem 1.25rem 3.5rem;
+  }
+
+  .hero__blob {
+    width: 100%;
+  }
+
+  .hero__photo-frame {
+    width: 82%;
+  }
+
+  .hero__badge {
+    padding: 0.5rem 0.8rem;
+  }
+
+  .hero__badge strong {
+    font-size: 1.05rem;
   }
 
   .hero__eyebrow {
@@ -754,6 +776,10 @@ const vReveal = {
 
   .hero__socials {
     justify-content: center;
+  }
+
+  .hero__stack {
+    margin: 0 auto;
   }
 }
 </style>
