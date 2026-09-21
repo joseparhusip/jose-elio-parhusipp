@@ -255,14 +255,14 @@ onUnmounted(() => {
   border: 3px solid var(--color-mint, #cfe3dd);
   flex-shrink: 0;
   margin-top: 0.4rem;
-  box-shadow: 0 0 0 0 rgba(107, 144, 128, 0);
+  box-shadow: 0 0 0 0 rgba(124, 111, 240, 0);
   transition: box-shadow 0.4s ease;
 }
 
 .experience__dot.is-active {
   box-shadow:
-    0 0 0 5px rgba(107, 144, 128, 0.18),
-    0 0 14px 4px rgba(107, 144, 128, 0.55);
+    0 0 0 5px rgba(124, 111, 240, 0.18),
+    0 0 14px 4px rgba(124, 111, 240, 0.55);
 }
 
 /* Track dasar dibikin nyaris tak terlihat -> sebelum discroll,
@@ -272,7 +272,7 @@ onUnmounted(() => {
   flex: 1;
   width: 2px;
   margin: 0.3rem 0;
-  background: rgba(107, 144, 128, 0.1);
+  background: rgba(124, 111, 240, 0.1);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -290,7 +290,7 @@ onUnmounted(() => {
   transform: scaleY(0);
   transform-origin: top center;
   transition: transform 0.12s ease-out;
-  box-shadow: 0 0 10px 2px rgba(107, 144, 128, 0.6);
+  box-shadow: 0 0 10px 2px rgba(124, 111, 240, 0.6);
 }
 
 .experience__item:last-child .experience__line {
@@ -372,7 +372,7 @@ onUnmounted(() => {
   font-size: 0.72rem;
   color: var(--color-primary-dark, #4f7566);
   background: var(--color-bg, #f1f4f1);
-  border: 1px solid rgba(107, 144, 128, 0.25);
+  border: 1px solid rgba(124, 111, 240, 0.25);
   padding: 0.3rem 0.65rem;
   border-radius: 6px;
 }

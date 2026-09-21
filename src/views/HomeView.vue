@@ -393,7 +393,7 @@ const vReveal = {
 .hero__btn--primary {
   background: var(--color-primary, #6b9080);
   color: #fff;
-  box-shadow: 0 12px 24px -12px rgba(107, 144, 128, 0.55);
+  box-shadow: 0 12px 24px -12px rgba(124, 111, 240, 0.55);
 }
 
 .hero__btn--primary:hover {
@@ -501,9 +501,9 @@ const vReveal = {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: #fff;
-  color: var(--color-text-soft, #5c6f69);
-  border: 1px solid rgba(107, 144, 128, 0.25);
+  background: var(--color-surface, #131826);
+  color: var(--color-text-soft, #8c96b3);
+  border: 1px solid var(--color-border, rgba(124, 111, 240, 0.25));
   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
@@ -546,9 +546,9 @@ const vReveal = {
   font-family: var(--font-body);
   font-size: 0.78rem;
   text-align: center;
-  color: var(--color-primary-dark, #4f7566);
-  background: #fff;
-  border: 1px solid rgba(107, 144, 128, 0.25);
+  color: var(--color-text, #e7eaf6);
+  background: var(--color-surface, #131826);
+  border: 1px solid var(--color-border, rgba(124, 111, 240, 0.25));
   padding: 0.45rem 0.75rem;
   border-radius: 6px;
 }
@@ -608,10 +608,11 @@ const vReveal = {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.1rem;
-  background: #fff;
+  background: var(--color-surface, #131826);
+  border: 1px solid var(--color-border);
   padding: 0.75rem 1.1rem;
   border-radius: 14px;
-  box-shadow: 0 16px 30px -16px rgba(37, 54, 50, 0.35);
+  box-shadow: 0 16px 30px -16px rgba(0, 0, 0, 0.55);
 }
 
 .hero__badge strong {

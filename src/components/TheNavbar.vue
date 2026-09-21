@@ -77,7 +77,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   top: 0;
   z-index: 100;
   width: 100%;
-  background: rgba(241, 244, 241, 0.85);
+  background: rgba(11, 14, 23, 0.82);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-radius: 0;
@@ -99,7 +99,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
    dan hover link jadi ijau. */
 .navbar--scrolled {
   top: 0.75rem;
-  background: rgba(37, 54, 50, 0.92);
+  background: rgba(19, 24, 38, 0.92);
   border-radius: 999px;
   box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.45);
 }
@@ -191,7 +191,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 }
 
 .navbar--scrolled .navbar__link:hover {
-  background: rgba(107, 144, 128, 0.12);
+  background: rgba(124, 111, 240, 0.12);
   color: var(--color-text, #253632);
 }
 
@@ -233,7 +233,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(107, 144, 128, 0.08);
+  background: rgba(124, 111, 240, 0.08);
   border: none;
   cursor: pointer;
   padding: 0;
@@ -241,7 +241,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 }
 
 .navbar__toggle:hover {
-  background: rgba(107, 144, 128, 0.16);
+  background: rgba(124, 111, 240, 0.16);
 }
 
 .navbar__toggle span {
@@ -285,7 +285,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
     align-items: stretch;
     gap: 0;
     background: var(--color-surface, #fff);
-    border-bottom: 1px solid rgba(107, 144, 128, 0.15);
+    border-bottom: 1px solid rgba(124, 111, 240, 0.15);
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease, background-color 0.3s ease;
@@ -322,7 +322,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
      supaya teks link (yang jadi terang di state ini) tetap kebaca.
      Sebelumnya background dropdown tetap putih -> teks terang jadi invisible. */
   .navbar--scrolled .navbar__links {
-    background: rgba(37, 54, 50, 0.98);
+    background: rgba(19, 24, 38, 0.98);
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
 

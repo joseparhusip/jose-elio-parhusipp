@@ -522,7 +522,7 @@ async function handleSubmit() {
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 20px 40px -25px rgba(37, 54, 50, 0.35);
-  border: 1px solid rgba(107, 144, 128, 0.2);
+  border: 1px solid rgba(124, 111, 240, 0.2);
   z-index: 0;
 }
 
@@ -562,7 +562,7 @@ async function handleSubmit() {
   font-size: 0.95rem;
   color: var(--color-text, #253632);
   background: var(--color-bg, #f1f4f1);
-  border: 1.5px solid rgba(107, 144, 128, 0.25);
+  border: 1.5px solid rgba(124, 111, 240, 0.25);
   border-radius: 10px;
   padding: 0.75rem 1rem;
   outline: none;
@@ -626,7 +626,7 @@ async function handleSubmit() {
   gap: 0.65rem;
   margin: -0.5rem 0 0;
   padding: 0.6rem 0.9rem;
-  background: rgba(107, 144, 128, 0.1);
+  background: rgba(124, 111, 240, 0.1);
   border-radius: 12px;
 }
 
@@ -701,7 +701,7 @@ async function handleSubmit() {
 }
 
 .contact__submit-status--error {
-  color: #c0524a;
+  color: var(--color-danger, #ff6b6b);
 }
 
 /* ---------------------------------------------------------

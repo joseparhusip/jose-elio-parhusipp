@@ -1,14 +1,27 @@
 :root {
-  --color-bg: #F1F4F1;
-  --color-surface: #FFFFFF;
-  --color-text: #253632;
-  --color-text-soft: #5C6F69;
-  --color-primary: #6B9080;
-  --color-primary-dark: #4F7566;
-  --color-accent: #F2A488;
-  --color-accent-soft: #FBE4D8;
-  --color-mint: #CFE3DD;
+  /* ---- Latar & Permukaan (Dark / Developer Theme) ---- */
+  --color-bg: #0B0E17;
+  --color-surface: #131826;
+  --color-surface-soft: #1A2035;
+  --color-border: rgba(148, 163, 184, 0.14);
+
+  /* ---- Teks ---- */
+  --color-text: #E7EAF6;
+  --color-text-soft: #8C96B3;
+
+  /* ---- Warna Aksen (ungu/biru ala editor kode) ---- */
+  --color-primary: #7C6FF0;
+  --color-primary-dark: #5E52D6;
+  --color-primary-soft: rgba(124, 111, 240, 0.16);
+
+  --color-accent: #4FD6C0;
+  --color-accent-soft: rgba(79, 214, 192, 0.14);
+
+  --color-mint: #1E2740;
+
+  --color-danger: #FF6B6B;
 
   --font-heading: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
 }

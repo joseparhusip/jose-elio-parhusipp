@@ -370,7 +370,7 @@ const vReveal = {
 
 .about__tools {
   padding-top: 1.75rem;
-  border-top: 1px solid rgba(107, 144, 128, 0.2);
+  border-top: 1px solid rgba(124, 111, 240, 0.2);
 }
 
 .about__tools-label {

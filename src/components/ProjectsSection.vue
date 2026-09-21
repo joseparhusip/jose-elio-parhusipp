@@ -449,7 +449,7 @@ const vReveal = {
 .project-card {
   position: relative;
   background: var(--color-surface, #fff);
-  border: 1px solid rgba(107, 144, 128, 0.15);
+  border: 1px solid rgba(124, 111, 240, 0.15);
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 20px 40px -28px rgba(37, 54, 50, 0.35);
@@ -580,7 +580,7 @@ const vReveal = {
   justify-content: center;
   gap: 1rem;
   padding: 2rem;
-  background: rgba(15, 23, 21, 0.88);
+  background: rgba(11, 14, 23, 0.88);
   backdrop-filter: blur(4px);
 }
 
@@ -693,7 +693,7 @@ const vReveal = {
   width: 40px;
   height: 4px;
   border-radius: 999px;
-  background: rgba(107, 144, 128, 0.3);
+  background: rgba(124, 111, 240, 0.3);
   margin: 0 auto 1rem;
 }
 
@@ -707,7 +707,7 @@ const vReveal = {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid rgba(107, 144, 128, 0.2);
+  border: 1px solid rgba(124, 111, 240, 0.2);
   background: var(--color-bg, #f1f4f1);
   color: var(--color-text-soft, #5c6f69);
   cursor: pointer;
@@ -715,7 +715,7 @@ const vReveal = {
 }
 
 .project-card__sheet-close:hover {
-  background: var(--color-text, #253632);
+  background: var(--color-primary-dark, #5e52d6);
   color: #fff;
 }
 
@@ -752,7 +752,7 @@ const vReveal = {
   display: block;
   height: 1px;
   margin: 0 0 1.1rem;
-  background: linear-gradient(90deg, rgba(107, 144, 128, 0.35), rgba(107, 144, 128, 0));
+  background: linear-gradient(90deg, rgba(124, 111, 240, 0.35), rgba(124, 111, 240, 0));
 }
 
 .project-card__sheet-desc-list {
@@ -852,7 +852,7 @@ const vReveal = {
   height: 34px;
   border-radius: 8px;
   background: var(--color-bg, #f1f4f1);
-  border: 1px solid rgba(107, 144, 128, 0.2);
+  border: 1px solid rgba(124, 111, 240, 0.2);
 }
 
 .project-card__stack-icon {
@@ -886,14 +886,14 @@ const vReveal = {
   border-radius: 10px;
   background: var(--color-bg, #f1f4f1);
   color: var(--color-text-soft, #5c6f69);
-  border: 1px solid rgba(107, 144, 128, 0.2);
+  border: 1px solid rgba(124, 111, 240, 0.2);
   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .project-card__icon-link:hover {
   transform: translateY(-2px);
   color: #fff;
-  background: var(--color-text, #253632);
+  background: var(--color-primary-dark, #5e52d6);
 }
 
 .project-card__icon-link--primary:hover {
