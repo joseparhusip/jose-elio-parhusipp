@@ -21,7 +21,53 @@
 
   --color-danger: #FF6B6B;
 
+  /* ---- Navbar (dipisah supaya bisa beda tiap tema) ---- */
+  --navbar-bg: rgba(11, 14, 23, 0.82);
+  --navbar-bg-scrolled: rgba(19, 24, 38, 0.92);
+  --navbar-dropdown-bg: rgba(19, 24, 38, 0.98);
+  --navbar-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.45);
+  --navbar-hover-bg: rgba(124, 111, 240, 0.12);
+  --navbar-toggle-bg: rgba(255, 255, 255, 0.12);
+  --navbar-toggle-bg-hover: rgba(255, 255, 255, 0.22);
+
+  color-scheme: dark;
+
   --font-heading: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* =====================================================
+   MODE TERANG — background putih, teks tetap gelap
+   (aktif kalau <html data-theme="light">)
+   ===================================================== */
+:root[data-theme='light'] {
+  --color-bg: #F4F6FB;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #E9EDF7;
+  --color-border: rgba(15, 23, 42, 0.12);
+
+  --color-text: #1B2238;
+  --color-text-soft: #59627D;
+
+  --color-primary: #6A5CE8;
+  --color-primary-dark: #5346CF;
+  --color-primary-soft: rgba(106, 92, 232, 0.14);
+
+  --color-accent: #0E9F8A;
+  --color-accent-soft: rgba(14, 159, 138, 0.14);
+
+  --color-mint: #E6E3FC;
+
+  --color-danger: #E5484D;
+
+  --navbar-bg: rgba(255, 255, 255, 0.85);
+  --navbar-bg-scrolled: rgba(255, 255, 255, 0.94);
+  --navbar-dropdown-bg: rgba(255, 255, 255, 0.98);
+  --navbar-shadow: 0 12px 30px -14px rgba(27, 34, 56, 0.3);
+  --navbar-hover-bg: rgba(106, 92, 232, 0.1);
+  --navbar-toggle-bg: rgba(27, 34, 56, 0.07);
+  --navbar-toggle-bg-hover: rgba(27, 34, 56, 0.14);
+
+  color-scheme: light;
 }

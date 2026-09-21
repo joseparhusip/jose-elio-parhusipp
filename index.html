@@ -5,6 +5,19 @@
     <link rel="icon" href="/logo-untuk-google.png" sizes="192x192" type="image/png">
     <link rel="apple-touch-icon" href="/logo-untuk-google.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0B0E17">
+    <script>
+      // Terapkan tema tersimpan SEBELUM halaman dirender (anti-kedip)
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'light' || t === 'dark') {
+            document.documentElement.setAttribute('data-theme', t);
+            if (t === 'light') document.querySelector('meta[name="theme-color"]').setAttribute('content', '#F4F6FB');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <title>Jose Elio Parhusip — Fresh Graduate &amp; Fullstack Developer</title>
     <meta name="description" content="Portofolio Jose Elio Parhusip, Fresh Graduate S1 Bisnis Digital ULBI Bandung dan Fullstack Developer yang berminat di pengembangan web, mobile, data, dan AI.">
     <meta name="author" content="Jose Elio Parhusip">

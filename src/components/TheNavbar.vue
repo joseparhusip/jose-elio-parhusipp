@@ -1,5 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import ThemeSwitch from '@/components/ThemeSwitch.vue'
+import { useTheme } from '@/composables/useTheme'
 
 const navLinks = [
   { label: 'Beranda', href: '#beranda' },
@@ -9,6 +11,7 @@ const navLinks = [
   { label: 'Kontak', href: '#kontak' },
 ]
 
+const { theme } = useTheme()
 const isMenuOpen = ref(false)
 const isScrolled = ref(false)
 
@@ -33,7 +36,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
     <nav class="navbar__inner">
       <a href="#beranda" class="navbar__logo" @click="closeMenu">
         <img
-          :src="isScrolled ? '/logo-navbar-footer.png' : '/logo-navbar-sebelum-scroll.png'"
+          :src="theme === 'light' ? '/logo-navbar-sebelum-scroll.png' : '/logo-navbar-footer.png'"
           alt="Jose Elio Parhusip"
           class="navbar__logo-img"
           draggable="false"
@@ -52,6 +55,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
       </ul>
 
       <div class="navbar__actions">
+        <ThemeSwitch />
         <a href="#kontak" class="navbar__cta navbar__cta--desktop" @click="closeMenu">Hubungi Saya</a>
 
         <button
@@ -77,7 +81,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   top: 0;
   z-index: 100;
   width: 100%;
-  background: rgba(11, 14, 23, 0.82);
+  background: var(--navbar-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-radius: 0;
@@ -94,35 +98,33 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   justify-content: space-between;
 }
 
-/* Discroll: lebar TETAP SAMA (full width), cuma dikasih jarak dikit dari atas
-   biar ga mepet ke tepi layar, warna jadi gelap, ujung kiri-kanan jadi bulat,
-   dan hover link jadi ijau. */
+/* Discroll: lebar TETAP SAMA (full width), cuma dikasih jarak dikit dari atas,
+   ujung kiri-kanan jadi bulat. Warna ikut tema (gelap / putih). */
 .navbar--scrolled {
   top: 0.75rem;
-  background: rgba(19, 24, 38, 0.92);
+  background: var(--navbar-bg-scrolled);
   border-radius: 999px;
-  box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--navbar-shadow);
 }
 
-/* Saat kapsul (scrolled), teks link otomatis kontras terang di atas background gelap */
 .navbar--scrolled .navbar__link {
-  color: #f1f4f1;
+  color: var(--color-text);
 }
 
 .navbar--scrolled .navbar__link:hover {
-  color: #fff;
+  color: var(--color-primary);
 }
 
 .navbar--scrolled .navbar__toggle {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--navbar-toggle-bg);
 }
 
 .navbar--scrolled .navbar__toggle:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--navbar-toggle-bg-hover);
 }
 
 .navbar--scrolled .navbar__toggle span {
-  background: #f1f4f1;
+  background: var(--color-text);
 }
 
 .navbar__logo {
@@ -164,7 +166,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   transition: color 0.2s ease, background-color 0.2s ease;
 }
 
-/* State DEFAULT (belum discroll / masih di area Home): efek biasa saja, cuma garis bawah tipis */
+/* State DEFAULT: cuma garis bawah tipis saat hover */
 .navbar__link::after {
   content: '';
   position: absolute;
@@ -185,20 +187,20 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   width: calc(100% - 1.8rem);
 }
 
-/* State SCROLLED: hover jadi pill highlight ala tab aktif di IDLIX, garis bawah dimatikan */
+/* State SCROLLED: hover jadi pill highlight, garis bawah dimatikan */
 .navbar--scrolled .navbar__link::after {
   display: none;
 }
 
 .navbar--scrolled .navbar__link:hover {
-  background: rgba(124, 111, 240, 0.12);
-  color: var(--color-text, #253632);
+  background: var(--navbar-hover-bg);
+  color: var(--color-text);
 }
 
 .navbar__actions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.9rem;
 }
 
 .navbar__cta-wrap--mobile {
@@ -223,7 +225,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   transform: translateY(-1px);
 }
 
-/* tombol hamburger dibuat bulat penuh (setengah lingkaran kanan-kiri), bukan kotak */
+/* tombol hamburger bulat penuh */
 .navbar__toggle {
   display: none;
   flex-direction: column;
@@ -233,7 +235,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(124, 111, 240, 0.08);
+  background: var(--navbar-toggle-bg);
   border: none;
   cursor: pointer;
   padding: 0;
@@ -241,7 +243,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 }
 
 .navbar__toggle:hover {
-  background: rgba(124, 111, 240, 0.16);
+  background: var(--navbar-toggle-bg-hover);
 }
 
 .navbar__toggle span {
@@ -318,17 +320,13 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
     display: none;
   }
 
-  /* FIX: dropdown mobile ikut gelap saat navbar dalam state scrolled,
-     supaya teks link (yang jadi terang di state ini) tetap kebaca.
-     Sebelumnya background dropdown tetap putih -> teks terang jadi invisible. */
+  /* dropdown mobile ikut warna tema saat navbar scrolled */
   .navbar--scrolled .navbar__links {
-    background: rgba(19, 24, 38, 0.98);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--navbar-dropdown-bg);
+    border-bottom: 1px solid var(--color-border);
   }
 
-  /* Khusus mobile: pas discroll TIDAK usah jadi kapsul/pill.
-     Biarkan tetap kotak, full width, rata kanan-kiri layar seperti biasa.
-     Bentuk pill/bulat cuma dipakai di desktop (di luar media query ini). */
+  /* Mobile: pas discroll tidak jadi kapsul, tetap kotak full width */
   .navbar--scrolled {
     top: 0;
     border-radius: 0;

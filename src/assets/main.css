@@ -14,12 +14,14 @@ body {
   font-family: var(--font-body);
   background: var(--color-bg);
   color: var(--color-text);
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 #app {
   width: 100%;
   font-weight: normal;
   background: var(--color-bg);
+  transition: background-color 0.35s ease;
 }
 
 ::selection {
