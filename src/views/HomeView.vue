@@ -328,6 +328,11 @@ const vReveal = {
   gap: 3rem;
 }
 
+/* === PENYESUAIAN POSISI TEKS (Dinaikkan lagi) === */
+.hero__content {
+  margin-top: -10rem;
+}
+
 .hero__eyebrow {
   display: inline-flex;
   align-items: center;
@@ -555,10 +560,6 @@ const vReveal = {
 
 /* ---------------------------------------------------------
    FOTO HERO (DESKTOP) - sekitar 1.4x dari ukuran awal
-   Frame : 560 x 644  (awal 400 x 460)
-   Blob  : 640 x 640  (awal 460 x 460)
-   Kalau mau ubah ukuran, cukup ganti angka 560px & 640px.
-   Tinggi frame ikut otomatis lewat aspect-ratio.
 --------------------------------------------------------- */
 .hero__visual {
   position: relative;
@@ -710,6 +711,11 @@ const vReveal = {
     grid-template-columns: 1fr;
     text-align: left;
     gap: 2rem;
+  }
+
+  .hero__content {
+    /* Reset ke 0 pada tampilan mobile agar teks tidak menabrak foto */
+    margin-top: 0;
   }
 
   .hero__visual {
