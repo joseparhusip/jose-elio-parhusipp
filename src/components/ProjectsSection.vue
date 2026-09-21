@@ -143,19 +143,24 @@ function preventImageAction(event) {
 }
 
 /* ---------------------------------------------------------
-   v-reveal: animasi "muncul" halus saat elemen masuk viewport
-   saat discroll. Cuma main di opacity & transform (posisi),
-   warna sama sekali tidak disentuh/diubah.
-   Pakai: v-reveal (fade+naik), v-reveal.scale (fade+membesar),
-   v-reveal.left / v-reveal.right (geser dari samping).
-   Value opsional = delay (ms), untuk efek berurutan/staggered.
+   v-reveal: animasi "muncul" halus saat elemen masuk viewport.
+   DIPERBAIKI: Menambahkan class 'reveal-done' setelah animasi
+   selesai agar efek hover (transform) pada kartu proyek tidak
+   bentrok dan mematikan animasi muncul (fade-in).
 --------------------------------------------------------- */
 const revealObserver = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible')
-        revealObserver.unobserve(entry.target)
+        const el = entry.target
+        el.classList.add('is-visible')
+        revealObserver.unobserve(el)
+
+        const delay = parseFloat(el.style.transitionDelay) || 0
+        setTimeout(() => {
+          el.style.transitionDelay = '0ms'
+          el.classList.add('reveal-done')
+        }, delay + 700)
       }
     })
   },
@@ -174,10 +179,6 @@ const vReveal = {
     const delay = typeof binding.value === 'number' ? binding.value : 0
     el.style.transitionDelay = `${delay}ms`
 
-    // Paksa browser "melukis" kondisi tersembunyi ini dulu (tunggu 2 frame)
-    // sebelum mulai diobservasi. Tanpa ini, elemen yang sudah kelihatan
-    // duluan (misalnya pas reload / buka pertama kali) suka langsung
-    // "loncat" ke posisi akhir tanpa animasi sama sekali.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         revealObserver.observe(el)
@@ -203,11 +204,12 @@ const vReveal = {
       </div>
 
       <div class="projects__grid">
+        <!-- v-reveal.scale dipanggil tanpa indeks berantai, agar animasi berurutan secara natural di Desktop & Mobile -->
         <article
           v-for="(project, index) in projects"
           :key="project.title"
           class="project-card"
-          v-reveal.scale="(index % 3) * 100"
+          v-reveal.scale
         >
           <div class="project-card__thumb">
             <div class="project-card__photo-card">
@@ -453,10 +455,15 @@ const vReveal = {
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 20px 40px -28px rgba(37, 54, 50, 0.35);
+  /* Dihapus transition hover di awal agar tidak mematikan animasi v-reveal */
+}
+
+/* Hover effect diaktifkan hanya setelah animasi reveal selesai (.reveal-done) */
+.project-card.reveal-done {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.project-card:hover {
+.project-card.reveal-done:hover {
   transform: translateY(-4px);
   box-shadow: 0 26px 48px -24px rgba(37, 54, 50, 0.45);
 }
