@@ -11,6 +11,7 @@ import mysqlIcon from './icons/icons-about/mysql-ar21.svg'
 import googleIcon from './icons/icons-about/google-icon-logo-svgrepo-com.svg'
 import reactIcon from './icons/icons-about/React-icon.svg'
 import tailwindIcon from './icons/icons-about/Tailwind_CSS_Logo.svg'
+import vueIcon from './icons/icons-about/Vue.js_Logo_2.svg'
 
 // Thumbnail proyek
 import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.png'
@@ -18,6 +19,7 @@ import mobileJecThumb from './img-proyek/img-jec/IMG-JEC-1.jpeg'
 import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.png'
 import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.png'
 import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.png'
+import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.png'
 
 const projects = [
   {
@@ -111,6 +113,25 @@ const projects = [
     ],
     demoHref: 'https://toko-kelontong-online.vercel.app/',
     codeHref: 'https://github.com/joseparhusip/toko-kelontong-online',
+  },
+  {
+    title: 'Kindle Coffee',
+    desc: [
+      'Mengembangkan prototype front end website coffee shop "Kindle Coffee" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi antar halaman (Home, Menu, Cart, History, About). Proyek ini murni prototype tampilan, belum terhubung ke backend/server sungguhan.',
+      'Membangun frontend menggunakan Vue.js (Composition API, Vue Router) dan Tailwind CSS untuk seluruh tampilan.',
+      'Mengimplementasikan state management dengan Pinia untuk mengelola keranjang belanja, pemilihan meja/kursi, dan riwayat pesanan secara reaktif.',
+      'Membangun halaman Menu dengan filter kategori produk serta katalog dinamis menggunakan komponen ProductCard yang reusable.',
+      'Merancang alur pemesanan pada halaman Cart, mencakup pemilihan nomor meja/kursi interaktif dan simulasi checkout (integrasi UI Midtrans Snap sebagai contoh alur pembayaran, tanpa backend nyata).',
+      'Membangun halaman Riwayat Pesanan dengan filter rentang tanggal, status pesanan pending dengan countdown, serta fitur cetak struk/invoice ke PDF menggunakan jsPDF.',
+      'Menyusun halaman Home dan About sebagai landing page dengan hero section, value proposition, dan testimoni untuk memperkuat identitas brand.',
+    ],
+    thumb: kindleCoffeeThumb,
+    techStack: [
+      { name: 'Vue.js', icon: vueIcon },
+      { name: 'Tailwind CSS', icon: tailwindIcon },
+    ],
+    demoHref: 'https://kindle-coffeeid.vercel.app/',
+    codeHref: 'https://github.com/joseparhusip/kindle-coffee.id',
   },
 ]
 

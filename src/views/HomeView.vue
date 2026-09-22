@@ -298,7 +298,7 @@ const vReveal = {
             <span>Tahun Belajar</span>
           </div>
           <div class="hero__badge hero__badge--bottom">
-            <strong>5</strong>
+            <strong>6</strong>
             <span>Proyek Selesai</span>
           </div>
         </div>
