@@ -6,6 +6,15 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import gmailIcon from './icons/icons-about/gmail.svg'
+import { useChatWidgetStore } from '../stores/chatWidget'
+
+const chatStore = useChatWidgetStore()
+
+// Klik "Email" ATAU kartu ajakan chat sama-sama membuka widget chat
+// mengambang di pojok kanan bawah, alih-alih membuka aplikasi email.
+function openChat() {
+  chatStore.open()
+}
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -102,22 +111,14 @@ onBeforeUnmount(() => {
   slideObserver?.disconnect()
 })
 
-const form = ref({
-  name: '',
-  email: '',
-  message: '',
-})
-
-const submitState = ref('idle') // idle | loading | success | error
-const submitMessage = ref('')
-
 const contactInfo = [
   {
     label: 'Email',
     value: 'joseparhusip7@gmail.com',
-    href: 'https://mail.google.com/mail/?view=cm&fs=1&to=joseparhusip7@gmail.com',
     icon: gmailIcon,
     iconAlt: 'Gmail',
+    // Klik item ini membuka widget chat (lihat openChat), bukan mailto.
+    action: openChat,
   },
 ]
 
@@ -166,39 +167,6 @@ onBeforeUnmount(() => {
   }
 })
 
-// Kosong ('') artinya panggil /api/contact di domain yang sama (production di Vercel).
-// Kalau butuh nunjuk ke backend lain saat development, set VITE_API_URL di .env.
-const API_URL = import.meta.env.VITE_API_URL || ''
-
-async function handleSubmit() {
-  submitState.value = 'loading'
-  submitMessage.value = ''
-
-  try {
-    const res = await fetch(`${API_URL}/api/contact`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form.value),
-    })
-
-    const data = await res.json().catch(() => ({}))
-
-    if (!res.ok || !data.ok) {
-      throw new Error(data.error || 'Gagal mengirim pesan, coba lagi ya.')
-    }
-
-    submitState.value = 'success'
-    form.value = { name: '', email: '', message: '' }
-
-    // balik ke idle otomatis setelah beberapa detik biar form bisa dipakai lagi
-    setTimeout(() => {
-      if (submitState.value === 'success') submitState.value = 'idle'
-    }, 5000)
-  } catch (err) {
-    submitState.value = 'error'
-    submitMessage.value = err.message || 'Ada masalah pas ngirim pesan, coba lagi ya.'
-  }
-}
 </script>
 
 <template>
@@ -238,15 +206,14 @@ async function handleSubmit() {
               </span>
               <span class="contact__item-text">
                 <span class="contact__item-label">{{ item.label }}</span>
-                <a
-                  v-if="item.href"
-                  :href="item.href"
-                  class="contact__item-value"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  v-if="item.action"
+                  type="button"
+                  class="contact__item-value contact__item-value--btn"
+                  @click="item.action"
                 >
                   {{ item.value }}
-                </a>
+                </button>
                 <span v-else class="contact__item-value contact__item-value--static">{{
                   item.value
                 }}</span>
@@ -267,65 +234,31 @@ async function handleSubmit() {
       </div>
 
       <div ref="formWrap" class="contact__col" :class="{ 'is-in': formIn }">
-        <form class="contact__form" @submit.prevent="handleSubmit">
-          <div class="contact__field">
-            <label for="name" class="contact__label">Nama</label>
-            <input
-              id="name"
-              v-model="form.name"
-              type="text"
-              class="contact__input"
-              placeholder="Nama kamu"
-              required
-              :disabled="submitState === 'loading'"
-            />
-          </div>
-
-          <div class="contact__field">
-            <label for="email" class="contact__label">Email</label>
-            <input
-              id="email"
-              v-model="form.email"
-              type="email"
-              class="contact__input"
-              placeholder="email@kamu.com"
-              required
-              :disabled="submitState === 'loading'"
-            />
-          </div>
-
-          <div class="contact__field">
-            <label for="message" class="contact__label">Pesan</label>
-            <textarea
-              id="message"
-              v-model="form.message"
-              class="contact__input contact__textarea"
-              rows="4"
-              placeholder="Ceritakan proyek atau ide kamu..."
-              required
-              :disabled="submitState === 'loading'"
-            ></textarea>
-          </div>
-
-          <button
-            type="submit"
-            class="contact__submit"
-            :disabled="submitState === 'loading'"
-          >
-            {{ submitState === 'loading' ? 'Mengirim...' : 'Kirim Pesan' }}
-            <svg
-              v-if="submitState !== 'loading'"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              class="contact__submit-icon"
-            >
+        <div class="contact__chat-card">
+          <span class="contact__chat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="contact__chat-icon-svg" aria-hidden="true">
               <path
-                d="M4.5 12H19.5"
+                fill="none"
                 stroke="currentColor"
-                stroke-width="1.8"
+                stroke-width="1.6"
                 stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"
               />
+            </svg>
+          </span>
+
+          <h3 class="contact__chat-title">Ngobrol langsung, yuk</h3>
+          <p class="contact__chat-desc">
+            Lebih cepat daripada isi form manual. Klik tombol di bawah, nanti muncul chat kecil
+            di pojok kanan bawah layar — tinggal jawab beberapa pertanyaan singkat dan pesan kamu
+            langsung terkirim ke email aku.
+          </p>
+
+          <button type="button" class="contact__chat-btn" @click="openChat">
+            Mulai Chat
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="contact__submit-icon">
+              <path d="M4.5 12H19.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
               <path
                 d="M13.5 6L19.5 12L13.5 18"
                 stroke="currentColor"
@@ -336,28 +269,8 @@ async function handleSubmit() {
             </svg>
           </button>
 
-          <!-- Animasi checklist ketika berhasil -->
-          <Transition name="contact-fade">
-            <div v-if="submitState === 'success'" class="contact__success" role="status">
-              <svg class="contact__success-icon" viewBox="0 0 52 52" aria-hidden="true">
-                <circle class="contact__success-icon-circle" cx="26" cy="26" r="24" fill="none" />
-                <path class="contact__success-icon-check" fill="none" d="M14 27l7 7 16-16" />
-              </svg>
-              <span class="contact__success-text">
-                Pesan terkirim! Cek email kamu, sudah aku kirim konfirmasi ke sana ✨
-              </span>
-            </div>
-          </Transition>
-
-          <Transition name="contact-fade">
-            <p
-              v-if="submitState === 'error'"
-              class="contact__submit-status contact__submit-status--error"
-            >
-              {{ submitMessage }}
-            </p>
-          </Transition>
-        </form>
+          <p class="contact__chat-note">Atau klik "Email" di sebelah kiri — arahnya sama kok 😄</p>
+        </div>
       </div>
     </div>
   </section>
@@ -505,6 +418,17 @@ async function handleSubmit() {
   cursor: default;
 }
 
+.contact__item-value--btn {
+  /* Reset tampilan default <button> supaya identik dengan gaya link lama */
+  display: inline;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
 .contact__map-block {
   margin-top: 1.75rem;
   display: flex;
@@ -534,52 +458,53 @@ async function handleSubmit() {
   -webkit-touch-callout: none;
 }
 
-.contact__form {
+/* --- Kartu ajakan buka chat (pengganti form manual) --- */
+.contact__chat-card {
+  height: 100%;
   background: var(--color-surface, #fff);
   border-radius: 24px;
-  padding: 2.25rem;
+  padding: 2.5rem 2.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  align-items: flex-start;
+  gap: 0.9rem;
   box-shadow: 0 24px 50px -30px rgba(37, 54, 50, 0.35);
 }
 
-.contact__field {
+.contact__chat-icon {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary, #6b9080), var(--color-primary-dark, #4f7566));
+  margin-bottom: 0.35rem;
 }
 
-.contact__label {
-  font-family: var(--font-body);
-  font-size: 0.85rem;
+.contact__chat-icon-svg {
+  width: 28px;
+  height: 28px;
+}
+
+.contact__chat-title {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
   font-weight: 600;
   color: var(--color-text, #253632);
+  margin: 0;
 }
 
-.contact__input {
+.contact__chat-desc {
   font-family: var(--font-body);
   font-size: 0.95rem;
-  color: var(--color-text, #253632);
-  background: var(--color-bg, #f1f4f1);
-  border: 1.5px solid rgba(124, 111, 240, 0.25);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  outline: none;
-  transition: border-color 0.2s ease;
+  line-height: 1.7;
+  color: var(--color-text-soft, #5c6f69);
+  margin: 0;
 }
 
-.contact__input:focus {
-  border-color: var(--color-primary, #6b9080);
-}
-
-.contact__textarea {
-  resize: vertical;
-  min-height: 100px;
-  font-family: var(--font-body);
-}
-
-.contact__submit {
+.contact__chat-btn {
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
@@ -593,9 +518,19 @@ async function handleSubmit() {
   border-radius: 999px;
   padding: 0.85rem 1.9rem;
   cursor: pointer;
+  margin-top: 0.4rem;
   transition:
     background 0.2s ease,
     transform 0.2s ease;
+}
+
+.contact__chat-btn:hover {
+  background: var(--color-primary-dark, #4f7566);
+  transform: translateY(-2px);
+}
+
+.contact__chat-btn:hover .contact__submit-icon {
+  transform: translateX(3px);
 }
 
 .contact__submit-icon {
@@ -604,104 +539,11 @@ async function handleSubmit() {
   transition: transform 0.2s ease;
 }
 
-.contact__submit:hover .contact__submit-icon {
-  transform: translateX(3px);
-}
-
-.contact__submit:hover {
-  background: var(--color-primary-dark, #4f7566);
-  transform: translateY(-2px);
-}
-
-.contact__submit:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* --- Animasi checklist sukses --- */
-.contact__success {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  margin: -0.5rem 0 0;
-  padding: 0.6rem 0.9rem;
-  background: rgba(124, 111, 240, 0.1);
-  border-radius: 12px;
-}
-
-.contact__success-icon {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-}
-
-.contact__success-icon-circle {
-  stroke: var(--color-primary, #6b9080);
-  stroke-width: 3;
-  stroke-miterlimit: 10;
-  stroke-dasharray: 151;
-  stroke-dashoffset: 151;
-  animation: contact-draw-circle 0.5s ease-in-out forwards;
-}
-
-.contact__success-icon-check {
-  stroke: var(--color-primary, #6b9080);
-  stroke-width: 4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 36;
-  stroke-dashoffset: 36;
-  animation: contact-draw-check 0.35s 0.45s ease-in-out forwards;
-}
-
-@keyframes contact-draw-circle {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes contact-draw-check {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-.contact__success-text {
+.contact__chat-note {
   font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-primary-dark, #4f7566);
-  line-height: 1.4;
-}
-
-.contact-fade-enter-active {
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
-}
-
-.contact-fade-enter-from {
-  opacity: 0;
-  transform: translateY(6px);
-}
-
-.contact-fade-leave-active {
-  transition: opacity 0.25s ease;
-}
-
-.contact-fade-leave-to {
-  opacity: 0;
-}
-
-.contact__submit-status {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  margin: -0.5rem 0 0;
-}
-
-.contact__submit-status--error {
-  color: var(--color-danger, #ff6b6b);
+  font-size: 0.82rem;
+  color: var(--color-text-soft, #5c6f69);
+  margin: 0.25rem 0 0;
 }
 
 /* ---------------------------------------------------------
@@ -716,7 +558,7 @@ async function handleSubmit() {
   translate: -100vw 0;
 }
 
-.contact__col:not(.is-in) .contact__form {
+.contact__col:not(.is-in) .contact__chat-card {
   opacity: 0;
   translate: 100vw 0;
 }
@@ -727,7 +569,7 @@ async function handleSubmit() {
 }
 
 /* Kartu form: masuk dari KANAN layar, menyusul sedikit (0.1 dtk). */
-.contact__col.is-in .contact__form {
+.contact__col.is-in .contact__chat-card {
   animation: contact-slide-in-right 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards;
 }
 
@@ -814,8 +656,8 @@ async function handleSubmit() {
     padding: 1.75rem;
   }
 
-  .contact__form {
-    padding: 1.5rem;
+  .contact__chat-card {
+    padding: 1.75rem 1.5rem;
   }
 
   .contact__map {

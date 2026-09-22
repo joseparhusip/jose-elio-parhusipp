@@ -324,7 +324,9 @@ function preventImageAction(event) {
 .top-btn {
   position: fixed;
   right: 1.5rem;
-  bottom: 1.5rem;
+  /* Digeser ke atas biar gak numpuk sama bubble ChatWidget yang juga
+     fixed di pojok kanan bawah (right/bottom 1.5rem, tinggi 58px). */
+  bottom: 6rem;
   z-index: 40;
   display: inline-flex;
   align-items: center;
@@ -370,7 +372,7 @@ function preventImageAction(event) {
 @media (max-width: 480px) {
   .top-btn {
     right: 1rem;
-    bottom: 1rem;
+    bottom: 5rem;
     width: 44px;
     height: 44px;
   }
