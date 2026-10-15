@@ -82,6 +82,14 @@ export const OFFTOPIC_HTML =
 // Semua field role/company/summary di bawah ini berisi HTML (boleh ada <em>).
 export const EXPERIENCES = [
   {
+    period: 'Oktober 2026 sampai sekarang',
+    role: '<em>Back End Developer</em>',
+    company: 'Kontrak di PT Sistem Pelayanan Kesehatan dan Data (SPKD), Jakarta Selatan',
+    summary:
+      'Mengerjakan <em>backend</em> MedCredix, platform multi-rumah sakit untuk menilai kesiapan kredensial RS secara otomatis dari data operasional RS. Membangun 44 <em>endpoint</em> REST API dengan Go (Gin), GORM, dan PostgreSQL; login JWT dan hak akses per peran; mesin skoring kesiapan RS untuk dashboard, risiko, dan peringatan dini; alur verifikasi kredensial dan dokumen tenaga medis; integrasi SIMRS lewat 24 <em>resource</em> FHIR; direktori RS Kemenkes, data wilayah, validasi kode faskes BPJS; serta <em>audit trail</em> dan laporan.',
+    tags: ['Go', 'Gin', 'PostgreSQL'],
+  },
+  {
     period: 'Agustus 2025 sampai September 2025',
     role: '<em>Mobile Developer</em>',
     company: '<em>Solo Project</em> untuk JEC Eye Hospitals &amp; Clinics',

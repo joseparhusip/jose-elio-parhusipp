@@ -4,6 +4,23 @@ import { vReveal } from '@/directives/reveal'
 
 const experiences = [
   {
+    period: 'Oktober 2026 — Sekarang',
+    role: 'Back End Developer',
+    company: 'Kontrak — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
+    current: true,
+    desc: [
+      'Mengerjakan backend MedCredix, platform multi-rumah sakit untuk menilai kesiapan kredensial RS secara otomatis dari data operasional RS.',
+      'Membangun 44 endpoint REST API dengan Go (Gin) dan GORM di atas PostgreSQL, lengkap dengan dokumentasi Swagger.',
+      'Mengimplementasikan login JWT dan hak akses per peran (RBAC), sampai pengaturan tombol mana yang boleh dipakai tiap peran.',
+      'Membangun mesin skoring kesiapan RS (rincian skor dan snapshot bulanan) yang menjadi dasar dashboard eksekutif, daftar risiko, peringatan dini, dan rencana tindak lanjut.',
+      'Membangun alur kredensial tenaga medis: unggah dokumen PDF/DOC, verifikasi atau penolakan dokumen, persetujuan kredensial, dan pengelolaan prasyarat.',
+      'Mengintegrasikan data SIMRS melalui uji koneksi 24 resource FHIR, serta modul klaim (deteksi anomali), data klinis, dan kepatuhan regulasi.',
+      'Menyediakan data referensi: direktori RS dari registri Kemenkes, data wilayah Indonesia, dan validasi kode faskes BPJS saat menambah RS mitra.',
+      'Membangun audit trail, pencarian global, dan laporan yang bisa dicetak atau diekspor; menguji API dengan Postman dan database dengan DBeaver.',
+    ],
+    tags: ['Go', 'Gin', 'GORM', 'PostgreSQL', 'JWT', 'FHIR', 'Swagger'],
+  },
+  {
     period: 'Agustus 2025 — September 2025',
     role: 'Mobile Developer',
     company: 'Solo Project — JEC Eye Hospitals & Clinics',
@@ -159,8 +176,8 @@ function splitCompany(company) {
             Perjalanan singkat <span class="serif-accent">sejauh</span> ini
           </h2>
           <p v-reveal="160" class="section-lead">
-            Beberapa peran yang pernah saya jalani, dari proyek mandiri sampai
-            organisasi, yang membentuk cara saya bekerja sekarang.
+            Beberapa peran yang pernah saya jalani, dari pekerjaan profesional,
+            proyek mandiri, sampai organisasi, yang membentuk cara saya bekerja.
           </p>
 
           <dl v-reveal="240" class="experience__summary">
@@ -170,7 +187,7 @@ function splitCompany(company) {
             </div>
             <div>
               <dt>Rentang</dt>
-              <dd>2022<span>–</span>2025</dd>
+              <dd>2022<span>–</span>{{ new Date().getFullYear() }}</dd>
             </div>
           </dl>
         </div>
@@ -197,7 +214,10 @@ function splitCompany(company) {
 
           <article v-reveal.left="index * 60" class="experience__card">
             <div class="experience__card-top">
-              <span class="experience__period">{{ item.period }}</span>
+              <span class="experience__period">
+                <span v-if="item.current" class="experience__now" aria-hidden="true"></span>
+                {{ item.period }}
+              </span>
               <span v-if="splitCompany(item.company).type" class="experience__type">
                 {{ splitCompany(item.company).type }}
               </span>
@@ -387,10 +407,37 @@ function splitCompany(company) {
 }
 
 .experience__period {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-family: var(--font-mono);
   font-size: 0.74rem;
   letter-spacing: 0.04em;
   color: var(--color-accent);
+}
+
+/* Titik hijau berdenyut untuk pekerjaan yang masih berjalan */
+.experience__now {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: experience-now 2s ease-out infinite;
+}
+
+@keyframes experience-now {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 60%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience__now {
+    animation: none;
+  }
 }
 
 .experience__type {
