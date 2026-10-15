@@ -15,17 +15,30 @@ import mysqlIcon from './icons/icons-about/mysql-ar21.svg'
 import nodejsIcon from './icons/icons-about/Node.js_logo.svg'
 import phpIcon from './icons/icons-about/new-php-logo.svg'
 
+// Ikon garis sederhana untuk tiap keunggulan (path SVG 24x24)
+const highlightIcons = {
+  code: 'M8 7 3 12l5 5M16 7l5 5-5 5M14 4l-4 16',
+  diagram: 'M4 4h6v5H4zM14 15h6v5h-6zM14 4h6v5h-6zM7 9v4a2 2 0 0 0 2 2h5M17 9v6',
+  team: 'M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.85M15.5 4.15a3 3 0 0 1 0 5.7',
+}
+
 const highlights = [
   {
     title: 'Full-stack & mobile',
+    icon: 'code',
+    keywords: ['Vue', 'React', 'Flutter', 'Node.js'],
     desc: 'Terbiasa membangun aplikasi end-to-end, dari frontend, backend, sampai database, untuk web maupun mobile dengan Flutter.',
   },
   {
     title: 'Analitis & terstruktur',
+    icon: 'diagram',
+    keywords: ['ERD', 'UML', 'Flowchart'],
     desc: 'Berpengalaman sebagai System Analyst, merancang ERD, UML, dan flowchart, serta mengelola jadwal dan anggaran proyek.',
   },
   {
     title: 'Kolaboratif',
+    icon: 'team',
+    keywords: ['Tim lintas peran', 'Organisasi'],
     desc: 'Aktif berorganisasi dan terbiasa bekerja lintas peran dalam tim untuk menghasilkan produk yang sesuai kebutuhan pengguna.',
   },
 ]
@@ -124,9 +137,30 @@ function preventImageAction(event) {
           class="about__highlight"
           v-reveal="index * 100"
         >
-          <span class="about__highlight-num">0{{ index + 1 }}</span>
+          <div class="about__highlight-head">
+            <span class="about__highlight-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path
+                  :d="highlightIcons[item.icon]"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span class="about__highlight-num">
+              0{{ index + 1 }}<span>/0{{ highlights.length }}</span>
+            </span>
+          </div>
+
           <h3 class="about__highlight-title">{{ item.title }}</h3>
           <p class="about__highlight-desc">{{ item.desc }}</p>
+
+          <ul class="about__highlight-keys" aria-label="Kata kunci">
+            <li v-for="key in item.keywords" :key="key">{{ key }}</li>
+          </ul>
         </li>
       </ul>
     </div>
@@ -312,28 +346,99 @@ function preventImageAction(event) {
 
 .about__highlight {
   position: relative;
-  padding: 1.6rem 1.5rem 1.7rem;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.5rem 1.4rem;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  transition:
-    border-color 0.3s ease,
-    transform 0.35s var(--ease-out);
+  background:
+    radial-gradient(
+        circle,
+        color-mix(in srgb, var(--color-text-soft) 22%, transparent) 1px,
+        transparent 1.3px
+      )
+      0 0 / 18px 18px,
+    var(--color-bg);
+  overflow: hidden;
+  transition: border-color 0.3s ease;
 }
 
-.about__highlight.reveal-done:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
-  transform: translateY(-4px);
+/* Pola titik hanya di pojok kanan atas, memudar ke bawah */
+.about__highlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(200deg, transparent 0%, var(--color-bg) 45%);
+  pointer-events: none;
+}
+
+/* Garis aksen tipis di atas kartu, muncul dari kiri saat hover */
+.about__highlight::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease-out);
+}
+
+.about__highlight > * {
+  position: relative;
+}
+
+.about__highlight:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+.about__highlight:hover::after {
+  transform: scaleX(1);
+}
+
+.about__highlight-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.about__highlight-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  transition:
+    color 0.3s ease,
+    background 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.about__highlight:hover .about__highlight-icon {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
 }
 
 .about__highlight-num {
   font-family: var(--font-mono);
   font-size: 0.78rem;
-  color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.about__highlight-num span {
+  color: var(--color-text-soft);
 }
 
 .about__highlight-title {
-  margin: 2.2rem 0 0.5rem;
+  margin: 1.4rem 0 0.5rem;
   font-family: var(--font-heading);
   font-size: 1.3rem;
   font-weight: 600;
@@ -346,6 +451,33 @@ function preventImageAction(event) {
   font-size: 0.95rem;
   line-height: 1.7;
   color: var(--color-text-soft);
+  text-wrap: pretty;
+}
+
+.about__highlight-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: auto 0 0;
+  padding: 1.2rem 0 0;
+}
+
+.about__highlight-keys li {
+  margin-top: 0;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-soft);
+}
+
+/* Garis putus-putus pemisah di atas kata kunci */
+.about__highlight-desc {
+  padding-bottom: 1.2rem;
+  border-bottom: 1px dashed var(--color-border);
 }
 
 /* ---- Marquee tools ---- */
@@ -470,7 +602,7 @@ function preventImageAction(event) {
   }
 
   .about__highlight-title {
-    margin-top: 1rem;
+    margin-top: 1.1rem;
   }
 }
 

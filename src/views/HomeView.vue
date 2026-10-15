@@ -838,8 +838,9 @@ onUnmounted(() => {
 .hero__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-  align-items: end;
-  gap: 1rem;
+  /* Angka selalu sejajar di garis atas, label boleh 1 atau 2 baris di bawahnya */
+  align-items: start;
+  gap: 0;
   margin: clamp(2.5rem, 6vw, 4rem) 0 0;
   padding-top: 1.75rem;
   border-top: 1px solid var(--color-border);
@@ -848,7 +849,15 @@ onUnmounted(() => {
 .hero__stat {
   display: flex;
   flex-direction: column-reverse;
-  gap: 0.2rem;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0 1.25rem;
+  border-left: 1px solid var(--color-border);
+}
+
+.hero__stat:first-child {
+  padding-left: 0;
+  border-left: 0;
 }
 
 .hero__stat-value {
@@ -863,7 +872,13 @@ onUnmounted(() => {
 
 .hero__stat-label {
   font-size: 0.85rem;
+  line-height: 1.4;
   color: var(--color-text-soft);
+  text-wrap: balance;
+}
+
+.hero__scroll {
+  align-self: end;
 }
 
 .hero__scroll {
@@ -974,7 +989,11 @@ onUnmounted(() => {
 
   .hero__stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
+  }
+
+  .hero__stat {
+    padding: 0 0.75rem;
+    gap: 0.4rem;
   }
 
   .hero__stat-label {
