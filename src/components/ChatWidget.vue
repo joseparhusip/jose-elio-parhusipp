@@ -2,6 +2,11 @@
 import { ref, computed, nextTick, watch } from 'vue'
 import { useChatWidgetStore } from '../stores/chatWidget'
 import {
+  DECLINE_RX,
+  RESUME_CONTACT_RX,
+  TOPICS_MENU_HTML,
+  getUserTimeGreeting,
+  looksLikeMessageToJose,
   PROFILE,
   ABOUT_HTML,
   EDUCATION_HTML,
@@ -12,6 +17,13 @@ import {
   buildExperienceListHtml,
   matchFaqIntent,
   matchNameStatement,
+  extractPlainName,
+  extractEmail,
+  getTimeOfDay,
+  matchSmallTalk,
+  stripGreetingPrefix,
+  hasGreetingPrefix,
+  looksLikeQuestion,
   PEKERJAAN_CLARIFY_HISTORY_RX,
   PEKERJAAN_CLARIFY_OFFER_RX,
 } from './chatKnowledge'
@@ -122,6 +134,78 @@ function botSay(text, delay = 600, type = 'text', items = null) {
   })
 }
 
+// Teks dari pengunjung (mis. nama) WAJIB di-escape sebelum disisipkan ke
+// pesan bot, karena pesan bot dirender pakai v-html. Tanpa ini, nama seperti
+// <img src=x onerror=...> akan dieksekusi sebagai HTML (XSS) dan ikut
+// tersimpan di localStorage.
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+// --- Basa-basi: sapaan sesuai waktu, terima kasih, pamit, dsb. ---
+// Mengembalikan true kalau pesan sudah dijawab sebagai basa-basi.
+// Sapa balik dengan waktu yang disebut user ("selamat malam" -> "selamat
+// malam juga"), kalau user cuma bilang "halo" pakai jam di perangkatnya.
+function greetBack(text, name = '') {
+  const said = getUserTimeGreeting(text)
+  return said ? `Selamat ${said} juga${name}!` : `Halo juga${name}, selamat ${getTimeOfDay()}!`
+}
+
+async function answerSmallTalk(talk, text = '') {
+  const time = getUserTimeGreeting(text) || getTimeOfDay()
+  const name = form.value.name ? `, ${escapeHtml(form.value.name)}` : ''
+
+  if (talk.type === 'greeting') {
+    const extras = {
+      pagi: 'Semoga harinya lancar ya.',
+      siang: 'Jangan lupa makan siang ya.',
+      sore: 'Gimana harinya sejauh ini?',
+      malam: 'Makasih udah mampir malam-malam begini.',
+    }
+    await botSay(`${greetBack(text, name)} ${extras[time]}`, 550)
+  } else if (talk.type === 'howAreYou') {
+    await botSay(
+      `Kabar baik dong${name}, makasih udah nanya! Semoga kamu juga lagi baik-baik aja ya.`,
+      550,
+    )
+  } else if (talk.type === 'thanks') {
+    await botSay(`Sama-sama${name}! Senang bisa bantu.`, 450)
+  } else if (talk.type === 'bye') {
+    await botSay(
+      `Sampai jumpa${name}! Selamat ${time} dan semoga harinya menyenangkan. Kapan-kapan mampir lagi ya.`,
+      500,
+    )
+    return true
+  } else if (talk.type === 'aboutBot') {
+    await botSay(
+      'Aku asisten chat otomatis di portofolio Jose. Aku bisa cerita soal Jose dan bantu nyampein pesan kamu langsung ke email Jose.',
+      550,
+    )
+  } else if (talk.type === 'ack') {
+    // "oke", "sip", dsb: tidak perlu dijawab panjang, cukup lanjut alurnya
+  }
+
+  // Pesan sudah selesai terkirim: tidak ada pertanyaan lanjutan
+  if (step.value === 'done') {
+    if (talk.type !== 'thanks' && talk.type !== 'greeting') {
+      await botSay(
+        'Pesan kamu ke Jose sudah terkirim ya. Kalau mau kirim pesan lain, klik tombol "Kirim pesan lain".',
+        450,
+      )
+    }
+    return true
+  }
+
+  const prompt = stepPrompt(talk.type)
+  if (prompt) await botSay(prompt, 500)
+  return true
+}
+
 // --- FAQ seputar Jose (siapa, about, kuliah, pengalaman, proyek, kontak) ---
 // Dipanggil dari handleSend kalau pesan user cocok dengan salah satu intent
 // dari matchFaqIntent(). Alur form kontak (nama/email/pesan) sama sekali
@@ -198,9 +282,15 @@ async function answerFaq(intent) {
 
 // Kalimat buat "kembali" ke pertanyaan form kontak setelah FAQ dijawab,
 // supaya alur pengumpulan nama/email/pesan tetap jalan.
-function stepPrompt() {
-  if (step.value === 'name') return 'Btw, sebelum lanjut, boleh tau nama kamu dulu?'
-  if (step.value === 'email') return 'Oke, lanjut ya, email kamu apa, biar aku bisa balas ke sana?'
+function stepPrompt(after = 'faq') {
+  if (step.value === 'name') {
+    return after === 'greeting'
+      ? 'Btw, aku asisten chat Jose. Boleh kenalan dulu, nama kamu siapa?'
+      : 'Btw, sebelum lanjut, boleh tau nama kamu dulu?'
+  }
+  if (step.value === 'email') return 'Oke, lanjut ya, email kamu apa, biar Jose bisa balas ke sana?'
+  // Mode ngobrol bebas: user belum mau kasih data, jangan ditagih terus
+  if (step.value === 'chat') return ''
   if (step.value === 'message') {
     return 'Balik lagi ke soal tadi, ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?'
   }
@@ -219,10 +309,12 @@ async function startConversation() {
   pendingClarify.value = null
   step.value = 'name'
   msgId = 0
-  // Sapaan proaktif: tanya duluan lagi ngobrol sama siapa, baru kasih tau
-  // topik-topik yang bisa dijawab (biar user tau batasannya dari awal,
-  // dan bot bisa bilang "di luar topik" kalau ditanya hal lain).
-  await botSay('Halo, aku asisten chat Jose. Lagi ngobrol sama siapa nih, boleh kenalan dulu?', 400)
+  // Sapaan sesuai waktu dulu, lalu topik yang bisa dijawab. Pertanyaan nama
+  // cuma ada sekali, di akhir pesan topik.
+  await botSay(
+    `Halo, selamat ${getTimeOfDay()}! Makasih udah mampir ke portofolio Jose. Aku asisten chat-nya, siap nemenin ngobrol.`,
+    400,
+  )
   await botSay(TOPICS_HTML, 450)
 }
 
@@ -241,7 +333,10 @@ function restoreOrStartConversation() {
   step.value = saved.step || 'message'
   pendingLinkOffer.value = !!saved.pendingLinkOffer
   pendingClarify.value = saved.pendingClarify || null
-  msgId = typeof saved.msgId === 'number' ? saved.msgId : saved.messages.reduce((max, m) => Math.max(max, m.id || 0), 0)
+  msgId =
+    typeof saved.msgId === 'number'
+      ? saved.msgId
+      : saved.messages.reduce((max, m) => Math.max(max, m.id || 0), 0)
   nextTick(() => {
     scrollToBottom()
     isRestoringState = false
@@ -252,7 +347,9 @@ function restoreOrStartConversation() {
 // percakapan baru dari nol (khusus chat widget ini saja, tidak menyentuh
 // data lain di localStorage situs).
 function clearConversation() {
-  const confirmed = window.confirm('Hapus semua riwayat chat ini? Percakapan akan dimulai dari awal lagi.')
+  const confirmed = window.confirm(
+    'Hapus semua riwayat chat ini? Percakapan akan dimulai dari awal lagi.',
+  )
   if (!confirmed) return
   clearChatState()
   startConversation()
@@ -276,7 +373,9 @@ async function submitForm() {
     }
 
     step.value = 'done'
-    await botSay('Pesan berhasil terkirim! Cek email kamu, sudah kukirim juga konfirmasinya ke sana. Makasih ya!')
+    await botSay(
+      'Pesan berhasil terkirim! Cek email kamu, sudah kukirim juga konfirmasinya ke sana. Makasih ya!',
+    )
   } catch (err) {
     submitError.value = err.message || 'Ada masalah pas ngirim pesan, coba lagi ya.'
     step.value = 'error'
@@ -294,25 +393,119 @@ function resetConversation() {
   startConversation()
 }
 
+// Selama bot masih "mengetik" balasan, pesan baru ditahan dulu supaya
+// urutan percakapan tidak tumpang tindih (sebelumnya bisa kirim beruntun
+// dan jawaban bot jadi acak urutannya).
+const isBusy = ref(false)
+
 async function handleSend() {
   const text = inputValue.value.trim()
-  if (!text || step.value === 'submitting' || step.value === 'done') return
+  if (!text || isBusy.value || step.value === 'submitting') return
+  isBusy.value = true
+  try {
+    await processMessage(text)
+  } finally {
+    isBusy.value = false
+    nextTick(() => chatInputEl.value?.focus())
+  }
+}
 
-  // Cek dulu apakah ini pertanyaan FAQ beneran (siapa Jose, kuliah,
-  // pengalaman, proyek, kontak, dsb). Ini SENGAJA dicek paling duluan,
-  // sebelum status "pending link offer" di bawah: kalau user nanya hal
-  // baru (mis. "kerja dimana aja"), pertanyaan itu harus menang, bukan
-  // malah ketangkep sebagai jawaban ya/tidak buat pertanyaan link
-  // sebelumnya cuma gara-gara ada kata "mau" nyempil di kalimatnya.
-  if (step.value !== 'error') {
-    const intent = matchFaqIntent(text)
+function takeUserMessage(text) {
+  pushMessage('user', text)
+  inputValue.value = ''
+}
+
+// User belum mau kasih nama/email: pindah ke mode ngobrol bebas, tawarin
+// topik, dan jangan minta data lagi sampai user sendiri yang mau kirim pesan.
+async function enterChatMode(hello = '') {
+  step.value = 'chat'
+  const name = form.value.name ? `, ${escapeHtml(form.value.name)}` : ''
+  await botSay(
+    form.value.name && form.value.email
+      ? `${hello}Gapapa, santai aja${name}! Data kamu udah aku catat, jadi kapan pun mau kirim pesan tinggal bilang aja.`
+      : `${hello}Gapapa, santai aja${name}! Nama dan email cuma perlu kalau kamu mau kirim pesan ke Jose. Sekarang kita ngobrol dulu aja.`,
+    450,
+  )
+  await botSay(TOPICS_MENU_HTML, 400)
+}
+
+// Lanjut ke alur kirim pesan, mulai dari data yang belum ada.
+async function resumeContact(email = '') {
+  if (email && isValidEmail(email)) form.value.email = email
+  if (!form.value.name) {
+    step.value = 'name'
+    await botSay('Siap! Biar Jose tau ini dari siapa, nama kamu siapa?')
+  } else if (!form.value.email) {
+    step.value = 'email'
+    await botSay(
+      `Siap, ${escapeHtml(form.value.name)}! Email kamu apa, biar Jose bisa balas ke sana?`,
+    )
+  } else {
+    step.value = 'message'
+    await botSay(
+      'Siap! Cerita dong, ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?',
+    )
+  }
+}
+
+async function processMessage(text) {
+  // 1) Basa-basi murni ("halo", "selamat malam", "makasih", "apa kabar")
+  //    dijawab dulu, TIDAK pernah dianggap nama/email/isi pesan.
+  const talk = matchSmallTalk(text)
+  if (talk) {
+    pendingLinkOffer.value = false
+    pendingClarify.value = null
+    takeUserMessage(text)
+    await answerSmallTalk(talk, text)
+    return
+  }
+
+  // "halo kak, aku budi" / "pagi, mau tanya proyeknya" -> sapa balik dulu,
+  // lalu proses sisa kalimatnya.
+  const greeted = hasGreetingPrefix(text)
+  const body = greeted ? stripGreetingPrefix(text) || text : text
+
+  // Mode ngobrol bebas: kalau user ngetik email atau bilang mau kirim
+  // pesan, lanjutkan alur kontak.
+  if (step.value === 'chat') {
+    const email = extractEmail(body)
+    if (email || RESUME_CONTACT_RX.test(body)) {
+      takeUserMessage(text)
+      await resumeContact(email)
+      return
+    }
+  }
+
+  // Di langkah nama/email/pesan, user bilang belum mau kasih atau mau
+  // bahas yang lain dulu -> jangan dibilang "format salah".
+  // Di langkah pesan cuma kalimat pendek tanpa niat ("nanti aja", "ga jadi"),
+  // supaya pesan beneran yang kebetulan ada kata "ga" tetap terkirim.
+  const wordCount = body.split(/\s+/).filter(Boolean).length
+  const isDecline =
+    DECLINE_RX.test(body) &&
+    !extractEmail(body) &&
+    (step.value === 'message' ? wordCount <= 5 && !looksLikeMessageToJose(body) : wordCount <= 10)
+  if (['name', 'email', 'message'].includes(step.value) && isDecline) {
+    takeUserMessage(text)
+    await enterChatMode(greeted ? `${greetBack(text)} ` : '')
+    return
+  }
+
+  // 2) Pertanyaan FAQ seputar Jose. Di langkah "pesan", hanya dianggap FAQ
+  //    kalau bentuknya pertanyaan, supaya isi pesan seperti "saya mau
+  //    nawarin project" tetap terkirim sebagai pesan, bukan dijawab FAQ.
+  if (
+    step.value !== 'error' &&
+    (step.value !== 'message' || (looksLikeQuestion(body) && !looksLikeMessageToJose(body)))
+  ) {
+    const intent = matchFaqIntent(body)
     if (intent) {
       pendingLinkOffer.value = false
       pendingClarify.value = null
-      pushMessage('user', text)
-      inputValue.value = ''
+      takeUserMessage(text)
+      if (greeted) await botSay(greetBack(text), 400)
       const suppressPrompt = await answerFaq(intent)
-      if (!suppressPrompt) {
+      if (!suppressPrompt && step.value !== 'done') {
         const prompt = stepPrompt()
         if (prompt) await botSay(prompt, 500)
       }
@@ -320,21 +513,30 @@ async function handleSend() {
     }
   }
 
-  // Kalau bot baru aja nanya "mau link demo/repo-nya juga?" dan pesan ini
-  // BUKAN pertanyaan FAQ baru (dicek di atas), baru di sini ditangkep
-  // sebagai jawaban ya/tidak-nya. Dibatasi cuma buat balasan pendek
-  // (maksimal 4 kata) supaya kata kayak "mau" di kalimat panjang lain
-  // nggak ketangkep juga.
+  // Setelah pesan terkirim, alur form sudah selesai
+  if (step.value === 'done') {
+    takeUserMessage(text)
+    await botSay(
+      'Pesan kamu ke Jose sudah terkirim ya. Kalau mau kirim pesan lain, klik tombol "Kirim pesan lain". Kamu juga masih bisa tanya soal profil, pengalaman, atau proyek Jose di sini.',
+      500,
+    )
+    return
+  }
+
+  // 3) Jawaban ya/tidak untuk tawaran link demo/repo
   if (pendingLinkOffer.value) {
     const wordCount = text.split(/\s+/).filter(Boolean).length
     const isShortReply = wordCount <= 4
-    const wantsLink = isShortReply && /\b(ya|iya|iy|yap|yoi|boleh|mau|oke|ok|sip|siap|link|demo|repo|source ?code)\b/i.test(text)
-    const declines = isShortReply && /\b(nggak|enggak|ga|gak|tidak|engga|no|skip|nanti|gausah|ga usah)\b/i.test(text)
+    const wantsLink =
+      isShortReply &&
+      /\b(ya|iya|iy|yap|yoi|boleh|mau|oke|ok|sip|siap|link|demo|repo|source ?code)\b/i.test(text)
+    const declines =
+      isShortReply &&
+      /\b(nggak|enggak|ga|gak|tidak|engga|no|skip|nanti|gausah|ga usah)\b/i.test(text)
 
     if (wantsLink || declines) {
       pendingLinkOffer.value = false
-      pushMessage('user', text)
-      inputValue.value = ''
+      takeUserMessage(text)
 
       if (wantsLink) {
         await botSay(
@@ -356,99 +558,131 @@ async function handleSend() {
 
       const prompt = stepPrompt()
       if (prompt) await botSay(prompt, 500)
+      else if (declines) await botSay('Oke, gapapa! Ada lagi yang mau ditanyain soal Jose?', 400)
       return
     }
-
-    // Bukan jawaban ya/tidak yang jelas (misal user malah lanjut jawab
-    // pertanyaan form aslinya) -> lepas status pending, lanjutkan teks ini
-    // ke alur form seperti biasa di bawah.
     pendingLinkOffer.value = false
   }
 
-  // Kalau bot baru aja nanya klarifikasi "pekerjaan itu maksudnya riwayat
-  // kerja atau nawarin kerjaan?" (dan pesan ini BUKAN pertanyaan FAQ baru,
-  // sudah dicek di atas), tangkep jawabannya di sini dulu.
+  // 4) Jawaban klarifikasi "pekerjaan" (riwayat kerja atau nawarin kerjaan)
   if (pendingClarify.value === 'pekerjaan') {
     const wantsHistory = PEKERJAAN_CLARIFY_HISTORY_RX.test(text)
     const wantsOffer = PEKERJAAN_CLARIFY_OFFER_RX.test(text)
 
     if (wantsHistory || wantsOffer) {
       pendingClarify.value = null
-      pushMessage('user', text)
-      inputValue.value = ''
+      takeUserMessage(text)
       await answerFaq({ type: wantsHistory ? 'experience' : 'contact' })
       const prompt = stepPrompt()
       if (prompt) await botSay(prompt, 500)
       return
     }
-
-    // Jawaban tidak jelas condong ke arah mana -> lepas status pending,
-    // lanjutkan teks ini ke alur form seperti biasa di bawah.
     pendingClarify.value = null
   }
 
+  // Mode ngobrol bebas tapi pertanyaannya tidak dikenali
+  if (step.value === 'chat') {
+    takeUserMessage(text)
+    await botSay(
+      DECLINE_RX.test(body) ? 'Boleh, pilih aja topiknya ya.' : 'Hmm, aku belum nangkep maksudnya.',
+      400,
+    )
+    await botSay(TOPICS_MENU_HTML, 400)
+    return
+  }
+
+  // 5) Alur form: nama -> email -> pesan
   if (step.value === 'name') {
-    // Kalau kalimatnya berbentuk pernyataan nama ("nama aku jose", dst),
-    // ambil nama bersihnya dulu, jangan nyimpen kalimat mentahnya
-    // (soalnya kalau tidak, "nama aku jose" kesimpen sebagai nama = "nama").
-    const nameStatement = matchNameStatement(text)
-    if (nameStatement) {
-      form.value.name = nameStatement.name
-      pushMessage('user', text)
-      inputValue.value = ''
-      await botSay(`Okee, ${nameStatement.name}! Email kamu apa, biar aku bisa balas ke sana?`)
-      step.value = 'email'
+    takeUserMessage(text)
+    const hello = greeted ? `${greetBack(text)} ` : ''
+
+    // Ada yang langsung ngetik email di langkah nama
+    const emailInName = extractEmail(body)
+    if (emailInName) {
+      form.value.email = emailInName
+      const statedName = matchNameStatement(body)
+      if (statedName) {
+        form.value.name = statedName.name
+        step.value = 'message'
+        await botSay(
+          `${hello}Salam kenal, ${escapeHtml(statedName.name)}! Emailnya udah aku catat. Sekarang cerita dong, ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?`,
+        )
+        return
+      }
+      await botSay(`${hello}Emailnya udah aku catat ya. Biar lebih akrab, nama kamu siapa?`)
       return
     }
 
-    // Kalimat yang jelas-jelas berbentuk pertanyaan tapi tidak cocok sama
-    // FAQ mana pun (sudah dicek di paling atas) kemungkinan besar bukan
-    // nama, jadi jangan langsung ditelen sebagai nama, tanya balik dulu.
-    if (/\?/.test(text)) {
-      pushMessage('user', text)
-      inputValue.value = ''
-      await botSay('Hmm, aku belum nangkep maksudnya itu. Boleh diulang, atau ketik nama kamu dulu ya biar bisa lanjut ngobrol?')
+    const name = matchNameStatement(body)?.name || extractPlainName(body)
+    if (!name) {
+      await botSay(
+        /\?/.test(body)
+          ? `${hello}Hmm, aku belum nangkep maksudnya. Boleh diulang, atau kenalan dulu, nama kamu siapa?`
+          : `${hello}Hmm, kayaknya itu bukan nama deh. Nama panggilan kamu siapa? Cukup satu kata aja, contoh: Budi.`,
+      )
       return
     }
 
-    form.value.name = text
-    pushMessage('user', text)
-    inputValue.value = ''
-    const firstName = text.split(' ')[0]
-    await botSay(`Okee, ${firstName}! Email kamu apa, biar aku bisa balas ke sana?`)
+    form.value.name = name
+    const safeName = escapeHtml(name)
+    if (form.value.email) {
+      step.value = 'message'
+      await botSay(
+        `${hello}Salam kenal, ${safeName}! Sekarang cerita dong, ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?`,
+      )
+      return
+    }
     step.value = 'email'
+    await botSay(`${hello}Salam kenal, ${safeName}! Email kamu apa, biar Jose bisa balas ke sana?`)
     return
   }
 
   if (step.value === 'email') {
-    // Sama kayak di step 'name': kalau user malah baru nyebutin/ngulang
-    // namanya di sini ("nama aku jose"), jangan dianggap sebagai email
-    // yang salah format, tapi tangkep sebagai nama lalu tetap tanya email.
-    const nameStatement = matchNameStatement(text)
-    if (nameStatement) {
-      form.value.name = nameStatement.name
-      pushMessage('user', text)
-      inputValue.value = ''
-      await botSay(`Okee, ${nameStatement.name}! Oke, lanjut ya, email kamu apa, biar aku bisa balas ke sana?`)
+    takeUserMessage(text)
+    const email = extractEmail(body)
+    if (!email) {
+      // Mungkin user baru menyebut/meralat namanya di sini
+      const nameStatement = matchNameStatement(body)
+      if (nameStatement) {
+        form.value.name = nameStatement.name
+        await botSay(
+          `Oke, aku panggil ${escapeHtml(nameStatement.name)} ya! Lanjut, email kamu apa, biar Jose bisa balas ke sana?`,
+        )
+        return
+      }
+      const looksLikeEmailAttempt =
+        /@|\.(com|id|co|net|org)\b/i.test(body) || !/\s/.test(body.trim())
+      await botSay(
+        looksLikeEmailAttempt
+          ? 'Hmm, format emailnya kayaknya belum pas. Coba tulis ulang ya, contoh: nama@email.com'
+          : 'Itu kayaknya bukan email ya. Kalau belum mau kasih email juga gapapa, bilang aja "nanti aja", nanti kita ngobrol soal Jose dulu. Kalau mau lanjut, tulis email kamu, contoh: nama@email.com',
+      )
       return
     }
-
-    pushMessage('user', text)
-    inputValue.value = ''
-    if (!isValidEmail(text)) {
-      await botSay('Hmm, format emailnya kayaknya belum pas. Coba tulis ulang ya, contoh: nama@email.com')
+    if (!isValidEmail(email)) {
+      await botSay(
+        'Hmm, format emailnya kayaknya belum pas. Coba tulis ulang ya, contoh: nama@email.com',
+      )
       return
     }
-    form.value.email = text
-    await botSay('Sip! Terakhir, cerita dong ada project, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein')
+    form.value.email = email
     step.value = 'message'
+    await botSay(
+      'Sip! Terakhir, cerita dong ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?',
+    )
     return
   }
 
   if (step.value === 'message') {
+    takeUserMessage(text)
+    // Pesan kependekan (mis. "tes", "p") jangan langsung dikirim ke email Jose
+    if (body.length < 10 || body.split(/\s+/).length < 2) {
+      await botSay(
+        'Pesannya singkat banget nih. Ceritain sedikit lebih detail ya, biar Jose bisa langsung bantu.',
+      )
+      return
+    }
     form.value.message = text
-    pushMessage('user', text)
-    inputValue.value = ''
     step.value = 'submitting'
     await botSay('Oke, aku kirimkan sekarang ya, tunggu sebentar...', 400)
     await submitForm()
@@ -466,10 +700,12 @@ const placeholder = computed(() => {
   if (step.value === 'email') return 'Ketik email kamu...'
   if (step.value === 'message') return 'Tulis pesan kamu...'
   if (step.value === 'submitting') return 'Sedang mengirim...'
-  return 'Chat selesai'
+  if (step.value === 'done') return 'Tanya soal Jose, atau klik "Kirim pesan lain"'
+  if (step.value === 'chat') return 'Tanya soal Jose...'
+  return 'Klik "Coba Lagi" di atas'
 })
 
-const isInputDisabled = computed(() => ['submitting', 'done', 'error'].includes(step.value))
+const isInputDisabled = computed(() => ['submitting', 'error'].includes(step.value))
 
 function closeWidget() {
   chatStore.close()
@@ -499,7 +735,12 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
 <template>
   <div class="chat-widget">
     <Transition name="chat-panel">
-      <div v-if="chatStore.isOpen" class="chat-widget__panel" role="dialog" aria-label="Chat kontak dengan Jose">
+      <div
+        v-if="chatStore.isOpen"
+        class="chat-widget__panel"
+        role="dialog"
+        aria-label="Chat kontak dengan Jose"
+      >
         <header class="chat-widget__header">
           <div class="chat-widget__header-info">
             <span class="chat-widget__avatar" aria-hidden="true">JP</span>
@@ -539,7 +780,13 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
               @click="closeWidget"
             >
               <svg viewBox="0 0 24 24" class="chat-widget__icon-svg" aria-hidden="true">
-                <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18" />
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  d="M6 6l12 12M18 6 6 18"
+                />
               </svg>
             </button>
           </div>
@@ -575,11 +822,17 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
                     />
                   </div>
                   <p class="chat-widget__card-title" v-html="item.title"></p>
-                  <p v-if="item.subtitle" class="chat-widget__card-subtitle" v-html="item.subtitle"></p>
+                  <p
+                    v-if="item.subtitle"
+                    class="chat-widget__card-subtitle"
+                    v-html="item.subtitle"
+                  ></p>
                   <p class="chat-widget__card-desc" v-html="item.desc"></p>
 
                   <ul v-if="item.tags && item.tags.length" class="chat-widget__card-tags">
-                    <li v-for="tag in item.tags" :key="tag" class="chat-widget__card-tag">{{ tag }}</li>
+                    <li v-for="tag in item.tags" :key="tag" class="chat-widget__card-tag">
+                      {{ tag }}
+                    </li>
                   </ul>
 
                   <div v-if="item.links && item.links.length" class="chat-widget__card-links">
@@ -590,14 +843,18 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
                       target="_blank"
                       rel="noopener noreferrer"
                       class="chat-widget__card-link"
-                    >{{ link.label }}</a>
+                      >{{ link.label }}</a
+                    >
                   </div>
                 </article>
               </div>
             </div>
           </TransitionGroup>
 
-          <div v-if="isBotTyping" class="chat-widget__msg chat-widget__msg--bot chat-widget__typing">
+          <div
+            v-if="isBotTyping"
+            class="chat-widget__msg chat-widget__msg--bot chat-widget__typing"
+          >
             <span></span><span></span><span></span>
           </div>
 
@@ -654,7 +911,12 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
       :aria-label="chatStore.isOpen ? 'Tutup chat' : 'Buka chat kontak'"
       @click="toggleWidget"
     >
-      <svg v-if="!chatStore.isOpen" viewBox="0 0 24 24" class="chat-widget__fab-icon" aria-hidden="true">
+      <svg
+        v-if="!chatStore.isOpen"
+        viewBox="0 0 24 24"
+        class="chat-widget__fab-icon"
+        aria-hidden="true"
+      >
         <path
           fill="none"
           stroke="currentColor"
@@ -665,7 +927,13 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
         />
       </svg>
       <svg v-else viewBox="0 0 24 24" class="chat-widget__fab-icon" aria-hidden="true">
-        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18" />
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          d="M6 6l12 12M18 6 6 18"
+        />
       </svg>
       <span v-if="!chatStore.isOpen" class="chat-widget__fab-pulse" aria-hidden="true"></span>
     </button>
@@ -699,7 +967,9 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   color: #fff;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   box-shadow: 0 18px 40px -14px rgba(94, 82, 214, 0.55);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .chat-widget__fab:hover {
@@ -867,8 +1137,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   line-height: 1.5;
   white-space: normal;
   word-break: break-word;
-  text-align: justify;
-  text-align-last: left;
+  text-align: left;
 }
 
 /* Paragraf & list di dalam jawaban FAQ (dirender via v-html) */
@@ -953,11 +1222,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   top: 26px;
   bottom: 0;
   width: 2px;
-  background: linear-gradient(
-    to bottom,
-    rgba(124, 111, 240, 0.45),
-    rgba(124, 111, 240, 0.1)
-  );
+  background: linear-gradient(to bottom, rgba(124, 111, 240, 0.45), rgba(124, 111, 240, 0.1));
 }
 
 .chat-widget__exp-content {
@@ -1002,8 +1267,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   font-size: 0.83rem;
   line-height: 1.6;
   color: var(--color-text-soft);
-  text-align: justify;
-  text-align-last: left;
+  text-align: left;
 }
 
 .chat-widget__exp-summary em {
@@ -1115,8 +1379,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   font-size: 0.82rem;
   line-height: 1.55;
   color: var(--color-text-soft);
-  text-align: justify;
-  text-align-last: left;
+  text-align: left;
 }
 
 .chat-widget__card-tags {
@@ -1264,7 +1527,9 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   background: var(--color-primary);
   color: #fff;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .chat-widget__send:hover:not(:disabled) {
@@ -1285,7 +1550,9 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
 /* --- Transisi buka/tutup panel --- */
 .chat-panel-enter-active,
 .chat-panel-leave-active {
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
   transform-origin: bottom right;
 }
 
@@ -1297,7 +1564,9 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
 
 /* --- Transisi tiap bubble chat muncul --- */
 .chat-msg-enter-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .chat-msg-enter-from {

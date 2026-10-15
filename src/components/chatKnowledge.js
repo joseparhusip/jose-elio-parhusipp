@@ -36,19 +36,19 @@ export const PROFILE = {
 // Jawaban siap pakai untuk intent "about" (siapa Jose / tentang Jose). HTML.
 export const ABOUT_HTML = [
   '<p>Kenalin, ini <strong>Jose Elio Parhusip, S.Bns.</strong>!</p>',
-  '<p><em>Fresh graduate</em> S1 Bisnis Digital (IPK 3,75/4,00) dari Universitas Logistik dan Bisnis Internasional (ULBI), Bandung.</p>',
+  '<p>Lulusan S1 Bisnis Digital (IPK 3,75/4,00) dari Universitas Logistik dan Bisnis Internasional (ULBI), Bandung. Saat ini bekerja sebagai <em>Back End Developer</em> (kontrak) di PT Sistem Pelayanan Kesehatan dan Data (SPKD), membangun <em>backend</em> MedCredix dengan Go.</p>',
   '<p>Punya minat besar di web, mobile, data, dan AI. Terbiasa membangun aplikasi <em>end-to-end</em> dengan React.js, Vue.js, Node.js, PHP, MySQL, dan PostgreSQL, mulai dari pemodelan sistem (UML, ERD, Flowchart), sistem <em>e-commerce</em> dengan integrasi Midtrans dan RajaOngkir, sampai visualisasi data dengan Python dan Streamlit. Di sisi mobile, mengembangkan aplikasi dengan Flutter dan Dart. Bersertifikasi SAP.</p>',
   '<ul class="chat-widget__highlight-list">',
   '<li><strong><em>Full-stack</em> dan mobile:</strong> terbiasa membangun aplikasi <em>end-to-end</em>, dari <em>frontend</em>, <em>backend</em>, sampai basis data, untuk web maupun mobile dengan Flutter.</li>',
   '<li><strong>Analitis dan terstruktur:</strong> berpengalaman sebagai <em>System Analyst</em>, merancang ERD, UML, dan flowchart, serta mengelola jadwal dan anggaran proyek.</li>',
   '<li><strong>Kolaboratif:</strong> aktif berorganisasi dan terbiasa bekerja lintas peran dalam tim untuk menghasilkan produk yang sesuai kebutuhan pengguna.</li>',
   '</ul>',
-  '<p>Peralatan yang dikuasai: Flutter, Figma, Power BI, Python, React, Streamlit, Vue.js, Excel, Plotly, Google Colab, PostgreSQL, MySQL, Node.js, dan PHP.</p>',
+  '<p>Peralatan yang dikuasai: Flutter, Figma, Power BI, Python, React, Streamlit, Vue.js, Excel, Plotly, Google Colab, PostgreSQL, MySQL, Node.js, Go, dan PHP.</p>',
 ].join('')
 
 // Jawaban siap pakai untuk intent "education" (kuliah / pendidikan). HTML.
 export const EDUCATION_HTML = [
-  '<p><strong>Jose Elio Parhusip, S.Bns.</strong> adalah <em>fresh graduate</em> Program Studi S1 Bisnis Digital, Universitas Logistik dan Bisnis Internasional (ULBI), Bandung, dengan IPK 3,75 dari 4,00.</p>',
+  '<p><strong>Jose Elio Parhusip, S.Bns.</strong> adalah lulusan Program Studi S1 Bisnis Digital, Universitas Logistik dan Bisnis Internasional (ULBI), Bandung, dengan IPK 3,75 dari 4,00.</p>',
   '<p>Selama kuliah, Jose banyak belajar merancang sistem (UML, ERD, Flowchart) serta membangun aplikasi web maupun mobile, dan memegang sertifikasi SAP sebagai nilai tambah.</p>',
 ].join('')
 
@@ -116,7 +116,7 @@ export const EXPERIENCES = [
   {
     period: 'Oktober 2022 sampai Mei 2023',
     role: '<em>Deputy Human Capital and Governance</em>',
-    company: 'Himpunan Mahasiswa Bisnis Digital',
+    company: 'Himpunan Mahasiswa Bisnis Digital (HIMABIG)',
     summary:
       'Membantu proses rekrutmen dan seleksi pengurus, menyusun target, jadwal, dan anggaran organisasi, serta mempersiapkan rapat umum sebagai Komite Pengarah.',
     tags: ['Organisasi', 'Rekrutmen'],
@@ -128,7 +128,9 @@ export const EXPERIENCES = [
 // teks polos saja, tanpa ikon/logo.
 export function buildExperienceListHtml() {
   const items = EXPERIENCES.map((item) => {
-    const tagsHtml = item.tags.map((tag) => `<span class="chat-widget__exp-tag">${tag}</span>`).join('')
+    const tagsHtml = item.tags
+      .map((tag) => `<span class="chat-widget__exp-tag">${tag}</span>`)
+      .join('')
 
     return [
       '<li class="chat-widget__exp-item">',
@@ -237,7 +239,8 @@ const RX = {
   // bot nanya balik ke user, bukan asal nebak.
   pekerjaanAmbiguous: /\b(pekerjaan|kerjaan)\b/i,
   pekerjaanHistoryHint: /\b(riwayat|pengalaman|history|karier|karir|dulu|sebelumnya)\b/i,
-  pekerjaanOfferHint: /\b(nawarin|tawarin|loker|lowongan|hire|hiring|kerja ?sama|kolaborasi|freelance|proyekan|rekrut)\b/i,
+  pekerjaanOfferHint:
+    /\b(nawarin|tawarin|loker|lowongan|hire|hiring|kerja ?sama|kolaborasi|freelance|proyekan|rekrut)\b/i,
 
   // Kata kunci umum buat pertanyaan yang jelas-jelas di luar topik seputar
   // Jose (resep masakan, cuaca, terjemahan, dsb). Ini daftar contoh, bukan
@@ -284,7 +287,8 @@ export function matchFaqIntent(rawText) {
 // 'ambiguous_pekerjaan'). Diekspor terpisah supaya ChatWidget.vue bisa
 // pakai daftar kata kunci yang sama persis, tidak ada duplikasi aturan.
 export const PEKERJAAN_CLARIFY_HISTORY_RX = RX.pekerjaanHistoryHint
-export const PEKERJAAN_CLARIFY_OFFER_RX = /\b(nawarin|tawarin|loker|lowongan|hire|hiring|kerja ?sama|kolaborasi|freelance|proyekan|rekrut|kontak)\b/i
+export const PEKERJAAN_CLARIFY_OFFER_RX =
+  /\b(nawarin|tawarin|loker|lowongan|hire|hiring|kerja ?sama|kolaborasi|freelance|proyekan|rekrut|kontak)\b/i
 
 // Mendeteksi kalau user lagi menyebutkan namanya sendiri, misal "nama aku
 // jose", "namaku jose", "nama saya itu jose". Dipakai supaya kalimat kayak
@@ -292,7 +296,21 @@ export const PEKERJAAN_CLARIFY_OFFER_RX = /\b(nawarin|tawarin|loker|lowongan|hir
 // jose" bukannya "jose") atau salah dianggap email pas lagi di step email.
 // Return null kalau tidak cocok, atau { name } (huruf pertama besar) kalau
 // cocok.
-const NAME_STATEMENT_RX = /\bnama(?:ku|\s*(?:aku|saya|gue|gw))?\s*(?:itu|adalah|:)?\s+([a-zA-Z][a-zA-Z'.\- ]{0,40})/i
+// Pola kalimat perkenalan yang umum di chat:
+// "nama aku budi", "namaku budi", "nama saya budi", "aku budi", "saya budi",
+// "gue budi", "panggil aja budi", "ini budi", "halo aku budi" (sapaan di
+// depan diabaikan). Kata setelahnya diambil sebagai nama.
+const NAME_STATEMENT_RX =
+  /(?:^|[\s,.!])(?:nama(?:ku|\s*(?:aku|saya|gue|gua|gw|ku))?|panggil(?:\s*(?:aja|saja|aku|saya))*|perkenalkan(?:\s*(?:aku|saya|nama\s*(?:aku|saya)))?|kenalin(?:\s*(?:aku|saya|gue|gua|gw))?|aku|saya|gue|gua|gw|ini)\s*(?:itu|adalah|:)?\s+([a-zA-Z][a-zA-Z'.\- ]{0,40})/i
+
+// Kata yang jelas bukan nama walau posisinya setelah "aku"/"saya", misal
+// "aku mau tanya", "saya lagi cari", "gue cuma liat-liat".
+const NOT_A_NAME_RX =
+  /^(mau|ingin|pengen|pingin|lagi|sedang|cuma|hanya|udah|sudah|belum|bisa|boleh|tanya|nanya|cari|lihat|liat|dari|di|ke|juga|sih|aja|nih|kok|tuh|baik|oke|ok|siap|bukan|tidak|nggak|gak|ga|punya|ada|perlu|butuh|tertarik|suka|seorang|orang|recruiter|hr|mahasiswa|pelajar|developer)$/i
+
+function capitalize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+}
 
 export function matchNameStatement(rawText) {
   const text = (rawText || '').trim()
@@ -301,9 +319,154 @@ export function matchNameStatement(rawText) {
   const match = text.match(NAME_STATEMENT_RX)
   if (!match) return null
 
-  const firstWord = match[1].trim().split(/\s+/)[0].replace(/[^a-zA-Z'-]/g, '')
-  if (!firstWord) return null
+  const firstWord = match[1]
+    .trim()
+    .split(/\s+/)[0]
+    .replace(/[^a-zA-Z'-]/g, '')
+  if (!firstWord || NOT_A_NAME_RX.test(firstWord) || GREETING_WORD_RX.test(firstWord)) return null
 
-  const name = firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase()
-  return { name }
+  return { name: capitalize(firstWord) }
 }
+
+// Ambil nama dari jawaban polos (mis. "budi santoso" -> "Budi").
+// Return null kalau teksnya tidak masuk akal sebagai nama: berisi angka,
+// cuma sapaan/basa-basi, atau kepanjangan seperti kalimat.
+export function extractPlainName(rawText) {
+  const words = (rawText || '')
+    .trim()
+    .replace(/[!.,?]+$/g, '')
+    .split(/\s+/)
+    .filter(Boolean)
+  if (words.length === 0 || words.length > 3) return null
+  if (!/^[a-zA-Z][a-zA-Z'.-]*$/.test(words[0])) return null
+  if (words[0].length < 2 || NOT_A_NAME_RX.test(words[0]) || GREETING_WORD_RX.test(words[0]))
+    return null
+  return capitalize(words[0])
+}
+
+// Ambil alamat email di mana pun posisinya dalam kalimat
+// (mis. "email aku Budi@Gmail.com ya" -> "budi@gmail.com").
+export function extractEmail(rawText) {
+  const match = (rawText || '').match(/[^\s@<>(),;:"']+@[^\s@<>(),;:"']+\.[a-zA-Z]{2,}/)
+  return match ? match[0].replace(/[.]+$/, '').toLowerCase() : null
+}
+
+// --- Basa-basi (sapaan, terima kasih, dsb.) ---------------------------------
+
+// Sapaan sesuai jam di perangkat pengunjung.
+export function getTimeOfDay(date = new Date()) {
+  const h = date.getHours()
+  if (h >= 4 && h < 11) return 'pagi'
+  if (h >= 11 && h < 15) return 'siang'
+  if (h >= 15 && h < 18) return 'sore'
+  return 'malam'
+}
+
+const GREETING_WORD_RX =
+  /^(halo+|hallo+|hal+o+|helo+|hello+|hai+|hay+|hi+|hey+|hei+|p|ping|permisi|misi|assalamu.?alaikum|assalamualaikum|asalamualaikum|salam|shalom|selamat|pagi|siang|sore|malam|met|woi|oi|bro|sis|kak|min|gan)$/i
+
+const SMALL_TALK = {
+  // Seluruh pesan cuma sapaan, boleh ditambah "kak/min/bro" atau waktu
+  greeting:
+    /^(?:(?:halo+|hallo+|helo+|hello+|hai+|hay+|hi+|hey+|hei+|p|ping|permisi|misi|woi|oi|assalamu.?alaikum(?:\s*wr\.?\s*wb\.?)?|asalamualaikum|salam|shalom|selamat\s+(?:pagi|siang|sore|malam)|met\s+(?:pagi|siang|sore|malam)|(?:pagi|siang|sore|malam))(?:\s+(?:juga|kak|kakak|min|admin|bro|sis|gan|bang|mas|mbak|jose|semua|semuanya|bot))*[\s!.,~]*)+$/i,
+  greetingPrefix:
+    /^(?:halo+|hallo+|helo+|hello+|hai+|hi+|hey+|hei+|permisi|assalamu.?alaikum|selamat\s+(?:pagi|siang|sore|malam)|pagi|siang|sore|malam)\b[\s,!.]*/i,
+  howAreYou: /\b(apa kabar|gimana kabar|kabar(?:nya)? (?:gimana|baik)|how are you)\b/i,
+  thanks:
+    /^(?:(?:makasih|makasi|maksih|terima\s*kasih|trims|thanks|thank\s*you|thx|tengkyu|tq|ty|nuhun|suwun)(?:\s+(?:ya|yaa+|banyak|kak|min|bro|sis|bang|jose|bot|infonya|banget))*[\s!.~]*)+$/i,
+  bye: /^(?:(?:bye|bai|dadah|dah|daah|sampai\s+jumpa|sampai\s+nanti|see\s+you|cya|udah\s+dulu|segitu\s+dulu|pamit)(?:\s+(?:ya|yaa+|kak|min|bro|jose|dulu))*[\s!.~]*)+$/i,
+  ack: /^(?:oke+|ok+|okay|okey|sip+|siap|baik|baiklah|oh+|ohh+|oalah|wah+|wow|mantap|mantul|keren|nice|good|haha+|wkwk+|hehe+|hmm+|y|ya|iya|yoi|noted)(?:\s+(?:deh|dong|sip|kak|min|bro|siap|mantap|ya))*[\s!.~]*$/i,
+  // Pertanyaan tentang bot itu sendiri, bukan tentang Jose
+  aboutBot:
+    /\b(kamu|anda|lu|lo|elu|kau)\s+(siapa|itu apa|bot|robot|ai|manusia|beneran)|\b(ini|lagi chat sama|ngobrol sama)\s+(bot|robot|ai|siapa)\b|\bkamu\s+(?:itu\s+)?(?:bot|robot|ai)\b/i,
+}
+
+/**
+ * Deteksi basa-basi. Return { type } atau null.
+ * type: greeting | howAreYou | thanks | bye | ack | aboutBot
+ */
+export function matchSmallTalk(rawText) {
+  const text = (rawText || '').trim()
+  if (!text) return null
+  if (SMALL_TALK.aboutBot.test(text)) return { type: 'aboutBot' }
+  if (SMALL_TALK.howAreYou.test(text)) return { type: 'howAreYou' }
+  if (SMALL_TALK.greeting.test(text)) return { type: 'greeting' }
+  if (SMALL_TALK.thanks.test(text)) return { type: 'thanks' }
+  if (SMALL_TALK.bye.test(text)) return { type: 'bye' }
+  if (SMALL_TALK.ack.test(text)) return { type: 'ack' }
+  return null
+}
+
+// "halo kak, aku budi" -> "aku budi" (sapaan di depan dibuang) supaya
+// sisa kalimatnya tetap bisa diproses sebagai nama/pertanyaan.
+export function stripGreetingPrefix(rawText) {
+  let text = (rawText || '').trim()
+  let prev
+  do {
+    prev = text
+    text = text
+      .replace(SMALL_TALK.greetingPrefix, '')
+      .replace(/^(?:kak|min|bro|sis|gan|bang|juga)\b[\s,!.]*/i, '')
+  } while (text && text !== prev)
+  return text
+}
+
+export function hasGreetingPrefix(rawText) {
+  return SMALL_TALK.greetingPrefix.test((rawText || '').trim())
+}
+
+// Pertanyaan atau permintaan informasi (dipakai di langkah "pesan" supaya
+// isi pesan seperti "saya mau nawarin project" tidak dikira pertanyaan FAQ).
+export function looksLikeQuestion(rawText) {
+  const text = (rawText || '').trim().toLowerCase()
+  return (
+    /\?\s*$/.test(text) ||
+    /^(apa|apakah|siapa|gimana|bagaimana|dimana|di mana|kapan|berapa|kenapa|mengapa|boleh|bisa|tolong|minta|coba|kasih tau|ceritain|ceritakan|jelasin|jelaskan|lihat|liat|tunjukin|mau tau|pengen tau|ingin tahu)\b/.test(
+      text,
+    )
+  )
+}
+
+// Waktu yang disebut user di sapaannya ("selamat malam kak" -> "malam").
+// Dipakai supaya bot membalas dengan waktu yang sama, bukan menyanggah.
+export function getUserTimeGreeting(rawText) {
+  const text = (rawText || '').trim()
+  const match =
+    text.match(/\b(?:selamat|met)\s+(pagi|siang|sore|malam)\b/i) ||
+    text.match(/^(pagi|siang|sore|malam)\b/i)
+  return match ? match[1].toLowerCase() : null
+}
+
+// Di langkah "pesan": kalimat panjang atau yang berisi niat (nawarin
+// project, tanya freelance, ajak kerja sama) adalah isi pesan untuk Jose,
+// walaupun bentuknya pertanyaan. Jangan dijawab FAQ.
+const MESSAGE_INTENT_RX =
+  /\b(nawarin|menawarkan|tawar(?:an|in)?|freelance|hire|hiring|rekrut|lowongan|loker|interview|wawancara|kerja\s*sama|kolaborasi|collab|budget|bujet|biaya|harga|rate|fee|jasa|order|pesan(?:an)?|bikinin|buatin|dibikinin|dibuatin|open\s+(?:untuk|buat|for)|available|tersedia|join|gabung|undang|ajak)\b/i
+
+export function looksLikeMessageToJose(rawText) {
+  const text = (rawText || '').trim()
+  const wordCount = text.split(/\s+/).filter(Boolean).length
+  return wordCount >= 9 || MESSAGE_INTENT_RX.test(text)
+}
+
+// User belum mau kasih nama/email, atau mau ngobrol soal lain dulu:
+// "aku ga email dulu", "nanti aja", "skip", "maunya seputar yang lain".
+export const DECLINE_RX =
+  /\b(?:(?:ga|gak|nggak|ngga|enggak|engga|tidak|belum|ogah|males|malas)\s*(?:mau|usah|perlu|dulu|deh|kasih|ngasih|share|bisa)?|gausah|gamau|gk|tdk|nanti(?:\s+(?:aja|dulu|deh))?|ntar|skip|lewat(?:in)?|rahasia|privasi|privacy|(?:yang|yg|hal)\s+lain|lain\s+(?:aja|dulu)|ngobrol\s+dulu|tanya(?:-tanya)?\s+dulu|liat(?:-liat)?\s+dulu|lihat(?:-lihat)?\s+dulu)\b/i
+
+// User mau lanjut kirim pesan ke Jose dari mode ngobrol bebas.
+export const RESUME_CONTACT_RX =
+  /\b(?:(?:mau|pengen|ingin|jadi|lanjut)\s+(?:kirim|ngirim|kasih|ngasih|nitip|titip|hubungi|ngehubungin|kontak)|kirim\s+pesan|titip\s+pesan|lanjut(?:in)?\s+(?:aja|deh|kirim)?|oke\s+(?:aku|saya|gua|gue)\s+kasih)\b/i
+
+// Daftar topik singkat buat mode ngobrol bebas (tanpa minta nama/email).
+export const TOPICS_MENU_HTML = [
+  '<p>Aku bisa cerita soal:</p>',
+  '<ul class="chat-widget__highlight-list">',
+  '<li>Profil Jose</li>',
+  '<li>Pendidikan</li>',
+  '<li>Pengalaman kerja dan organisasi</li>',
+  '<li>Proyek yang pernah dikerjakan</li>',
+  '<li>Cara menghubungi Jose</li>',
+  '</ul>',
+  '<p>Ketik aja, misalnya "proyek Jose apa aja?". Kalau nanti mau kirim pesan ke Jose, bilang "mau kirim pesan" ya.</p>',
+].join('')
