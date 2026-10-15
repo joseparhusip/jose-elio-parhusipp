@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { vReveal } from '@/directives/reveal'
 import figmaIcon from './icons/icons-about/Figma-logo.svg'
 import flutterIcon from './icons/icons-about/lockup_flutter_horizontal.svg'
 import powerBiIcon from './icons/icons-about/New_Power_BI_Logo.svg'
@@ -47,174 +47,126 @@ const tools = [
   { name: 'PHP', icon: phpIcon },
 ]
 
+const facts = [
+  { label: 'Pendidikan', value: 'S1 Bisnis Digital', sub: 'ULBI Bandung' },
+  { label: 'IPK', value: '3,75', sub: 'dari 4,00' },
+  { label: 'Sertifikasi', value: 'SAP', sub: 'Certified' },
+]
+
+// Dua baris marquee bergerak berlawanan arah
+const half = Math.ceil(tools.length / 2)
+// Tiap baris diisi 2x agar cukup panjang untuk layar lebar (1440px ke atas)
+const toolRows = [tools.slice(0, half), tools.slice(half)].map((row) =>
+  [...row, ...row].map((tool, i) => ({ ...tool, key: `${tool.name}-${i}`, dup: i >= row.length })),
+)
+
 // Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
 function preventImageAction(event) {
   event.preventDefault()
   return false
 }
-
-/* ---------------------------------------------------------
-   Animasi geser besar (kutipan dari KIRI, ikon tools dari KANAN).
-   Yang diamati IntersectionObserver adalah WADAH-nya (tidak ikut
-   bergeser), bukan elemen yang meluncur. Kalau elemen yang meluncur
-   yang diamati, posisinya yang di luar layar bikin observer mengira
-   "belum kelihatan" dan animasinya tidak pernah mulai.
---------------------------------------------------------- */
-const visualEl = ref(null)
-const toolsEl = ref(null)
-const visualIn = ref(false)
-const toolsIn = ref(false)
-let slideObserver = null
-
-onMounted(() => {
-  slideObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return
-        if (entry.target === visualEl.value) visualIn.value = true
-        else if (entry.target === toolsEl.value) toolsIn.value = true
-        slideObserver.unobserve(entry.target)
-      })
-    },
-    { threshold: 0.25, rootMargin: '0px 0px -60px 0px' },
-  )
-  slideObserver.observe(visualEl.value)
-  slideObserver.observe(toolsEl.value)
-})
-
-onUnmounted(() => {
-  slideObserver?.disconnect()
-})
-
-/* ---------------------------------------------------------
-   v-reveal: animasi "muncul" halus saat elemen masuk viewport
-   saat discroll. Cuma main di opacity & transform (posisi),
-   warna sama sekali tidak disentuh/diubah.
-   Pakai: v-reveal (fade+naik), v-reveal.scale (fade+membesar),
-   v-reveal.left / v-reveal.right (geser dari samping).
-   Value opsional = delay (ms), untuk efek berurutan/staggered.
---------------------------------------------------------- */
-const revealObserver = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const el = entry.target
-        el.classList.add('is-visible')
-        revealObserver.unobserve(el)
-
-        // Setelah animasi masuk selesai, buang delay & tandai "selesai".
-        // Tanpa ini, delay stagger ikut kebawa ke efek hover (ikon terasa
-        // telat naik saat di-hover).
-        const delay = parseFloat(el.style.transitionDelay) || 0
-        setTimeout(() => {
-          el.style.transitionDelay = '0ms'
-          el.classList.add('reveal-done')
-        }, delay + 800)
-      }
-    })
-  },
-  { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
-)
-
-const vReveal = {
-  mounted(el, binding) {
-    let variant = 'up'
-    if (binding.modifiers.scale) variant = 'scale'
-    else if (binding.modifiers.left) variant = 'left'
-    else if (binding.modifiers.right) variant = 'right'
-
-    el.classList.add('reveal', `reveal--${variant}`)
-
-    const delay = typeof binding.value === 'number' ? binding.value : 0
-    el.style.transitionDelay = `${delay}ms`
-
-    // Paksa browser "melukis" kondisi tersembunyi ini dulu (tunggu 2 frame)
-    // sebelum mulai diobservasi. Tanpa ini, elemen yang sudah kelihatan
-    // duluan (misalnya pas reload / buka pertama kali) suka langsung
-    // "loncat" ke posisi akhir tanpa animasi sama sekali.
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        revealObserver.observe(el)
-      })
-    })
-  },
-  unmounted(el) {
-    revealObserver.unobserve(el)
-  },
-}
 </script>
 
 <template>
   <section id="tentang" class="about">
-    <div class="about__inner">
-      <div ref="visualEl" class="about__visual" :class="{ 'is-in': visualIn }">
-        <div class="about__blob"></div>
-        <div class="about__quote">
-          <p class="about__quote-text">
-            "Solusi terbaik lahir dari data yang dipahami dan desain yang dirasakan."
-          </p>
+    <div class="container">
+      <div class="about__top">
+        <div class="about__intro">
+          <span class="section-label" v-reveal
+            ><span class="section-label__num">01</span>Tentang Saya</span
+          >
+
+          <h2 class="section-title" v-reveal="80">
+            Menghubungkan <span class="serif-accent">data</span>, desain, dan kode jadi satu solusi
+          </h2>
+
+          <div class="about__desc" v-reveal="160">
+            <p>
+              Saya Jose, Fresh Graduate S1 Bisnis Digital (IPK 3,75/4,00) dari Universitas Logistik
+              dan Bisnis Internasional (ULBI) Bandung, dengan minat besar di web, mobile, data, dan
+              AI.
+            </p>
+            <p>
+              Saya terbiasa membangun aplikasi end-to-end dengan React.js, Vue.js, Node.js, PHP,
+              MySQL, dan PostgreSQL, mulai dari pemodelan sistem (UML, ERD, Flowchart), merancang
+              sistem e-commerce dengan integrasi Midtrans dan RajaOngkir, mengolah data dengan
+              Google Colab, sampai visualisasi data dengan Python dan Streamlit. Di sisi mobile,
+              saya mengembangkan aplikasi dengan Flutter dan Dart. Saya juga bersertifikasi SAP.
+            </p>
+          </div>
         </div>
+
+        <aside class="about__side">
+          <figure class="about__quote" v-reveal.right="120">
+            <span class="about__quote-mark" aria-hidden="true">&ldquo;</span>
+            <blockquote>
+              Solusi terbaik lahir dari data yang dipahami dan desain yang dirasakan.
+            </blockquote>
+            <figcaption>Prinsip kerja saya</figcaption>
+          </figure>
+
+          <dl class="about__facts" v-reveal.right="220">
+            <div v-for="fact in facts" :key="fact.label" class="about__fact">
+              <dt>{{ fact.label }}</dt>
+              <dd>
+                <strong>{{ fact.value }}</strong>
+                <span>{{ fact.sub }}</span>
+              </dd>
+            </div>
+          </dl>
+        </aside>
       </div>
 
-      <div class="about__content">
-        <span class="about__eyebrow" v-reveal>Tentang Saya</span>
+      <ul class="about__highlights">
+        <li
+          v-for="(item, index) in highlights"
+          :key="item.title"
+          class="about__highlight"
+          v-reveal="index * 100"
+        >
+          <span class="about__highlight-num">0{{ index + 1 }}</span>
+          <h3 class="about__highlight-title">{{ item.title }}</h3>
+          <p class="about__highlight-desc">{{ item.desc }}</p>
+        </li>
+      </ul>
+    </div>
 
-        <h2 class="about__title" v-reveal="90">
-          Menghubungkan data, desain, dan kode jadi satu solusi
-        </h2>
+    <div class="about__tools" v-reveal>
+      <div class="container">
+        <span class="about__tools-label">Tools &amp; teknologi yang saya kuasai</span>
+      </div>
 
-        <p class="about__desc" v-reveal="180">
-          Saya Jose, Fresh Graduate S1 Bisnis Digital (IPK 3,75/4,00) dari
-          Universitas Logistik dan Bisnis Internasional (ULBI) Bandung, dengan
-          minat besar di web, mobile, data, dan AI. Saya terbiasa membangun
-          aplikasi end-to-end dengan React.js, Vue.js, Node.js, PHP, MySQL,
-          dan PostgreSQL, mulai dari pemodelan sistem (UML, ERD, Flowchart),
-          merancang sistem e-commerce dengan integrasi Midtrans dan RajaOngkir,
-          mengolah data dengan Google Colab, sampai visualisasi data dengan
-          Python dan Streamlit. Di sisi mobile, saya mengembangkan aplikasi
-          dengan Flutter dan Dart. Saya juga bersertifikasi SAP.
-        </p>
-
-        <ul class="about__highlights">
-          <li
-            v-for="(item, index) in highlights"
-            :key="item.title"
-            class="about__highlight"
-            v-reveal="260 + index * 90"
-          >
-            <span class="about__highlight-icon">✓</span>
-            <div>
-              <h3 class="about__highlight-title">{{ item.title }}</h3>
-              <p class="about__highlight-desc">{{ item.desc }}</p>
-            </div>
-          </li>
-        </ul>
-
-        <div ref="toolsEl" class="about__tools" :class="{ 'is-in': toolsIn }">
-          <span class="about__tools-label">Yang saya kuasai</span>
-
-          <ul class="about__tools-list">
+      <div class="about__marquees">
+        <div
+          v-for="(row, rowIndex) in toolRows"
+          :key="rowIndex"
+          class="about__marquee"
+          :class="{ 'about__marquee--reverse': rowIndex === 1 }"
+        >
+          <!-- Isi diulang 2x supaya geraknya menyambung tanpa jeda -->
+          <ul v-for="copy in 2" :key="copy" class="about__marquee-track" :aria-hidden="copy === 2">
             <li
-              v-for="(tool, index) in tools"
-              :key="tool.name"
-              class="about__tools-item"
-              :title="tool.name"
-              :style="{ '--i': index }"
+              v-for="tool in row"
+              :key="tool.key"
+              class="about__tool"
+              :class="{ 'about__tool--dup': tool.dup }"
               oncontextmenu="return false"
               @contextmenu.prevent="preventImageAction"
             >
-              <img
-                :src="tool.icon"
-                :alt="tool.name"
-                class="about__tools-icon"
-                loading="lazy"
-                width="32"
-                height="32"
-                draggable="false"
-                oncontextmenu="return false"
-                @contextmenu.prevent="preventImageAction"
-                @dragstart.prevent="preventImageAction"
-              />
+              <span class="about__tool-icon">
+                <img
+                  :src="tool.icon"
+                  :alt="copy === 1 ? tool.name : ''"
+                  loading="lazy"
+                  width="28"
+                  height="28"
+                  draggable="false"
+                  oncontextmenu="return false"
+                  @contextmenu.prevent="preventImageAction"
+                  @dragstart.prevent="preventImageAction"
+                />
+              </span>
+              <span class="about__tool-name">{{ tool.name }}</span>
             </li>
           </ul>
         </div>
@@ -225,356 +177,315 @@ const vReveal = {
 
 <style scoped>
 .about {
-  padding: 5rem 1.5rem;
-  background: var(--color-surface, #fff);
-  /* PENTING: ikon "Yang saya kuasai" (dari kanan) dan kutipan (dari kiri)
-     mulai dari luar layar. Overflow horizontal harus dipotong di batas
-     section, kalau tidak halaman melebar dan browser HP memunculkan strip
-     kosong / scroll ke samping. `clip` (bukan `hidden`) supaya tidak
-     bikin scroll container baru. */
-  overflow-x: hidden; /* fallback browser lama */
-  overflow-x: clip;
-}
-
-.about__inner {
-  max-width: 1160px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 0.8fr 1.2fr;
-  gap: 3.5rem;
-  align-items: center;
-}
-
-.about__visual {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 320px;
+  padding: var(--section-y) 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.about__blob {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  background: linear-gradient(155deg, var(--color-mint, #cfe3dd), var(--color-accent-soft, #fbe4d8));
-  border-radius: 42% 58% 65% 35% / 45% 45% 55% 55%;
-  animation: about-blob-float 9s ease-in-out infinite;
+.about__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
 }
 
-/* Gerakan sangat halus, cuma biar blob terasa "hidup", bukan animasi warna */
-@keyframes about-blob-float {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(3deg);
-  }
+.about__desc {
+  margin-top: 1.5rem;
+  max-width: 40rem;
+}
+
+.about__desc p {
+  margin: 0 0 1rem;
+  font-size: clamp(1rem, 1.3vw, 1.06rem);
+  line-height: 1.8;
+  color: var(--color-text-soft);
+  text-wrap: pretty;
+}
+
+.about__desc p:first-child {
+  font-size: clamp(1.08rem, 1.6vw, 1.22rem);
+  line-height: 1.65;
+  color: var(--color-text);
+}
+
+/* ---- Sisi kanan: kutipan + fakta ---- */
+.about__side {
+  display: grid;
+  gap: 1rem;
+  padding-top: 2.4rem;
 }
 
 .about__quote {
   position: relative;
-  width: 250px;
-  padding: 2rem 1.75rem;
-  background: var(--color-bg, #f1f4f1);
-  border-radius: 20px;
-  box-shadow: 0 24px 45px -25px rgba(37, 54, 50, 0.4);
-}
-
-.about__quote-text {
   margin: 0;
-  font-family: var(--font-body);
+  padding: 2rem 1.8rem 1.6rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background:
+    radial-gradient(120% 90% at 100% 0%, var(--color-primary-soft), transparent 60%),
+    var(--color-bg);
+  overflow: hidden;
+}
+
+.about__quote-mark {
+  position: absolute;
+  top: -1.4rem;
+  right: 1.2rem;
+  font-family: var(--font-serif);
+  font-size: 9rem;
+  line-height: 1;
+  color: var(--color-primary);
+  opacity: 0.35;
+}
+
+.about__quote blockquote {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-serif);
   font-style: italic;
-  font-size: 1.05rem;
-  line-height: 1.5;
-  color: var(--color-text, #253632);
-}
-
-.about__eyebrow {
-  display: inline-flex;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-primary-dark, #4f7566);
-  background: var(--color-mint, #cfe3dd);
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-}
-
-.about__title {
-  font-family: var(--font-heading);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-size: clamp(1.5rem, 2.4vw, 1.9rem);
   line-height: 1.25;
+  color: var(--color-text);
+  text-wrap: balance;
+}
+
+.about__quote figcaption {
+  margin-top: 1.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.about__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.about__fact {
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.about__fact dt {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.about__fact dd {
+  display: grid;
+  margin: 0.5rem 0 0;
+}
+
+.about__fact strong {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
   font-weight: 600;
-  color: var(--color-text, #253632);
-  margin: 1.1rem 0 1rem;
-  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--color-text);
 }
 
-.about__desc {
-  text-align: justify;
-  font-family: var(--font-body);
-  font-size: 1rem;
-  line-height: 1.75;
-  color: var(--color-text-soft, #5c6f69);
-  margin: 0 0 2rem;
-  max-width: 560px;
+.about__fact span {
+  font-size: 0.78rem;
+  color: var(--color-text-soft);
 }
 
+/* ---- Tiga keunggulan ---- */
 .about__highlights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
   list-style: none;
-  margin: 0 0 2.25rem;
+  margin: clamp(3rem, 6vw, 4.5rem) 0 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
 }
 
 .about__highlight {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.9rem;
+  position: relative;
+  padding: 1.6rem 1.5rem 1.7rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  transition:
+    border-color 0.3s ease,
+    transform 0.35s var(--ease-out);
 }
 
-.about__highlight-icon {
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--color-primary, #6b9080);
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: 700;
-  margin-top: 0.15rem;
+.about__highlight.reveal-done:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  transform: translateY(-4px);
+}
+
+.about__highlight-num {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-primary);
 }
 
 .about__highlight-title {
-  margin: 0 0 0.2rem;
+  margin: 2.2rem 0 0.5rem;
   font-family: var(--font-heading);
-  font-size: 1rem;
+  font-size: 1.3rem;
   font-weight: 600;
-  color: var(--color-text, #253632);
+  letter-spacing: -0.02em;
+  color: var(--color-text);
 }
 
 .about__highlight-desc {
-  text-align: justify;
   margin: 0;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--color-text-soft, #5c6f69);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--color-text-soft);
 }
 
+/* ---- Marquee tools ---- */
 .about__tools {
-  padding-top: 1.75rem;
-  border-top: 1px solid rgba(124, 111, 240, 0.2);
+  margin-top: clamp(3.5rem, 7vw, 5rem);
 }
 
 .about__tools-label {
   display: block;
-  text-align: center;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 600;
+  margin-bottom: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-soft, #5c6f69);
-  margin-bottom: 0.9rem;
+  color: var(--color-text-soft);
 }
 
-.about__tools-list {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  justify-items: center;
-  align-items: center;
-  gap: 1rem 0.5rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.about__tools-item {
+.about__marquee {
   display: flex;
+  overflow: hidden;
+  padding: 0.35rem 0;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.about__marquee-track {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0 0.375rem;
+  list-style: none;
+  animation: about-marquee 38s linear infinite;
+}
+
+.about__marquee--reverse .about__marquee-track {
+  animation-direction: reverse;
+}
+
+.about__marquee:hover .about__marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes about-marquee {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.about__tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 1.1rem 0.55rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  white-space: nowrap;
+}
+
+.about__tool-icon {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  background: transparent;
-  border: none;
-  padding: 0;
-  transition: transform 0.2s ease;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #fff; /* logo asli (warna-warni) paling jelas di atas putih */
 }
 
-.about__tools-item:hover {
-  transform: translateY(-3px);
-}
-
-.about__tools-icon {
-  width: 32px;
-  height: 32px;
-  max-width: 100%;
-  max-height: 100%;
+.about__tool-icon img {
+  width: 24px;
+  height: 24px;
   object-fit: contain;
-  display: block;
-  /* Proteksi: cegah seleksi, drag, dan long-press save di mobile */
-  -webkit-user-select: none;
   user-select: none;
   -webkit-user-drag: none;
-  -webkit-touch-callout: none;
   pointer-events: none;
 }
 
-/* ---------------------------------------------------------
-   Reveal system: dipakai lewat directive v-reveal di template.
-   Hanya memainkan opacity & transform (posisi/skala), warna
-   elemen sama sekali tidak diubah oleh animasi ini.
---------------------------------------------------------- */
-.reveal {
-  transition:
-    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
+.about__tool-name {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--color-text);
 }
 
-.reveal:not(.is-visible) {
-  opacity: 0;
-  transform: translateY(22px);
-}
-
-.reveal--scale:not(.is-visible) {
-  transform: translateY(14px) scale(0.94);
-}
-
-.reveal--left:not(.is-visible) {
-  transform: translateX(-28px);
-}
-
-.reveal--right:not(.is-visible) {
-  transform: translateX(28px);
-}
-
-/* ---------------------------------------------------------
-   Animasi geser besar. Pakai properti `translate` & `scale`
-   (bukan `transform`) supaya tidak bentrok dengan animasi blob
-   (about-blob-float) dan efek hover ikon yang memakai `transform`.
-   Warna elemen tidak diubah sama sekali.
---------------------------------------------------------- */
-
-/* 1) Kutipan + blob: masuk dari KIRI layar ke posisi semula.
-   Sebelum masuk viewport: sembunyi di luar layar sebelah kiri. */
-.about__visual:not(.is-in) .about__blob,
-.about__visual:not(.is-in) .about__quote {
-  opacity: 0;
-  translate: -100vw 0;
-}
-
-.about__visual.is-in .about__blob {
-  animation:
-    about-blob-float 9s ease-in-out infinite,
-    about-slide-in-left 1.3s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-
-/* Kartu kutipan menyusul sedikit di belakang blob (delay 0.12 dtk) */
-.about__visual.is-in .about__quote {
-  animation: about-slide-in-left 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.12s backwards;
-}
-
-@keyframes about-slide-in-left {
-  from {
-    opacity: 0;
-    translate: -100vw 0;
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-  }
-}
-
-/* 2) Ikon "Yang saya kuasai": masuk dari KANAN layar satu per satu
-   (berurutan, jeda 55 ms per ikon) sambil sedikit membesar. */
-.about__tools:not(.is-in) .about__tools-item {
-  opacity: 0;
-  translate: 100vw 0;
-  scale: 0.8;
-}
-
-.about__tools.is-in .about__tools-item {
-  animation: about-slide-in-right 1.2s cubic-bezier(0.22, 1, 0.36, 1)
-    calc(var(--i, 0) * 55ms) backwards;
-}
-
-@keyframes about-slide-in-right {
-  from {
-    opacity: 0;
-    translate: 100vw 0;
-    scale: 0.8;
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-    scale: 1;
-  }
-}
-
-/* Reduce motion: teks (v-reveal) langsung tampil & blob berhenti
-   melayang terus-menerus. Animasi geser masuk kutipan dan ikon tools
-   sengaja TIDAK dimatikan, sesuai permintaan. */
+/* Kalau animasi dimatikan di pengaturan OS (Windows: "Animation effects" off),
+   marquee diganti jadi susunan chip rapi yang diam, tanpa duplikat. */
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .reveal:not(.is-visible) {
-    transition: none;
-    opacity: 1;
-    transform: none;
+  .about__marquees {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    max-width: var(--container);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+    box-sizing: border-box;
   }
 
-  .about__blob {
-    animation: none;
+  .about__marquee,
+  .about__marquee-track {
+    display: contents;
   }
 
-  .about__visual.is-in .about__blob {
-    animation: about-slide-in-left 1.3s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  }
-}
-
-@media (max-width: 900px) {
-  .about__inner {
-    /* minmax(0, 1fr): kolom boleh menyusut, tidak melebar oleh isi yang panjang */
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .about__visual {
-    order: -1;
-    min-height: 260px;
-  }
-
-  .about__tools-list {
-    grid-template-columns: repeat(6, 1fr);
+  .about__marquee-track[aria-hidden='true'],
+  .about__tool--dup {
+    display: none;
   }
 }
 
-@media (max-width: 600px) {
-  .about__tools-list {
-    grid-template-columns: repeat(5, 1fr);
+/* ---- Tablet ---- */
+@media (max-width: 960px) {
+  .about__top {
+    grid-template-columns: 1fr;
+  }
+
+  .about__side {
+    padding-top: 0;
+  }
+
+  .about__highlights {
+    grid-template-columns: 1fr;
+  }
+
+  .about__highlight-title {
+    margin-top: 1rem;
   }
 }
 
-@media (max-width: 400px) {
-  .about__tools-list {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
+/* ---- HP ---- */
 @media (max-width: 480px) {
-  .about {
-    padding: 3.5rem 1.25rem;
+  .about__facts {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .about__eyebrow {
-    display: table;
-    margin: 0 auto;
+  .about__fact:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .about__quote {
+    padding: 1.6rem 1.4rem 1.4rem;
   }
 }
 </style>

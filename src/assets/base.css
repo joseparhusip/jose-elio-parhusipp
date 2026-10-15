@@ -32,9 +32,25 @@
 
   color-scheme: dark;
 
-  --font-heading: 'Plus Jakarta Sans', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* ---- Tipografi ----
+     Heading: Bricolage Grotesque (tegas, berkarakter)
+     Aksen  : Instrument Serif italic (kata yang mau ditonjolkan)
+     Body   : Geist (bersih, enak dibaca panjang)
+     Label  : Geist Mono (periode, nomor, label kecil) */
+  --font-heading: 'Bricolage Grotesque', 'Geist', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---- Ritme & bentuk ---- */
+  --container: 1200px;
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --section-y: clamp(4.5rem, 10vw, 8rem);
+  --radius-sm: 10px;
+  --radius: 18px;
+  --radius-lg: 28px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 24px 48px -28px rgba(0, 0, 0, 0.6);
 }
 
 /* =====================================================
@@ -68,6 +84,8 @@
   --navbar-hover-bg: rgba(106, 92, 232, 0.1);
   --navbar-toggle-bg: rgba(27, 34, 56, 0.07);
   --navbar-toggle-bg-hover: rgba(27, 34, 56, 0.14);
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 24px 48px -30px rgba(27, 34, 56, 0.28);
 
   color-scheme: light;
 }

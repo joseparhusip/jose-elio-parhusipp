@@ -273,7 +273,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .navbar__toggle {
     display: flex;
   }

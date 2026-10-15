@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { vReveal } from '@/directives/reveal'
 
 const experiences = [
   {
@@ -121,19 +122,59 @@ onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('resize', onScroll)
 })
+
+/* ---------------------------------------------------------
+   Poin panjang dilipat: tampil 3 dulu, sisanya lewat tombol
+   "Lihat semua" supaya kartu tidak jadi tembok teks.
+--------------------------------------------------------- */
+const PREVIEW_COUNT = 3
+const expanded = ref({})
+
+function toggleExpanded(index) {
+  expanded.value = { ...expanded.value, [index]: !expanded.value[index] }
+  // Tinggi kartu berubah, hitung ulang progress garis
+  nextTick(onScroll)
+}
+
+function visiblePoints(item, index) {
+  return expanded.value[index] ? item.desc : item.desc.slice(0, PREVIEW_COUNT)
+}
+
+// "Solo Project — JEC Eye ..." dipecah jadi badge tipe + nama tempat
+function splitCompany(company) {
+  const [first, ...rest] = company.split(' — ')
+  return rest.length ? { type: first, name: rest.join(' — ') } : { type: '', name: first }
+}
 </script>
 
 <template>
   <section id="pengalaman" class="experience">
-    <div class="experience__inner">
-      <div class="experience__header">
-        <span class="experience__eyebrow">Pengalaman Kerja</span>
-        <h2 class="experience__title">Perjalanan singkat sejauh ini</h2>
-        <p class="experience__desc">
-          Beberapa peran yang pernah saya jalani, dari magang sampai proyek
-          lepas, yang membentuk cara saya bekerja sekarang.
-        </p>
-      </div>
+    <div class="container experience__grid">
+      <header class="experience__header">
+        <div class="experience__header-sticky">
+          <span v-reveal class="section-label">
+            <span class="section-label__num">02</span> Pengalaman
+          </span>
+          <h2 v-reveal="80" class="section-title">
+            Perjalanan singkat <span class="serif-accent">sejauh</span> ini
+          </h2>
+          <p v-reveal="160" class="section-lead">
+            Beberapa peran yang pernah saya jalani, dari proyek mandiri sampai
+            organisasi, yang membentuk cara saya bekerja sekarang.
+          </p>
+
+          <dl v-reveal="240" class="experience__summary">
+            <div>
+              <dt>Peran</dt>
+              <dd>{{ experiences.length }}</dd>
+            </div>
+            <div>
+              <dt>Rentang</dt>
+              <dd>2022<span>–</span>2025</dd>
+            </div>
+          </dl>
+        </div>
+      </header>
 
       <ol class="experience__timeline">
         <li
@@ -154,27 +195,51 @@ onUnmounted(() => {
             </span>
           </div>
 
-          <div class="experience__card">
-            <span class="experience__period">{{ item.period }}</span>
-            <h3 class="experience__role">{{ item.role }}</h3>
-            <span class="experience__company">{{ item.company }}</span>
+          <article v-reveal.left="index * 60" class="experience__card">
+            <div class="experience__card-top">
+              <span class="experience__period">{{ item.period }}</span>
+              <span v-if="splitCompany(item.company).type" class="experience__type">
+                {{ splitCompany(item.company).type }}
+              </span>
+            </div>
 
-            <ol class="experience__item-desc">
+            <h3 class="experience__role">{{ item.role }}</h3>
+            <span class="experience__company">{{ splitCompany(item.company).name }}</span>
+
+            <ul :id="`exp-points-${index}`" class="experience__points">
               <li
-                v-for="(point, pIndex) in item.desc"
+                v-for="(point, pIndex) in visiblePoints(item, index)"
                 :key="pIndex"
-                class="experience__item-desc-point"
+                class="experience__point"
               >
                 {{ point }}
               </li>
-            </ol>
-
-            <ul class="experience__tags">
-              <li v-for="tag in item.tags" :key="tag" class="experience__tag">
-                {{ tag }}
-              </li>
             </ul>
-          </div>
+
+            <div class="experience__card-bottom">
+              <ul class="experience__tags">
+                <li v-for="tag in item.tags" :key="tag" class="experience__tag">
+                  {{ tag }}
+                </li>
+              </ul>
+
+              <button
+                v-if="item.desc.length > PREVIEW_COUNT"
+                type="button"
+                class="experience__more"
+                :aria-expanded="!!expanded[index]"
+                :aria-controls="`exp-points-${index}`"
+                @click="toggleExpanded(index)"
+              >
+                {{ expanded[index] ? 'Ringkas' : `Lihat semua (${item.desc.length})` }}
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"
+                  :class="{ 'is-open': expanded[index] }">
+                  <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </article>
         </li>
       </ol>
     </div>
@@ -183,50 +248,55 @@ onUnmounted(() => {
 
 <style scoped>
 .experience {
-  padding: 5rem 1.5rem;
-  background: var(--color-bg, #f1f4f1);
+  padding: var(--section-y) 0;
+  background: var(--color-bg);
 }
 
-.experience__inner {
-  max-width: 900px;
-  margin: 0 auto;
+.experience__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
 }
 
-.experience__header {
-  max-width: 560px;
-  margin: 0 auto 3.5rem;
-  text-align: center;
+/* Judul ikut "nempel" saat timeline di kanan discroll (desktop) */
+.experience__header-sticky {
+  position: sticky;
+  top: 110px;
 }
 
-.experience__eyebrow {
-  display: inline-flex;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-primary-dark, #4f7566);
-  background: var(--color-mint, #cfe3dd);
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
+.experience__summary {
+  display: flex;
+  gap: 2.5rem;
+  margin: 2.2rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
 }
 
-.experience__title {
+.experience__summary dt {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.experience__summary dd {
+  margin: 0.3rem 0 0;
   font-family: var(--font-heading);
   font-size: clamp(1.8rem, 3vw, 2.4rem);
-  line-height: 1.25;
   font-weight: 600;
-  color: var(--color-text, #253632);
-  margin: 1.1rem 0 1rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--color-text);
 }
 
-.experience__desc {
-  text-align: justify;
-  font-family: var(--font-body);
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--color-text-soft, #5c6f69);
-  margin: 0;
+.experience__summary dd span {
+  color: var(--color-primary);
+  margin: 0 0.1em;
 }
 
+/* ---- Timeline ---- */
 .experience__timeline {
   list-style: none;
   margin: 0;
@@ -235,8 +305,8 @@ onUnmounted(() => {
 
 .experience__item {
   display: grid;
-  grid-template-columns: 28px 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: clamp(0.9rem, 2.5vw, 1.6rem);
 }
 
 .experience__marker {
@@ -245,16 +315,15 @@ onUnmounted(() => {
   align-items: center;
 }
 
-/* Dot tetap warna aslinya. Saat aktif cuma ditambah glow (box-shadow),
-   bukan ganti background-color. */
+/* Dot tetap warna aslinya. Saat aktif cuma ditambah glow (box-shadow) */
 .experience__dot {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--color-primary, #6b9080);
-  border: 3px solid var(--color-mint, #cfe3dd);
+  background: var(--color-primary);
+  border: 3px solid var(--color-mint);
   flex-shrink: 0;
-  margin-top: 0.4rem;
+  margin-top: 1.7rem;
   box-shadow: 0 0 0 0 rgba(124, 111, 240, 0);
   transition: box-shadow 0.4s ease;
 }
@@ -265,130 +334,206 @@ onUnmounted(() => {
     0 0 14px 4px rgba(124, 111, 240, 0.55);
 }
 
-/* Track dasar dibikin nyaris tak terlihat -> sebelum discroll,
-   garis "tidak ada". */
+/* Track dasar nyaris tak terlihat, fill yang "menyambung" saat discroll */
 .experience__line {
   position: relative;
   flex: 1;
   width: 2px;
-  margin: 0.3rem 0;
-  background: rgba(124, 111, 240, 0.1);
+  margin: 0.5rem 0 0;
+  background: rgba(124, 111, 240, 0.12);
   border-radius: 2px;
   overflow: hidden;
 }
 
-/* Fill inilah yang "menyambung" garis secara bertahap saat discroll,
-   warnanya sama persis dengan dot, cuma ditambah glow. */
 .experience__line-fill {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--color-primary, #6b9080);
+  inset: 0;
+  background: linear-gradient(var(--color-primary), var(--color-accent));
   border-radius: 2px;
   transform: scaleY(0);
   transform-origin: top center;
   transition: transform 0.12s ease-out;
-  box-shadow: 0 0 10px 2px rgba(124, 111, 240, 0.6);
 }
 
 .experience__item:last-child .experience__line {
   display: none;
 }
 
+/* ---- Kartu ---- */
 .experience__card {
-  padding-bottom: 2.5rem;
+  margin-bottom: 1.25rem;
+  padding: clamp(1.3rem, 3vw, 1.9rem);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.3s ease;
+}
+
+.experience__item:last-child .experience__card {
+  margin-bottom: 0;
+}
+
+.experience__card:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+.experience__card-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
 }
 
 .experience__period {
-  display: inline-block;
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  color: var(--color-accent, #f2a488);
-  margin-bottom: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: var(--color-accent);
+}
+
+.experience__type {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  line-height: 1.4;
 }
 
 .experience__role {
   font-family: var(--font-heading);
-  font-size: 1.3rem;
+  font-size: clamp(1.25rem, 2.2vw, 1.55rem);
   font-weight: 600;
-  color: var(--color-text, #253632);
-  margin: 0 0 0.25rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--color-text);
+  margin: 0.8rem 0 0.3rem;
 }
 
 .experience__company {
   display: block;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 500;
-  color: var(--color-text-soft, #5c6f69);
-  margin-bottom: 0.85rem;
+  color: var(--color-text-soft);
 }
 
-.experience__item-desc {
+.experience__points {
   list-style: none;
-  counter-reset: exp-point;
-  margin: 0 0 1rem;
-  padding: 0;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
+  margin: 1.2rem 0 0;
+  padding: 1.2rem 0 0;
+  border-top: 1px dashed var(--color-border);
+  display: grid;
+  gap: 0.7rem;
 }
 
-.experience__item-desc-point {
-  text-align: justify;
+.experience__point {
   position: relative;
-  padding-left: 1.7rem;
-  font-family: var(--font-body);
-  font-size: 0.95rem;
+  padding-left: 1.3rem;
+  font-size: 0.94rem;
   line-height: 1.7;
-  color: var(--color-text-soft, #5c6f69);
-  counter-increment: exp-point;
+  color: var(--color-text-soft);
+  text-wrap: pretty;
 }
 
-.experience__item-desc-point::before {
-  content: counter(exp-point) '.';
+.experience__point::before {
+  content: '';
   position: absolute;
   left: 0;
-  top: 0;
-  font-family: var(--font-body);
-  font-weight: 700;
-  color: var(--color-primary-dark, #4f7566);
+  top: 0.68em;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--color-primary);
+  transform: rotate(45deg);
+  opacity: 0.8;
+}
+
+.experience__card-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 1.3rem;
 }
 
 .experience__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.45rem;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .experience__tag {
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-  color: var(--color-primary-dark, #4f7566);
-  background: var(--color-bg, #f1f4f1);
-  border: 1px solid rgba(124, 111, 240, 0.25);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
   padding: 0.3rem 0.65rem;
-  border-radius: 6px;
+  border-radius: 8px;
+}
+
+.experience__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.2rem;
+  border: 0;
+  background: none;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.experience__more:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.experience__more svg {
+  transition: transform 0.3s var(--ease-out);
+}
+
+.experience__more svg.is-open {
+  transform: rotate(180deg);
+}
+
+/* ---- Tablet & HP ---- */
+@media (max-width: 960px) {
+  .experience__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .experience__header-sticky {
+    position: static;
+  }
+
+  .experience__summary {
+    margin-top: 1.6rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .experience {
-    padding: 3.5rem 1.25rem;
-  }
-
   .experience__item {
-    grid-template-columns: 20px 1fr;
-    gap: 1rem;
+    grid-template-columns: 14px minmax(0, 1fr);
   }
 
-  .experience__item-desc-point {
-    padding-left: 1.5rem;
+  .experience__dot {
+    width: 12px;
+    height: 12px;
+  }
+
+  .experience__point {
     font-size: 0.9rem;
     line-height: 1.65;
   }

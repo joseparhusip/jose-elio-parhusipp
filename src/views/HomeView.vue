@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { loaderDone } from '@/composables/useLoaderState'
+import { vReveal } from '@/directives/reveal'
 import AboutSection from '@/components/AboutSection.vue'
 import ExperienceSection from '@/components/ExperienceSection.vue'
 import ProjectsSection from '@/components/ProjectsSection.vue'
@@ -10,6 +11,12 @@ import linkedinIcon from '@/components/icons/icons-about/linkedin-svgrepo-com.sv
 import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-svgrepo-com.svg'
 
 const stack = ['Web Landing Page', 'Web E-commerce', 'Mobile App', 'Data']
+
+const stats = [
+  { value: '4+', label: 'Tahun belajar teknologi' },
+  { value: '6', label: 'Proyek selesai' },
+  { value: '3,75', label: 'IPK S1 Bisnis Digital' },
+]
 
 const roles = ['Full Stack Developer', 'Flutter Developer', 'Data Analyst', 'Business Analyst']
 const typedRole = ref('')
@@ -137,62 +144,48 @@ onMounted(() => {
 onUnmounted(() => {
   clearTimeout(photoFallbackId)
 })
-
-/* ---------------------------------------------------------
-   v-reveal: animasi "muncul" halus saat elemen masuk viewport.
---------------------------------------------------------- */
-const revealObserver = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible')
-        revealObserver.unobserve(entry.target)
-      }
-    })
-  },
-  { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
-)
-
-const vReveal = {
-  mounted(el, binding) {
-    let variant = 'up'
-    if (binding.modifiers.scale) variant = 'scale'
-    else if (binding.modifiers.left) variant = 'left'
-    else if (binding.modifiers.right) variant = 'right'
-
-    el.classList.add('reveal', `reveal--${variant}`)
-
-    const delay = typeof binding.value === 'number' ? binding.value : 0
-    el.style.transitionDelay = `${delay}ms`
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        revealObserver.observe(el)
-      })
-    })
-  },
-  unmounted(el) {
-    revealObserver.unobserve(el)
-  },
-}
 </script>
 
 <template>
   <main>
     <section id="beranda" class="hero">
-      <div class="hero__inner">
-        <div class="hero__content">
-          <span class="hero__eyebrow" v-reveal>👋 Halo, saya</span>
+      <div class="hero__bg" aria-hidden="true">
+        <span class="hero__grid"></span>
+        <span class="hero__glow hero__glow--a"></span>
+        <span class="hero__glow hero__glow--b"></span>
+      </div>
 
-          <h1 class="hero__title" v-reveal="100">
-            Jose Elio Parhusip,
-            <span class="hero__title-accent">
-              {{ typedRole }}<span class="hero__cursor" aria-hidden="true"></span>
-            </span>
+      <div class="container hero__inner">
+        <div class="hero__content">
+          <span class="hero__status" v-reveal>
+            <span class="hero__status-dot" aria-hidden="true"></span>
+            Fresh Graduate · Bandung
+          </span>
+
+          <h1 class="hero__title" v-reveal="90">
+            Jose Elio<br />
+            Parhusip<span class="hero__title-dot">.</span>
           </h1>
 
-          <div class="hero__actions" v-reveal="200">
-            <a href="#proyek" class="hero__btn hero__btn--primary">Lihat Proyek</a>
+          <p class="hero__role" v-reveal="160">
+            <span class="hero__role-prefix">Saya seorang</span>
+            <span class="hero__role-typed serif-accent">
+              {{ typedRole }}<span class="hero__cursor" aria-hidden="true"></span>
+            </span>
+          </p>
+
+          <p class="hero__lead" v-reveal="230">
+            Lulusan S1 Bisnis Digital ULBI yang senang mengubah data, desain, dan kode menjadi produk yang
+            benar-benar dipakai, dari web, mobile, sampai dashboard data dan AI.
+          </p>
+
+          <div class="hero__actions" v-reveal="300">
+            <a href="#proyek" class="hero__btn hero__btn--primary">
+              Lihat Proyek
+              <svg viewBox="0 0 24 24" class="hero__btn-arrow" aria-hidden="true">
+                <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+              </svg>
+            </a>
             <a
               href="/CV - Jose Elio Parhusip.pdf"
               class="hero__btn hero__btn--ghost hero__btn--download"
@@ -215,7 +208,9 @@ const vReveal = {
 
               <span class="hero__btn-label" aria-live="polite">{{ downloadLabel }}</span>
             </a>
+          </div>
 
+          <div class="hero__meta" v-reveal="370">
             <div class="hero__socials">
               <a
                 href="https://github.com/joseparhusip"
@@ -269,39 +264,68 @@ const vReveal = {
                 />
               </a>
             </div>
-          </div>
 
-          <ul class="hero__stack" v-reveal="300">
-            <li v-for="tech in stack" :key="tech" class="hero__stack-item">{{ tech }}</li>
-          </ul>
+            <span class="hero__meta-divider" aria-hidden="true"></span>
+
+            <ul class="hero__stack" aria-label="Fokus pengerjaan">
+              <li v-for="tech in stack" :key="tech" class="hero__stack-item">{{ tech }}</li>
+            </ul>
+          </div>
         </div>
 
         <div class="hero__visual" :class="{ 'is-in': photoReady }">
-          <div class="hero__blob"></div>
-          <div class="hero__photo-frame">
-            <img
-              ref="photoEl"
-              :src="myPhoto"
-              alt="Jose Elio Parhusip"
-              class="hero__photo"
-              draggable="false"
-              fetchpriority="high"
-              @load="markPhotoLoaded"
-              @error="markPhotoLoaded"
-              @contextmenu.prevent="preventImageAction"
-              @dragstart.prevent="preventImageAction"
-            />
+          <div class="hero__arch" aria-hidden="true">
+            <span class="hero__arch-ring"></span>
+            <span class="hero__arch-orbit"></span>
           </div>
 
+          <img
+            ref="photoEl"
+            :src="myPhoto"
+            alt="Jose Elio Parhusip"
+            class="hero__photo"
+            draggable="false"
+            fetchpriority="high"
+            width="944"
+            height="944"
+            @load="markPhotoLoaded"
+            @error="markPhotoLoaded"
+            @contextmenu.prevent="preventImageAction"
+            @dragstart.prevent="preventImageAction"
+          />
+
           <div class="hero__badge hero__badge--top">
-            <strong>4+</strong>
-            <span>Tahun Belajar</span>
+            <span class="hero__badge-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="m8 6-6 6 6 6M16 6l6 6-6 6" /></svg>
+            </span>
+            <span class="hero__badge-text">
+              <strong>Web &amp; Mobile</strong>
+              <span>Vue · React · Flutter</span>
+            </span>
           </div>
           <div class="hero__badge hero__badge--bottom">
-            <strong>6</strong>
-            <span>Proyek Selesai</span>
+            <span class="hero__badge-icon hero__badge-icon--accent" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 19V9m6 10V5m6 14v-7m4 7H3" /></svg>
+            </span>
+            <span class="hero__badge-text">
+              <strong>Data &amp; BI</strong>
+              <span>Python · Streamlit</span>
+            </span>
           </div>
         </div>
+      </div>
+
+      <div class="container">
+        <dl class="hero__stats" v-reveal="120">
+          <div v-for="item in stats" :key="item.label" class="hero__stat">
+            <dt class="hero__stat-label">{{ item.label }}</dt>
+            <dd class="hero__stat-value">{{ item.value }}</dd>
+          </div>
+          <a href="#tentang" class="hero__scroll">
+            <span>Gulir</span>
+            <span class="hero__scroll-line" aria-hidden="true"></span>
+          </a>
+        </dl>
       </div>
     </section>
 
@@ -313,63 +337,147 @@ const vReveal = {
 </template>
 
 <style scoped>
+/* =========================================================
+   HERO
+   ========================================================= */
 .hero {
-  padding: 4.5rem 1.5rem 5rem;
-  background: var(--color-bg, #f1f4f1);
+  position: relative;
+  padding: clamp(2.5rem, 6vw, 4.5rem) 0 clamp(2.5rem, 5vw, 3.5rem);
   overflow: hidden;
+  isolation: isolate;
+}
+
+/* ---- Latar: grid halus + dua cahaya warna brand ---- */
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hero__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--color-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 20%, transparent 75%);
+  opacity: 0.55;
+}
+
+.hero__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+
+.hero__glow--a {
+  width: 520px;
+  height: 520px;
+  top: -160px;
+  right: -80px;
+  background: var(--color-primary-soft);
+}
+
+.hero__glow--b {
+  width: 420px;
+  height: 420px;
+  bottom: -140px;
+  left: -120px;
+  background: var(--color-accent-soft);
 }
 
 .hero__inner {
-  max-width: 1240px;
-  margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   align-items: center;
-  gap: 3rem;
+  gap: clamp(2rem, 5vw, 4rem);
 }
 
-/* === PENYESUAIAN POSISI TEKS (Dinaikkan lagi) === */
-.hero__content {
-  margin-top: -10rem;
-}
-
-.hero__eyebrow {
+/* ---- Teks ---- */
+.hero__status {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-primary-dark, #4f7566);
-  background: var(--color-mint, #cfe3dd);
-  padding: 0.4rem 0.9rem;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-soft);
+  padding: 0.45rem 0.95rem 0.45rem 0.8rem;
+  border: 1px solid var(--color-border);
   border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.hero__status-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.hero__status-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--color-accent);
+  animation: hero-ping 2s var(--ease-out) infinite;
+}
+
+@keyframes hero-ping {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
 }
 
 .hero__title {
   font-family: var(--font-heading);
-  font-size: clamp(2.2rem, 4.2vw, 3.4rem);
-  line-height: 1.15;
+  font-size: clamp(3rem, 7.6vw, 6rem);
   font-weight: 600;
-  color: var(--color-text, #253632);
-  margin: 1.2rem 0 2rem;
-  letter-spacing: -0.01em;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  color: var(--color-text);
+  margin: 1.4rem 0 1.2rem;
 }
 
-.hero__title-accent {
-  display: block;
-  min-height: 1.2em;
-  color: var(--color-accent, #f2a488);
-  font-style: italic;
+.hero__title-dot {
+  color: var(--color-primary);
+}
+
+.hero__role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.6rem;
+  margin: 0;
+  min-height: 1.3em;
+  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  line-height: 1.25;
+}
+
+.hero__role-prefix {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--color-text-soft);
+}
+
+.hero__role-typed {
+  font-size: 1.12em;
+  white-space: nowrap;
 }
 
 .hero__cursor {
   display: inline-block;
-  width: 3px;
-  height: 0.85em;
-  margin-left: 3px;
-  background: var(--color-accent, #f2a488);
-  vertical-align: middle;
+  width: 2px;
+  height: 0.9em;
+  margin-left: 4px;
+  background: var(--color-accent);
+  vertical-align: -0.08em;
   animation: hero-cursor-blink 0.85s steps(1) infinite;
 }
 
@@ -378,90 +486,106 @@ const vReveal = {
   50.01%, 100% { opacity: 0; }
 }
 
+.hero__lead {
+  max-width: 34rem;
+  margin: 1.1rem 0 2rem;
+  font-size: clamp(1rem, 1.35vw, 1.1rem);
+  line-height: 1.75;
+  color: var(--color-text-soft);
+  text-wrap: pretty;
+}
+
+/* ---- Tombol ---- */
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 2.5rem;
+  gap: 0.8rem;
 }
 
 .hero__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 52px;
+  padding: 0 1.6rem;
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 0.97rem;
   font-weight: 600;
-  padding: 0.85rem 1.7rem;
   border-radius: 999px;
   text-decoration: none;
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s var(--ease-out), background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .hero__btn--primary {
-  background: var(--color-primary, #6b9080);
+  background: var(--color-primary);
   color: #fff;
-  box-shadow: 0 12px 24px -12px rgba(124, 111, 240, 0.55);
+  box-shadow: 0 14px 30px -14px var(--color-primary), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .hero__btn--primary:hover {
-  background: var(--color-primary-dark, #4f7566);
+  background: var(--color-primary-dark);
   transform: translateY(-2px);
 }
 
+.hero__btn-arrow {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.25s var(--ease-out);
+}
+
+.hero__btn--primary:hover .hero__btn-arrow {
+  transform: translateX(3px);
+}
+
 .hero__btn--ghost {
-  background: transparent;
-  color: var(--color-text, #253632);
-  border: 1.5px solid rgba(37, 54, 50, 0.2);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  backdrop-filter: blur(8px);
 }
 
 .hero__btn--ghost:hover {
-  border-color: var(--color-primary, #6b9080);
+  border-color: var(--color-primary);
   transform: translateY(-2px);
 }
 
 .hero__btn--download {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
   overflow: hidden;
   isolation: isolate;
 }
 
 .hero__btn--download.is-loading {
   cursor: progress;
-  border-color: var(--color-primary, #6b9080);
+  border-color: var(--color-primary);
 }
 
 .hero__btn--download.is-done {
-  border-color: var(--color-primary, #6b9080);
-  color: var(--color-primary-dark, #4f7566);
+  border-color: var(--color-primary);
 }
 
 .hero__btn-fill {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: var(--color-mint, #cfe3dd);
+  background: var(--color-primary-soft);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.hero__btn--download.is-loading .hero__btn-fill {
-  transform: scaleX(1);
-}
-
+.hero__btn--download.is-loading .hero__btn-fill,
 .hero__btn--download.is-done .hero__btn-fill {
   transform: scaleX(1);
-  transition: transform 0.3s ease;
 }
 
 .hero__btn-icon {
   position: relative;
   z-index: 1;
   display: inline-flex;
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
 }
 
 .hero__btn-icon-svg {
@@ -493,10 +617,18 @@ const vReveal = {
   100% { transform: scale(1); }
 }
 
+/* ---- Sosial + fokus ---- */
+.hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.25rem;
+  margin-top: 2rem;
+}
+
 .hero__socials {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .hero__social-link {
@@ -506,97 +638,109 @@ const vReveal = {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: var(--color-surface, #131826);
-  color: var(--color-text-soft, #8c96b3);
-  border: 1px solid var(--color-border, rgba(124, 111, 240, 0.25));
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: transform 0.25s var(--ease-out), border-color 0.25s ease, background 0.25s ease;
 }
 
 .hero__social-link:hover {
-  background: var(--color-primary, #6b9080);
-  color: #fff;
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
   transform: translateY(-2px);
 }
 
-.hero__social-icon {
-  width: 20px;
-  height: 20px;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-
+.hero__social-icon,
 .hero__social-img {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
+  width: 19px;
+  height: 19px;
   display: block;
+  object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
   -webkit-touch-callout: none;
   pointer-events: none;
 }
 
-/* Tech stack: 2 atas + 2 bawah (grid 2 kolom) */
+.hero__meta-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--color-border);
+}
+
 .hero__stack {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.6rem;
-  max-width: 340px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .hero__stack-item {
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  text-align: center;
-  color: var(--color-text, #e7eaf6);
-  background: var(--color-surface, #131826);
-  border: 1px solid var(--color-border, rgba(124, 111, 240, 0.25));
-  padding: 0.45rem 0.75rem;
-  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--color-text-soft);
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px dashed var(--color-border);
 }
 
-/* ---------------------------------------------------------
-   FOTO HERO (DESKTOP) - sekitar 1.4x dari ukuran awal
---------------------------------------------------------- */
+/* ---- Foto: figur keluar dari bingkai lengkung ---- */
 .hero__visual {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
-  min-height: 680px;
+  max-width: 520px;
+  margin-inline: auto;
+  aspect-ratio: 1 / 1.08;
+  --hero-slide-x: 60vw;
 }
 
-.hero__blob {
+.hero__arch {
   position: absolute;
-  width: min(640px, 105%);
-  aspect-ratio: 1 / 1;
-  background: linear-gradient(155deg, var(--color-mint, #cfe3dd), var(--color-accent-soft, #fbe4d8));
-  border-radius: 62% 38% 55% 45% / 45% 55% 45% 55%;
+  left: 50%;
+  bottom: 0;
+  width: 74%;
+  height: 84%;
+  transform: translateX(-50%);
+  border-radius: 999px 999px var(--radius-lg) var(--radius-lg);
+  background:
+    radial-gradient(120% 70% at 50% 0%, var(--color-primary-soft), transparent 70%),
+    linear-gradient(180deg, var(--color-surface-soft), var(--color-surface));
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
 }
 
-.hero__photo-frame {
-  position: relative;
-  width: min(560px, 100%);
-  aspect-ratio: 560 / 644;
-  border-radius: 46% 54% 58% 42% / 50% 45% 55% 50%;
-  background: var(--color-surface, #fff);
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 30px 50px -25px rgba(37, 54, 50, 0.4);
-  overflow: hidden;
+.hero__arch-ring {
+  position: absolute;
+  inset: -14px;
+  border-radius: inherit;
+  border: 1px dashed color-mix(in srgb, var(--color-primary) 45%, transparent);
+  opacity: 0.6;
+}
+
+.hero__arch-orbit {
+  position: absolute;
+  top: 9%;
+  right: -10px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 6px var(--color-accent-soft);
 }
 
 .hero__photo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 112%;
+  max-width: none;
+  height: auto;
+  transform: translateX(-50%);
+  /* pudarkan sedikit bagian bawah supaya menyatu dengan bingkai */
+  mask-image: linear-gradient(to bottom, #000 70%, transparent 98%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 98%);
   -webkit-user-drag: none;
   user-select: none;
   -webkit-touch-callout: none;
@@ -606,187 +750,240 @@ const vReveal = {
 .hero__badge {
   position: absolute;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.1rem;
-  background: var(--color-surface, #131826);
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1rem 0.7rem 0.7rem;
+  border-radius: 16px;
   border: 1px solid var(--color-border);
-  padding: 0.75rem 1.1rem;
-  border-radius: 14px;
-  box-shadow: 0 16px 30px -16px rgba(0, 0, 0, 0.55);
-}
-
-.hero__badge strong {
-  font-family: var(--font-heading);
-  font-size: 1.3rem;
-  color: var(--color-text, #253632);
-}
-
-.hero__badge span {
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  color: var(--color-text-soft, #5c6f69);
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card);
+  animation: hero-float 6s ease-in-out infinite;
 }
 
 .hero__badge--top {
-  top: 1.5rem;
-  right: 0;
+  /* Badge sengaja di bawah area wajah (setinggi dada), jangan sampai menutupi muka */
+  top: 46%;
+  left: -8%;
 }
 
 .hero__badge--bottom {
-  bottom: 1.5rem;
-  left: 0;
+  bottom: 8%;
+  right: -6%;
+  animation-delay: -3s;
 }
 
-/* ---------------------------------------------------------
-   Reveal system
---------------------------------------------------------- */
-.reveal {
-  transition:
-    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
-.reveal:not(.is-visible) {
-  opacity: 0;
-  transform: translateY(22px);
+.hero__badge-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
-.reveal--scale:not(.is-visible) {
-  transform: translateY(14px) scale(0.94);
+.hero__badge-icon--accent {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
 }
 
-.reveal--left:not(.is-visible) {
-  transform: translateX(-28px);
+.hero__badge-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
-.reveal--right:not(.is-visible) {
-  transform: translateX(28px);
+.hero__badge-text {
+  display: grid;
+  line-height: 1.25;
 }
 
-/* Foto hero: masuk dari KANAN layar lalu meluncur ke posisi aslinya. */
-.hero__visual {
-  --hero-slide-x: 100vw;
+.hero__badge-text strong {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
+.hero__badge-text span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-soft);
+}
+
+/* Foto masuk dari kanan setelah loader selesai (logika di script) */
 .hero__visual:not(.is-in) {
   opacity: 0;
   transform: translateX(var(--hero-slide-x));
 }
 
 .hero__visual.is-in {
-  animation: hero-visual-slide-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  will-change: transform, opacity;
+  animation: hero-visual-slide-in 1.3s var(--ease-out) backwards;
 }
 
 @keyframes hero-visual-slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(var(--hero-slide-x));
-  }
-  15% {
-    opacity: 1;
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(var(--hero-slide-x)); }
+  15% { opacity: 1; }
+  to { opacity: 1; transform: translateX(0); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .reveal:not(.is-visible) {
-    transition: none;
-    opacity: 1;
-    transform: none;
-  }
+/* ---- Statistik ---- */
+.hero__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 1rem;
+  margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--color-border);
 }
 
-/* ---------------------------------------------------------
-   TABLET & MOBILE (<= 960px): 1 kolom, foto di atas.
---------------------------------------------------------- */
+.hero__stat {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.2rem;
+}
+
+.hero__stat-value {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--color-text);
+}
+
+.hero__stat-label {
+  font-size: 0.85rem;
+  color: var(--color-text-soft);
+}
+
+.hero__scroll {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+  text-decoration: none;
+}
+
+.hero__scroll-line {
+  position: relative;
+  width: 1px;
+  height: 42px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.hero__scroll-line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -40%;
+  width: 100%;
+  height: 40%;
+  background: var(--color-accent);
+  animation: hero-scroll 1.8s var(--ease-out) infinite;
+}
+
+@keyframes hero-scroll {
+  to { top: 100%; }
+}
+
+/* =========================================================
+   TABLET (<= 960px): satu kolom, foto di atas
+   ========================================================= */
 @media (max-width: 960px) {
   .hero__inner {
     grid-template-columns: 1fr;
-    text-align: left;
-    gap: 2rem;
-  }
-
-  .hero__content {
-    /* Reset ke 0 pada tampilan mobile agar teks tidak menabrak foto */
-    margin-top: 0;
   }
 
   .hero__visual {
     order: -1;
-    min-height: 0;
-    padding: 1rem 0;
+    max-width: 380px;
+    --hero-slide-x: 100vw;
   }
 
-  .hero__blob {
-    width: min(460px, 100%);
-  }
-
-  .hero__photo-frame {
-    width: min(400px, 86%);
-  }
-
-  .hero__badge--top {
-    top: 0.5rem;
-    right: 0.5rem;
-  }
-
-  .hero__badge--bottom {
-    bottom: 0.5rem;
-    left: 0.5rem;
+  .hero__title {
+    margin-top: 1.1rem;
   }
 }
 
-/* ---------------------------------------------------------
-   HP (<= 480px)
---------------------------------------------------------- */
-@media (max-width: 480px) {
-  .hero {
-    padding: 3rem 1.25rem 3.5rem;
-  }
-
-  .hero__blob {
-    width: 100%;
-  }
-
-  .hero__photo-frame {
-    width: 82%;
+/* =========================================================
+   HP (<= 600px)
+   ========================================================= */
+@media (max-width: 600px) {
+  .hero__visual {
+    max-width: 300px;
   }
 
   .hero__badge {
-    padding: 0.5rem 0.8rem;
+    padding: 0.5rem 0.75rem 0.5rem 0.5rem;
+    gap: 0.5rem;
+    border-radius: 12px;
   }
 
-  .hero__badge strong {
-    font-size: 1.05rem;
+  .hero__badge-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
   }
 
-  .hero__eyebrow {
-    display: table;
-    margin: 0 auto;
+  .hero__badge-text strong {
+    font-size: 0.8rem;
+  }
+
+  .hero__badge-text span {
+    font-size: 0.62rem;
+  }
+
+  .hero__badge--top {
+    top: 50%;
+    left: -10%;
+  }
+
+  .hero__badge--bottom {
+    bottom: 6%;
+    right: -8%;
+  }
+
+  .hero__role {
+    min-height: 2.6em; /* ruang 2 baris di HP supaya teks di bawahnya tidak lompat saat mengetik */
   }
 
   .hero__actions {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
-  .hero__btn {
-    text-align: center;
+  .hero__meta-divider {
+    display: none;
   }
 
-  .hero__socials {
-    justify-content: center;
+  .hero__stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
   }
 
-  .hero__stack {
-    margin: 0 auto;
+  .hero__stat-label {
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+
+  .hero__scroll {
+    display: none;
   }
 }
 </style>

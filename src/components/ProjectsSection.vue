@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { vReveal } from '@/directives/reveal'
 
 // Tech stack icons
 import pythonIcon from './icons/icons-about/Python-logo-notext.svg'
@@ -24,6 +25,7 @@ import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.
 const projects = [
   {
     title: 'Dashboard KOL',
+    category: 'Data & BI',
     desc: [
       'Membangun pipeline ETL dengan Python (Pandas) untuk membersihkan dan mentransformasi data ekspor TikTok Shop.',
       'Mengidentifikasi dan memperbaiki bug double-counting pada metrik views dan likes yang menyebabkan data performa creator terhitung berulang.',
@@ -42,6 +44,7 @@ const projects = [
   },
   {
     title: 'Mobile JEC',
+    category: 'Aplikasi Mobile',
     desc: [
       'Mengumpulkan data melalui kuesioner ke pengguna baru non-JEC sebagai dasar analisis kebutuhan aplikasi.',
       'Merancang UI aplikasi di Figma serta mendokumentasikan arsitektur sistem melalui Use Case, Activity, Class Diagram, dan ERD.',
@@ -62,6 +65,7 @@ const projects = [
   },
   {
     title: 'Dashboard JEC',
+    category: 'Web Admin',
     desc: [
       'Merancang dan mengembangkan antarmuka admin dashboard menggunakan React JS untuk mengelola data pasien, jadwal, dan operasional klinik secara terpusat.',
       'Membangun backend menggunakan Node.js & Express.js, satu ekosistem yang sama dengan backend Mobile JEC, untuk mendukung komunikasi data antara dashboard dan server.',
@@ -80,6 +84,7 @@ const projects = [
   },
   {
     title: 'Secura Kost',
+    category: 'Web App',
     desc: [
       'Mengembangkan prototype platform marketplace kost secara end-to-end, mencakup perancangan UI/UX, arsitektur komponen, dan alur navigasi antar halaman.',
       'Membangun frontend menggunakan Vue.js dan Tailwind CSS.',
@@ -98,6 +103,7 @@ const projects = [
   },
   {
     title: 'Toko Kelontong Online',
+    category: 'E-commerce',
     desc: [
       'Mengembangkan prototype website e-commerce "Toko Kelontong Online" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi halaman.',
       'Membangun frontend menggunakan Vue.js (Composition API) dan Tailwind CSS.',
@@ -116,6 +122,7 @@ const projects = [
   },
   {
     title: 'Kindle Coffee',
+    category: 'Landing Page',
     desc: [
       'Mengembangkan prototype front end website coffee shop "Kindle Coffee" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi antar halaman (Home, Menu, Cart, History, About). Proyek ini murni prototype tampilan, belum terhubung ke backend/server sungguhan.',
       'Membangun frontend menggunakan Vue.js (Composition API, Vue Router) dan Tailwind CSS untuk seluruh tampilan.',
@@ -163,137 +170,128 @@ function preventImageAction(event) {
   return false
 }
 
-/* ---------------------------------------------------------
-   v-reveal: animasi "muncul" halus saat elemen masuk viewport.
-   DIPERBAIKI: Menambahkan class 'reveal-done' setelah animasi
-   selesai agar efek hover (transform) pada kartu proyek tidak
-   bentrok dan mematikan animasi muncul (fade-in).
---------------------------------------------------------- */
-const revealObserver = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const el = entry.target
-        el.classList.add('is-visible')
-        revealObserver.unobserve(el)
-
-        const delay = parseFloat(el.style.transitionDelay) || 0
-        setTimeout(() => {
-          el.style.transitionDelay = '0ms'
-          el.classList.add('reveal-done')
-        }, delay + 700)
-      }
-    })
-  },
-  { threshold: 0.12, rootMargin: '0px 0px -60px 0px' },
-)
-
-const vReveal = {
-  mounted(el, binding) {
-    let variant = 'up'
-    if (binding.modifiers.scale) variant = 'scale'
-    else if (binding.modifiers.left) variant = 'left'
-    else if (binding.modifiers.right) variant = 'right'
-
-    el.classList.add('reveal', `reveal--${variant}`)
-
-    const delay = typeof binding.value === 'number' ? binding.value : 0
-    el.style.transitionDelay = `${delay}ms`
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        revealObserver.observe(el)
-      })
-    })
-  },
-  unmounted(el) {
-    revealObserver.unobserve(el)
-  },
+// Domain demo ditampilkan di "address bar" mockup browser
+function demoHost(url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '')
+    return host === 'drive.google.com' ? 'APK · Google Drive' : host
+  } catch {
+    return ''
+  }
 }
+
+// Tombol Esc menutup lightbox / deskripsi yang sedang terbuka
+function onKeydown(event) {
+  if (event.key !== 'Escape') return
+  if (lightboxProject.value) closeLightbox()
+  else if (activeIndex.value !== null) closeSheet()
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
   <section id="proyek" class="projects">
-    <div class="projects__inner">
-      <div class="projects__header">
-        <span class="projects__eyebrow" v-reveal>Proyek</span>
-        <h2 class="projects__title" v-reveal="90">Beberapa proyek yang pernah saya kerjakan</h2>
-        <p class="projects__desc" v-reveal="180">
+    <div class="container">
+      <header class="projects__header">
+        <div>
+          <span v-reveal class="section-label">
+            <span class="section-label__num">03</span> Proyek
+          </span>
+          <h2 v-reveal="80" class="section-title">
+            Karya yang pernah saya <span class="serif-accent">bangun</span>
+          </h2>
+        </div>
+        <p v-reveal="160" class="section-lead projects__lead">
           Kumpulan proyek yang menunjukkan cara saya berpikir, mulai dari
           menyusun struktur sampai menyelesaikan detail kecil.
         </p>
-      </div>
+      </header>
 
       <div class="projects__grid">
-        <!-- v-reveal.scale dipanggil tanpa indeks berantai, agar animasi berurutan secara natural di Desktop & Mobile -->
         <article
           v-for="(project, index) in projects"
           :key="project.title"
+          v-reveal="(index % 3) * 90"
           class="project-card"
-          v-reveal.scale
         >
-          <div class="project-card__thumb">
-            <div class="project-card__photo-card">
-              <span class="project-card__blob" aria-hidden="true"></span>
-              <button
-                type="button"
-                class="project-card__glass project-card__glass-btn"
-                aria-label="Perbesar gambar proyek"
-                oncontextmenu="return false"
-                @click="openLightbox(project)"
-                @contextmenu.prevent="preventImageAction"
-              >
-                <img
-                  :src="project.thumb"
-                  :alt="project.title"
-                  class="project-card__thumb-img"
-                  loading="lazy"
-                  draggable="false"
-                  oncontextmenu="return false"
-                  @contextmenu.prevent="preventImageAction"
-                  @dragstart.prevent="preventImageAction"
-                />
-              </button>
+          <!-- Mockup jendela browser berisi screenshot proyek -->
+          <div class="project-card__frame">
+            <div class="project-card__chrome" aria-hidden="true">
+              <span class="project-card__dots"><i></i><i></i><i></i></span>
+              <span class="project-card__url">{{ demoHost(project.demoHref) }}</span>
             </div>
+            <button
+              type="button"
+              class="project-card__shot"
+              :aria-label="`Perbesar gambar ${project.title}`"
+              oncontextmenu="return false"
+              @click="openLightbox(project)"
+              @contextmenu.prevent="preventImageAction"
+            >
+              <img
+                :src="project.thumb"
+                :alt="project.title"
+                class="project-card__shot-img"
+                loading="lazy"
+                draggable="false"
+                oncontextmenu="return false"
+                @contextmenu.prevent="preventImageAction"
+                @dragstart.prevent="preventImageAction"
+              />
+              <span class="project-card__zoom" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                </svg>
+              </span>
+            </button>
           </div>
 
           <div class="project-card__body">
-            <h3 class="project-card__title">{{ project.title }}</h3>
+            <div class="project-card__meta">
+              <span class="project-card__num">{{ String(index + 1).padStart(2, '0') }}</span>
+              <span class="project-card__category">{{ project.category }}</span>
+            </div>
 
-            <button
-              type="button"
-              class="project-card__detail-btn"
-              :aria-expanded="activeIndex === index"
-              @click="toggleSheet(index)"
-            >
-              Lihat deskripsi
-              <svg viewBox="0 0 24 24" class="project-card__detail-icon" aria-hidden="true">
-                <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m9 6 6 6-6 6" />
-              </svg>
-            </button>
+            <h3 class="project-card__title">{{ project.title }}</h3>
+            <p class="project-card__summary">{{ project.desc[0] }}</p>
+
+            <ul class="project-card__stack">
+              <li
+                v-for="tech in project.techStack"
+                :key="tech.name"
+                class="project-card__chip"
+                oncontextmenu="return false"
+                @contextmenu.prevent="preventImageAction"
+              >
+                <img
+                  :src="tech.icon"
+                  alt=""
+                  class="project-card__chip-icon"
+                  loading="lazy"
+                  draggable="false"
+                  @dragstart.prevent="preventImageAction"
+                />
+                {{ tech.name }}
+              </li>
+            </ul>
 
             <div class="project-card__footer">
-              <ul class="project-card__stack">
-                <li
-                  v-for="tech in project.techStack"
-                  :key="tech.name"
-                  class="project-card__stack-item"
-                  :title="tech.name"
-                  oncontextmenu="return false"
-                  @contextmenu.prevent="preventImageAction"
-                >
-                  <img
-                    :src="tech.icon"
-                    :alt="tech.name"
-                    class="project-card__stack-icon"
-                    loading="lazy"
-                    draggable="false"
-                    oncontextmenu="return false"
-                    @contextmenu.prevent="preventImageAction"
-                    @dragstart.prevent="preventImageAction"
-                  />
-                </li>
-              </ul>
+              <button
+                type="button"
+                class="project-card__detail-btn"
+                :aria-expanded="activeIndex === index"
+                :aria-controls="`project-sheet-${index}`"
+                @click="toggleSheet(index)"
+              >
+                Detail pengerjaan
+                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" d="M12 5v14M5 12h14" />
+                </svg>
+              </button>
 
               <div class="project-card__links">
                 <a
@@ -301,10 +299,10 @@ const vReveal = {
                   class="project-card__icon-link"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Lihat kode sumber di GitHub"
+                  :aria-label="`Kode sumber ${project.title} di GitHub`"
                   title="Kode Sumber"
                 >
-                  <svg viewBox="0 0 24 24" class="project-card__icon-svg" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
                     <path
                       fill="currentColor"
                       d="M12 .5C5.73.5.75 5.48.75 11.75c0 5.02 3.26 9.27 7.78 10.77.57.1.78-.25.78-.55
@@ -318,278 +316,230 @@ const vReveal = {
                     />
                   </svg>
                 </a>
-
                 <a
                   :href="project.demoHref"
                   class="project-card__icon-link project-card__icon-link--primary"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Lihat demo"
+                  :aria-label="`Lihat demo ${project.title}`"
                   title="Lihat Demo"
                 >
-                  <svg viewBox="0 0 24 24" class="project-card__icon-svg" aria-hidden="true">
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M14 4h6v6M10 14 20 4M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"
-                    />
+                  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+                    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
                   </svg>
                 </a>
               </div>
             </div>
           </div>
 
-          <!-- Bottom sheet: muncul dari bawah kartu, berisi deskripsi lengkap -->
+          <!-- Panel deskripsi: naik dari bawah kartu -->
           <div
+            :id="`project-sheet-${index}`"
             class="project-card__sheet"
             :class="{ 'project-card__sheet--open': activeIndex === index }"
-            role="dialog"
+            role="region"
+            :aria-label="`Detail ${project.title}`"
             :aria-hidden="activeIndex !== index"
+            :inert="activeIndex !== index"
           >
-            <div class="project-card__sheet-handle" aria-hidden="true"></div>
-
-            <button
-              type="button"
-              class="project-card__sheet-close"
-              aria-label="Tutup deskripsi"
-              @click="closeSheet"
-            >
-              <svg viewBox="0 0 24 24" class="project-card__sheet-close-icon" aria-hidden="true">
-                <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18" />
-              </svg>
-            </button>
-
-            <span class="project-card__sheet-eyebrow">Ringkasan Pengerjaan</span>
-            <h4 class="project-card__sheet-title">{{ project.title }}</h4>
-            <span class="project-card__sheet-divider" aria-hidden="true"></span>
-
-            <ul class="project-card__sheet-desc-list">
-              <li
-                v-for="point in project.desc"
-                :key="point"
-                class="project-card__sheet-desc-point"
+            <div class="project-card__sheet-head">
+              <div>
+                <span class="project-card__sheet-eyebrow">Ringkasan pengerjaan</span>
+                <h4 class="project-card__sheet-title">{{ project.title }}</h4>
+              </div>
+              <button
+                type="button"
+                class="project-card__sheet-close"
+                aria-label="Tutup deskripsi"
+                @click="closeSheet"
               >
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              </button>
+            </div>
+
+            <ol class="project-card__sheet-list">
+              <li v-for="point in project.desc" :key="point" class="project-card__sheet-point">
                 {{ point }}
               </li>
-            </ul>
+            </ol>
           </div>
         </article>
       </div>
     </div>
 
-    <!-- Lightbox: menampilkan gambar proyek secara penuh saat thumbnail diklik -->
-    <div
-      v-if="lightboxProject"
-      class="project-lightbox"
-      role="dialog"
-      aria-modal="true"
-      oncontextmenu="return false"
-      @click.self="closeLightbox"
-      @contextmenu.prevent="preventImageAction"
-    >
-      <button
-        type="button"
-        class="project-lightbox__close"
-        aria-label="Tutup gambar"
-        @click="closeLightbox"
-      >
-        <svg viewBox="0 0 24 24" class="project-lightbox__close-icon" aria-hidden="true">
-          <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18" />
-        </svg>
-      </button>
-
-      <img
-        :src="lightboxProject.thumb"
-        :alt="lightboxProject.title"
-        class="project-lightbox__img"
-        draggable="false"
+    <!-- Lightbox: menampilkan gambar proyek secara penuh -->
+    <Transition name="lightbox">
+      <div
+        v-if="lightboxProject"
+        class="project-lightbox"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="lightboxProject.title"
         oncontextmenu="return false"
+        @click.self="closeLightbox"
         @contextmenu.prevent="preventImageAction"
-        @dragstart.prevent="preventImageAction"
-        @click.stop
-      />
+      >
+        <button
+          type="button"
+          class="project-lightbox__close"
+          aria-label="Tutup gambar"
+          @click="closeLightbox"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
 
-      <p class="project-lightbox__caption">{{ lightboxProject.title }}</p>
-    </div>
+        <img
+          :src="lightboxProject.thumb"
+          :alt="lightboxProject.title"
+          class="project-lightbox__img"
+          draggable="false"
+          oncontextmenu="return false"
+          @contextmenu.prevent="preventImageAction"
+          @dragstart.prevent="preventImageAction"
+          @click.stop
+        />
+
+        <p class="project-lightbox__caption">
+          <span>{{ lightboxProject.category }}</span>
+          {{ lightboxProject.title }}
+        </p>
+      </div>
+    </Transition>
   </section>
 </template>
 
 <style scoped>
 .projects {
-  padding: 5rem 1.5rem;
-  background: var(--color-surface, #fff);
-}
-
-.projects__inner {
-  max-width: 1160px;
-  margin: 0 auto;
+  padding: var(--section-y) 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
 }
 
 .projects__header {
-  max-width: 620px;
-  margin: 0 auto 3rem;
-  text-align: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 1.5rem 3rem;
+  align-items: end;
+  margin-bottom: clamp(2.5rem, 5vw, 3.75rem);
 }
 
-.projects__eyebrow {
-  display: inline-flex;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-primary-dark, #4f7566);
-  background: var(--color-mint, #cfe3dd);
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-}
-
-.projects__title {
-  font-family: var(--font-heading);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  line-height: 1.25;
-  font-weight: 600;
-  color: var(--color-text, #253632);
-  margin: 1.1rem 0 1rem;
-}
-
-.projects__desc {
-  text-align: justify;
-  font-family: var(--font-body);
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--color-text-soft, #5c6f69);
+.projects__lead {
   margin: 0;
 }
 
 .projects__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
 }
 
+/* ---- Kartu ---- */
 .project-card {
   position: relative;
-  background: var(--color-surface, #fff);
-  border: 1px solid rgba(124, 111, 240, 0.15);
-  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
   overflow: hidden;
-  box-shadow: 0 20px 40px -28px rgba(37, 54, 50, 0.35);
-  /* Dihapus transition hover di awal agar tidak mematikan animasi v-reveal */
-}
-
-/* Hover effect diaktifkan hanya setelah animasi reveal selesai (.reveal-done) */
-.project-card.reveal-done {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  isolation: isolate;
+  transition: border-color 0.3s ease, transform 0.4s var(--ease-out), box-shadow 0.4s ease;
 }
 
 .project-card.reveal-done:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 26px 48px -24px rgba(37, 54, 50, 0.45);
+  transform: translateY(-6px);
+  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+  box-shadow: 0 30px 60px -35px color-mix(in srgb, var(--color-primary) 70%, transparent);
 }
 
-/* --- Thumbnail: glass card + moving blob, mengikuti tema warna --- */
-.project-card__thumb {
-  position: relative;
-  height: 240px;
-  padding: 20px;
+/* Mockup browser */
+.project-card__frame {
+  margin: 0.75rem 0.75rem 0;
+  border-radius: calc(var(--radius-lg) - 0.5rem);
+  border: 1px solid var(--color-border);
+  background:
+    radial-gradient(120% 120% at 0% 0%, var(--color-primary-soft), transparent 55%),
+    radial-gradient(120% 120% at 100% 100%, var(--color-accent-soft), transparent 55%),
+    var(--color-surface);
+  overflow: hidden;
+}
+
+.project-card__chrome {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--color-bg, #f1f4f1);
+  gap: 0.7rem;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.project-card__photo-card {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow:
-    10px 10px 28px rgba(37, 54, 50, 0.14),
-    -8px -8px 22px rgba(255, 255, 255, 0.75);
+.project-card__dots {
+  display: inline-flex;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
-.project-card__blob {
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  left: 50%;
-  width: 130px;
-  height: 130px;
+.project-card__dots i {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: var(--color-primary, #6b9080);
+  background: var(--color-text-soft);
+  opacity: 0.35;
+}
+
+.project-card__dots i:first-child {
+  background: #ff6b6b;
   opacity: 0.9;
-  filter: blur(22px);
-  animation: project-blob-bounce 7s infinite ease;
 }
 
-/* Warna blob gantian per kartu, mengikuti palet tema */
-.project-card:nth-child(3n + 2) .project-card__blob {
-  background: var(--color-accent, #f2a488);
+.project-card__dots i:nth-child(2) {
+  background: #ffbd4a;
+  opacity: 0.9;
 }
 
-.project-card:nth-child(3n + 3) .project-card__blob {
-  background: var(--color-mint, #cfe3dd);
+.project-card__dots i:nth-child(3) {
+  background: #3ecf8e;
+  opacity: 0.9;
 }
 
-@keyframes project-blob-bounce {
-  0% {
-    transform: translate(-100%, -100%) translate3d(0, 0, 0);
-  }
-  25% {
-    transform: translate(-100%, -100%) translate3d(90%, 0, 0);
-  }
-  50% {
-    transform: translate(-100%, -100%) translate3d(90%, 90%, 0);
-  }
-  75% {
-    transform: translate(-100%, -100%) translate3d(0, 90%, 0);
-  }
-  100% {
-    transform: translate(-100%, -100%) translate3d(0, 0, 0);
-  }
-}
-
-.project-card__glass {
-  position: absolute;
-  inset: 5px;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
+.project-card__url {
+  flex: 1;
+  min-width: 0;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  background: var(--color-bg);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--color-text-soft);
+  white-space: nowrap;
   overflow: hidden;
-  outline: 2px solid rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(6px);
+  text-overflow: ellipsis;
 }
 
-.project-card__glass-btn {
-  all: unset;
-  position: absolute;
-  inset: 5px;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
+.project-card__shot {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  padding: 0;
+  border: 0;
+  background: none;
   overflow: hidden;
-  outline: 2px solid rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(6px);
   cursor: zoom-in;
 }
 
-.project-card__thumb-img {
+.project-card__shot-img {
   width: 100%;
   height: 100%;
-  /* contain, bukan cover: seluruh screenshot terlihat, tidak terpotong */
-  object-fit: contain;
-  object-position: center;
-  display: block;
-  /* Proteksi: cegah seleksi, drag, dan long-press save di mobile */
+  object-fit: cover;
+  object-position: top left;
+  transition: transform 0.7s var(--ease-out);
   -webkit-user-select: none;
   user-select: none;
   -webkit-user-drag: none;
@@ -597,7 +547,303 @@ const vReveal = {
   pointer-events: none;
 }
 
-/* --- Lightbox: overlay gambar penuh --- */
+.project-card__shot:hover .project-card__shot-img {
+  transform: scale(1.05);
+}
+
+.project-card__zoom {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(11, 14, 23, 0.7);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s var(--ease-out);
+}
+
+.project-card__shot:hover .project-card__zoom,
+.project-card__shot:focus-visible .project-card__zoom {
+  opacity: 1;
+  transform: none;
+}
+
+/* Isi kartu */
+.project-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1.3rem 1.4rem 1.4rem;
+}
+
+.project-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.project-card__num {
+  color: var(--color-text-soft);
+}
+
+.project-card__category {
+  color: var(--color-accent);
+}
+
+.project-card__title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.2rem, 1.8vw, 1.4rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--color-text);
+  margin: 0.55rem 0 0.5rem;
+}
+
+.project-card__summary {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--color-text-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.project-card__stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 1.1rem 0 0;
+  padding: 0;
+}
+
+.project-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.6rem 0.28rem 0.32rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.project-card__chip-icon {
+  width: 20px;
+  height: 20px;
+  padding: 3px;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+  box-sizing: border-box;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.project-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 1.3rem;
+}
+
+.project-card__detail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+}
+
+.project-card__detail-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.project-card__links {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.project-card__icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  transition: transform 0.25s var(--ease-out), background 0.25s ease, color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.project-card__icon-link:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-text-soft);
+}
+
+.project-card__icon-link--primary {
+  border-color: transparent;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.project-card__icon-link--primary:hover {
+  border-color: transparent;
+  background: var(--color-primary-dark);
+  transform: translateY(-2px) rotate(45deg);
+}
+
+/* ---- Panel deskripsi ---- */
+.project-card__sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  padding: 1.4rem 1.4rem 1.2rem;
+  background: var(--color-surface);
+  border-radius: inherit;
+  transform: translateY(101%);
+  visibility: hidden;
+  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 0.45s;
+}
+
+.project-card__sheet--open {
+  transform: translateY(0);
+  visibility: visible;
+  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s;
+}
+
+.project-card__sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.project-card__sheet-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.project-card__sheet-title {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  margin: 0.3rem 0 0;
+}
+
+.project-card__sheet-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-soft);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.project-card__sheet-close:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.project-card__sheet-list {
+  list-style: none;
+  counter-reset: sheet-point;
+  margin: 0;
+  padding: 1rem 0.2rem 0.5rem 0;
+  overflow-y: auto;
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+  scrollbar-width: thin;
+}
+
+.project-card__sheet-point {
+  position: relative;
+  padding-left: 2rem;
+  counter-increment: sheet-point;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--color-text-soft);
+  text-wrap: pretty;
+}
+
+.project-card__sheet-point::before {
+  content: counter(sheet-point, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-primary);
+}
+
+.project-card__sheet--open .project-card__sheet-point {
+  animation: project-point-in 0.45s var(--ease-out) backwards;
+}
+
+.project-card__sheet-point:nth-child(1) { animation-delay: 0.1s; }
+.project-card__sheet-point:nth-child(2) { animation-delay: 0.15s; }
+.project-card__sheet-point:nth-child(3) { animation-delay: 0.2s; }
+.project-card__sheet-point:nth-child(4) { animation-delay: 0.25s; }
+.project-card__sheet-point:nth-child(5) { animation-delay: 0.3s; }
+.project-card__sheet-point:nth-child(n + 6) { animation-delay: 0.35s; }
+
+@keyframes project-point-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Lightbox ---- */
 .project-lightbox {
   position: fixed;
   inset: 0;
@@ -606,18 +852,18 @@ const vReveal = {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  padding: 2rem;
-  background: rgba(11, 14, 23, 0.88);
-  backdrop-filter: blur(4px);
+  gap: 1.1rem;
+  padding: 4.5rem 1.25rem 2rem;
+  background: rgba(7, 9, 15, 0.9);
+  backdrop-filter: blur(8px);
 }
 
 .project-lightbox__img {
-  max-width: min(90vw, 1100px);
-  max-height: 78vh;
+  max-width: min(92vw, 1150px);
+  max-height: 76vh;
   object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+  border-radius: 14px;
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.7);
   -webkit-user-select: none;
   user-select: none;
   -webkit-user-drag: none;
@@ -626,24 +872,36 @@ const vReveal = {
 }
 
 .project-lightbox__caption {
-  font-family: var(--font-body);
-  font-size: 0.95rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
   font-weight: 600;
   color: #fff;
-  margin: 0;
+}
+
+.project-lightbox__caption span {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4fd6c0;
 }
 
 .project-lightbox__close {
   position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
+  top: 1.25rem;
+  right: 1.25rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
   cursor: pointer;
@@ -654,406 +912,62 @@ const vReveal = {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.project-lightbox__close-icon {
-  width: 18px;
-  height: 18px;
+.lightbox-enter-active,
+.lightbox-leave-active {
+  transition: opacity 0.3s ease;
 }
 
-.project-card__body {
-  padding: 1.5rem;
+.lightbox-enter-active .project-lightbox__img {
+  transition: transform 0.4s var(--ease-out);
 }
 
-.project-card__title {
-  font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text, #253632);
-  margin: 0 0 0.6rem;
-}
-
-/* --- Tombol pemicu bottom sheet --- */
-.project-card__detail-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-family: var(--font-body);
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--color-primary-dark, #4f7566);
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0 0 1.3rem;
-  cursor: pointer;
-  transition: gap 0.2s ease, color 0.2s ease;
-}
-
-.project-card__detail-btn:hover {
-  color: var(--color-primary, #6b9080);
-  gap: 0.55rem;
-}
-
-.project-card__detail-icon {
-  width: 16px;
-  height: 16px;
-}
-
-/* --- Bottom sheet: muncul dari bawah kartu --- */
-.project-card__sheet {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem 1.5rem 1.75rem;
-  background: var(--color-surface, #fff);
-  border-radius: 18px;
-  box-shadow: 0 -14px 32px -12px rgba(37, 54, 50, 0.35);
-  transform: translateY(100%);
-  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.project-card__sheet--open {
-  transform: translateY(0);
-}
-
-.project-card__sheet-handle {
-  width: 40px;
-  height: 4px;
-  border-radius: 999px;
-  background: rgba(124, 111, 240, 0.3);
-  margin: 0 auto 1rem;
-}
-
-.project-card__sheet-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid rgba(124, 111, 240, 0.2);
-  background: var(--color-bg, #f1f4f1);
-  color: var(--color-text-soft, #5c6f69);
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.project-card__sheet-close:hover {
-  background: var(--color-primary-dark, #5e52d6);
-  color: #fff;
-}
-
-.project-card__sheet-close-icon {
-  width: 16px;
-  height: 16px;
-}
-
-.project-card__sheet-eyebrow {
-  display: inline-flex;
-  width: fit-content;
-  font-family: var(--font-body);
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-primary-dark, #4f7566);
-  background: var(--color-mint, #cfe3dd);
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  margin: 0 0 0.6rem;
-}
-
-.project-card__sheet-title {
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--color-text, #253632);
-  margin: 0 0 0.9rem;
-  padding-right: 2rem;
-}
-
-.project-card__sheet-divider {
-  display: block;
-  height: 1px;
-  margin: 0 0 1.1rem;
-  background: linear-gradient(90deg, rgba(124, 111, 240, 0.35), rgba(124, 111, 240, 0));
-}
-
-.project-card__sheet-desc-list {
-  list-style: none;
-  margin: 0;
-  padding: 0.1rem 0 0.4rem;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
-}
-
-.project-card__sheet-desc-point {
-  text-align: justify;
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-  counter-increment: sheet-point;
-  font-family: var(--font-body);
-  font-size: 0.92rem;
-  line-height: 1.65;
-  color: var(--color-text-soft, #5c6f69);
-}
-
-.project-card__sheet-desc-list {
-  counter-reset: sheet-point;
-}
-
-.project-card__sheet-desc-point::before {
-  content: counter(sheet-point);
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 19px;
-  height: 19px;
-  margin-top: 0.1rem;
-  border-radius: 50%;
-  background: var(--color-mint, #cfe3dd);
-  color: var(--color-primary-dark, #4f7566);
-  font-family: var(--font-body);
-  font-size: 0.68rem;
-  font-weight: 700;
-}
-
-.project-card__sheet--open .project-card__sheet-desc-point {
-  animation: project-sheet-point-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-
-.project-card__sheet-desc-point:nth-child(1) { animation-delay: 0.08s; }
-.project-card__sheet-desc-point:nth-child(2) { animation-delay: 0.13s; }
-.project-card__sheet-desc-point:nth-child(3) { animation-delay: 0.18s; }
-.project-card__sheet-desc-point:nth-child(4) { animation-delay: 0.23s; }
-.project-card__sheet-desc-point:nth-child(5) { animation-delay: 0.28s; }
-.project-card__sheet-desc-point:nth-child(6) { animation-delay: 0.33s; }
-.project-card__sheet-desc-point:nth-child(7) { animation-delay: 0.38s; }
-.project-card__sheet-desc-point:nth-child(n + 8) { animation-delay: 0.43s; }
-
-@keyframes project-sheet-point-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* --- Baris footer: tech stack di kiri, icon GitHub/Demo di kanan, sejajar --- */
-.project-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin: 0 0 0;
-}
-
-.project-card__stack {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.6rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.project-card__stack-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: var(--color-bg, #f1f4f1);
-  border: 1px solid rgba(124, 111, 240, 0.2);
-}
-
-.project-card__stack-icon {
-  width: 20px;
-  height: 20px;
-  max-width: 100%;
-  object-fit: contain;
-  display: block;
-  /* Proteksi: cegah seleksi, drag, dan long-press save di mobile */
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-user-drag: none;
-  -webkit-touch-callout: none;
-  pointer-events: none;
-}
-
-/* --- Tombol GitHub / Demo: icon-only --- */
-.project-card__links {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-}
-
-.project-card__icon-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: var(--color-bg, #f1f4f1);
-  color: var(--color-text-soft, #5c6f69);
-  border: 1px solid rgba(124, 111, 240, 0.2);
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.project-card__icon-link:hover {
-  transform: translateY(-2px);
-  color: #fff;
-  background: var(--color-primary-dark, #5e52d6);
-}
-
-.project-card__icon-link--primary:hover {
-  background: var(--color-primary, #6b9080);
-}
-
-.project-card__icon-svg {
-  width: 18px;
-  height: 18px;
-}
-
-/* ---------------------------------------------------------
-   Reveal system: dipakai lewat directive v-reveal di template.
-   Hanya memainkan opacity & transform (posisi/skala), warna
-   elemen sama sekali tidak diubah oleh animasi ini. Transform
-   memakai :not(.is-visible) supaya tidak bentrok dengan
-   transform hover yang sudah ada di .project-card.
---------------------------------------------------------- */
-.reveal {
-  transition:
-    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
-}
-
-.reveal:not(.is-visible) {
+.lightbox-enter-from,
+.lightbox-leave-to {
   opacity: 0;
-  transform: translateY(22px);
 }
 
-.reveal--scale:not(.is-visible) {
-  transform: translateY(18px) scale(0.95);
-}
-
-.reveal--left:not(.is-visible) {
-  transform: translateX(-28px);
-}
-
-.reveal--right:not(.is-visible) {
-  transform: translateX(28px);
+.lightbox-enter-from .project-lightbox__img {
+  transform: scale(0.94);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .reveal:not(.is-visible) {
-    transition: none;
-    opacity: 1;
-    transform: none;
-  }
-
-  .project-card__blob {
-    animation: none;
+  .project-card__sheet-point {
+    animation: none !important;
   }
 }
 
-@media (max-width: 960px) {
+/* ---- Tablet ---- */
+@media (max-width: 1080px) {
   .projects__grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 640px) {
-  .projects {
-    padding: 3.5rem 1.25rem;
+@media (max-width: 860px) {
+  .projects__header {
+    grid-template-columns: 1fr;
+    align-items: start;
   }
+}
 
+/* ---- HP ---- */
+@media (max-width: 640px) {
   .projects__grid {
     grid-template-columns: 1fr;
   }
 
-  .project-card__thumb {
-    height: 200px;
-    padding: 14px;
-  }
-
   .project-card__body {
-    padding: 1.25rem;
+    padding: 1.15rem 1.15rem 1.2rem;
   }
 
-  .project-card__title {
-    font-size: 1.1rem;
-  }
-
-  .project-card__detail-btn {
-    font-size: 0.85rem;
-    margin-bottom: 1.1rem;
-  }
-
-  .project-card__stack-item {
-    width: 30px;
-    height: 30px;
-  }
-
-  .project-card__icon-link {
-    width: 34px;
-    height: 34px;
-  }
-
-  /* Bottom sheet: padding lebih ringkas & area teks lebih besar di layar kecil */
   .project-card__sheet {
-    padding: 1.1rem 1.1rem 1.4rem;
+    padding: 1.15rem;
   }
 
-  .project-card__sheet-handle {
-    width: 34px;
-    margin-bottom: 0.85rem;
-  }
-
-  .project-card__sheet-close {
-    top: 0.75rem;
-    right: 0.75rem;
-    width: 30px;
-    height: 30px;
-  }
-
-  .project-card__sheet-title {
-    font-size: 1rem;
-    padding-right: 1.75rem;
-  }
-
-  .project-card__sheet-eyebrow {
-    font-size: 0.62rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .project-card__sheet-divider {
-    margin-bottom: 0.9rem;
-  }
-
-  .project-card__sheet-desc-point {
-    font-size: 0.88rem;
-    line-height: 1.6;
+  /* Di layar sentuh ikon zoom selalu terlihat sebagai petunjuk */
+  .project-card__zoom {
+    opacity: 1;
+    transform: none;
   }
 }
 </style>

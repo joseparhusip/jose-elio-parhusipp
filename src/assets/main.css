@@ -7,13 +7,24 @@ body {
   overflow-x: clip;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px; /* anchor (#tentang dll.) tidak tertutup navbar */
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
   font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
   background: var(--color-bg);
   color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
@@ -24,9 +35,18 @@ body {
   transition: background-color 0.35s ease;
 }
 
+img {
+  max-width: 100%;
+}
+
 ::selection {
   background: var(--color-primary);
   color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 /* Scrollbar bergaya "editor kode" */
@@ -46,4 +66,115 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
+}
+
+/* =====================================================
+   Pola bersama antar-section
+   ===================================================== */
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  box-sizing: border-box;
+}
+
+/* Label section bergaya kode: "01 — Tentang" */
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.section-label__num {
+  color: var(--color-text-soft);
+}
+
+.section-label::after {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: clamp(2rem, 4.6vw, 3.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: var(--color-text);
+  margin: 1rem 0 0;
+  text-wrap: balance;
+}
+
+/* Kata aksen di judul: serif italic, warna aksen */
+.serif-accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--color-accent);
+}
+
+.section-lead {
+  font-size: clamp(1rem, 1.4vw, 1.08rem);
+  line-height: 1.75;
+  color: var(--color-text-soft);
+  max-width: 38rem;
+  margin: 1.1rem 0 0;
+  text-wrap: pretty;
+}
+
+/* =====================================================
+   v-reveal (lihat src/directives/reveal.js)
+   ===================================================== */
+.reveal {
+  transition:
+    opacity 0.8s var(--ease-out),
+    transform 0.8s var(--ease-out);
+}
+
+.reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.reveal--scale:not(.is-visible) {
+  transform: translateY(16px) scale(0.96);
+}
+
+.reveal--left:not(.is-visible) {
+  transform: translateX(-32px);
+}
+
+.reveal--right:not(.is-visible) {
+  transform: translateX(32px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal,
+  .reveal:not(.is-visible) {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
