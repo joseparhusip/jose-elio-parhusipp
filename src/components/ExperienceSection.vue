@@ -245,7 +245,7 @@ const logoStyle = (item) =>
           <span v-reveal class="section-label">
             <span class="section-label__num">02</span> Pengalaman
           </span>
-          <h2 v-reveal="80" class="section-title">
+          <h2 v-reveal.clip="80" class="section-title">
             Perjalanan singkat <span class="serif-accent">sejauh</span> ini
           </h2>
           <p v-reveal="160" class="section-lead experience__lead">
@@ -254,7 +254,7 @@ const logoStyle = (item) =>
           </p>
         </div>
 
-        <dl v-reveal="240" class="experience__summary">
+        <dl v-reveal.stagger="{ delay: 200, step: 90 }" class="experience__summary">
           <div>
             <dt>Peran</dt>
             <dd>{{ experiences.length }}</dd>
@@ -270,10 +270,11 @@ const logoStyle = (item) =>
         </dl>
       </header>
 
-      <div v-reveal="120" class="experience__layout">
+      <div class="experience__layout">
         <!-- Daftar peran (tab) -->
         <div
           ref="tablistEl"
+          v-reveal.left="120"
           class="experience__tabs"
           role="tablist"
           aria-label="Daftar pengalaman"
@@ -342,6 +343,7 @@ const logoStyle = (item) =>
         <!-- Detail peran aktif -->
         <div
           id="exp-panel"
+          v-reveal.right="240"
           class="experience__panel"
           role="tabpanel"
           :aria-labelledby="`exp-tab-${activeIndex}`"

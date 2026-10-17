@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
@@ -8,6 +8,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import gmailIcon from './icons/icons-about/gmail.svg'
 import { useChatWidgetStore } from '../stores/chatWidget'
 import { vReveal } from '@/directives/reveal'
+import { loaderDone } from '@/composables/useLoaderState'
 
 const chatStore = useChatWidgetStore()
 
@@ -57,8 +58,20 @@ onMounted(() => {
     },
     { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
   )
-  slideObserver.observe(infoWrap.value)
-  slideObserver.observe(formWrap.value)
+  // Tunggu loader selesai, supaya kalau halaman di-reload tepat di bagian
+  // kontak, animasinya tidak habis di balik tirai loader
+  const startObserving = () => {
+    slideObserver.observe(infoWrap.value)
+    slideObserver.observe(formWrap.value)
+  }
+  if (loaderDone.value) startObserving()
+  else {
+    const stop = watch(loaderDone, (done) => {
+      if (!done) return
+      stop()
+      startObserving()
+    })
+  }
 })
 
 onBeforeUnmount(() => {
@@ -142,7 +155,7 @@ onBeforeUnmount(() => {
         <span v-reveal class="section-label">
           <span class="section-label__num">04</span> Kontak
         </span>
-        <h2 v-reveal="80" class="section-title contact__title">
+        <h2 v-reveal.clip="80" class="section-title contact__title">
           Punya ide atau proyek? Yuk, <span class="serif-accent">ngobrol</span>.
         </h2>
       </header>
@@ -180,7 +193,7 @@ onBeforeUnmount(() => {
               </button>
             </div>
 
-            <ul class="contact__list">
+            <ul class="contact__list" v-reveal.stagger="{ delay: 450, step: 90 }">
               <li v-for="item in contactInfo" :key="item.label" class="contact__item">
                 <span
                   class="contact__item-icon"
@@ -234,7 +247,7 @@ onBeforeUnmount(() => {
               @contextmenu.prevent="preventImageAction"
             ></div>
 
-            <div class="contact__places">
+            <div class="contact__places" v-reveal.stagger.scale="{ delay: 500, step: 70 }">
               <button
                 v-for="(loc, index) in mapLocations"
                 :key="loc.name"

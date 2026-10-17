@@ -284,20 +284,21 @@ onUnmounted(() => {
 
       <div class="container hero__inner">
         <div class="hero__content">
-          <span class="hero__status" v-reveal>
+          <span class="hero__status" v-reveal.down>
             <span class="hero__status-dot" aria-hidden="true"></span>
             Fresh Graduate · Bandung
           </span>
 
-          <h1 class="hero__title" v-reveal="90">
-            <span class="hero__title-line">Jose Elio</span>
-            <span class="hero__title-line"
+          <!-- Nama tersibak per baris, baris kedua menyusul -->
+          <h1 class="hero__title">
+            <span v-reveal.clip="90" class="hero__title-line">Jose Elio</span>
+            <span v-reveal.clip="190" class="hero__title-line"
               ><span class="hero__title-accent">Parhusip</span
               ><span class="hero__title-dot">.</span></span
             >
           </h1>
 
-          <p class="hero__role" v-reveal="160">
+          <p class="hero__role" v-reveal="300">
             <span class="hero__role-prefix">Saya seorang</span>
             <!-- Pembaca layar membaca daftar peran lengkap, bukan huruf yang sedang diketik -->
             <span class="hero__sr">{{ roles.join(', ') }}</span>
@@ -306,12 +307,12 @@ onUnmounted(() => {
             </span>
           </p>
 
-          <p class="hero__lead" v-reveal="230">
+          <p class="hero__lead" v-reveal="380">
             Lulusan S1 Bisnis Digital ULBI yang senang mengubah data, desain, dan kode menjadi produk yang
             benar-benar dipakai, dari web, mobile, sampai dashboard data dan AI.
           </p>
 
-          <div class="hero__actions" v-reveal="300">
+          <div class="hero__actions" v-reveal.stagger.scale="{ delay: 460, step: 90 }">
             <a href="#proyek" class="hero__btn hero__btn--primary">
               <span class="hero__btn-shine" aria-hidden="true"></span>
               Lihat Proyek
@@ -343,7 +344,7 @@ onUnmounted(() => {
             </a>
           </div>
 
-          <div class="hero__meta" v-reveal="370">
+          <div class="hero__meta" v-reveal="620">
             <div class="hero__socials">
               <a
                 href="https://github.com/joseparhusip"
@@ -457,7 +458,7 @@ onUnmounted(() => {
       </div>
 
       <div class="container">
-        <dl ref="statsEl" class="hero__stats" v-reveal="120">
+        <dl ref="statsEl" class="hero__stats" v-reveal.stagger="{ delay: 200, step: 110 }">
           <div v-for="(item, index) in stats" :key="item.label" class="hero__stat">
             <dt class="hero__stat-label">{{ item.label }}</dt>
             <dd class="hero__stat-value">
@@ -1164,9 +1165,9 @@ onUnmounted(() => {
 }
 
 @keyframes hero-visual-slide-in {
-  from { opacity: 0; transform: translateX(var(--hero-slide-x)); }
+  from { opacity: 0; transform: translateX(var(--hero-slide-x)) scale(0.94); }
   15% { opacity: 1; }
-  to { opacity: 1; transform: translateX(0); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
 }
 
 /* ---- Statistik ---- */

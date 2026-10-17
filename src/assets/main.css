@@ -135,28 +135,24 @@ img {
 
 /* =====================================================
    v-reveal (lihat src/directives/reveal.js)
+   Animasinya dijalankan lewat JavaScript (Web Animations API),
+   jadi di sini tidak ada lagi class .reveal. Yang tersisa hanya
+   pengaturan "kurangi animasi" di bawah.
    ===================================================== */
-.reveal {
-  transition:
-    opacity 0.8s var(--ease-out),
-    transform 0.8s var(--ease-out);
-}
 
-.reveal:not(.is-visible) {
-  opacity: 0;
-  transform: translateY(24px);
-}
-
-.reveal--scale:not(.is-visible) {
-  transform: translateY(16px) scale(0.96);
-}
-
-.reveal--left:not(.is-visible) {
-  transform: translateX(-32px);
-}
-
-.reveal--right:not(.is-visible) {
-  transform: translateX(32px);
+/* Bar progres scroll tipis di paling atas (lihat ScrollProgress.vue) */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  transform: scaleX(var(--scroll-progress, 0));
+  transform-origin: left;
+  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -164,11 +160,8 @@ img {
     scroll-behavior: auto;
   }
 
-  .reveal,
-  .reveal:not(.is-visible) {
-    transition: none;
-    opacity: 1;
-    transform: none;
+  .scroll-progress {
+    display: none;
   }
 
   *,

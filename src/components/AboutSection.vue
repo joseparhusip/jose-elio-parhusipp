@@ -109,14 +109,14 @@ function preventImageAction(event) {
           ><span class="section-label__num">01</span>Tentang Saya</span
         >
 
-        <h2 class="section-title" v-reveal="80">
+        <h2 class="section-title" v-reveal.clip="80">
           Menghubungkan <span class="serif-accent">data</span>, desain, dan kode jadi satu solusi
         </h2>
       </header>
 
       <!-- Bento: perkenalan besar di kiri, kutipan + fakta di kanan -->
       <div class="about__bento">
-        <article class="about__card about__card--intro" v-reveal="140">
+        <article class="about__card about__card--intro" v-reveal.left="160">
           <span class="about__card-tag">Halo, saya Jose</span>
 
           <div class="about__desc">
@@ -136,7 +136,7 @@ function preventImageAction(event) {
 
           <div class="about__interests">
             <span class="about__interests-label">Minat</span>
-            <ul>
+            <ul v-reveal.stagger.scale="{ delay: 520, step: 70 }">
               <li v-for="item in interests" :key="item">{{ item }}</li>
             </ul>
           </div>
@@ -161,14 +161,14 @@ function preventImageAction(event) {
 
       <!-- Keunggulan: baris memanjang, bukan kartu -->
       <div class="about__caps">
-        <span class="about__block-label" v-reveal>Yang saya bawa ke tim</span>
+        <span class="about__block-label" v-reveal.left>Yang saya bawa ke tim</span>
 
         <ol class="about__caps-list">
           <li
             v-for="(item, index) in highlights"
             :key="item.title"
             class="about__cap"
-            v-reveal="index * 100"
+            v-reveal="index * 110"
           >
             <span class="about__cap-num">0{{ index + 1 }}</span>
 
@@ -198,8 +198,8 @@ function preventImageAction(event) {
       </div>
 
       <!-- Tools: grid ubin dengan filter kategori -->
-      <div class="about__stack" v-reveal>
-        <div class="about__stack-head">
+      <div class="about__stack">
+        <div class="about__stack-head" v-reveal>
           <div>
             <span class="about__block-label">Tools &amp; teknologi yang saya kuasai</span>
             <p class="about__stack-count" aria-live="polite">
@@ -223,7 +223,7 @@ function preventImageAction(event) {
           </div>
         </div>
 
-        <ul class="about__tools">
+        <ul class="about__tools" v-reveal.stagger.scale="{ delay: 140, step: 45 }">
           <li
             v-for="(tool, index) in tools"
             :key="tool.name"

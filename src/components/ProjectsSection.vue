@@ -253,6 +253,17 @@ function demoHost(url) {
 // Keyboard: Esc menutup lightbox/detail, panah kiri/kanan menggeser galeri
 const galleryEl = ref(null)
 
+// Galeri mulai "tertumpuk" di tengah, lalu terbuka seperti kipas saat pertama terlihat
+const galleryState = ref('folded') // folded -> opening -> open
+let galleryOpenTimer = null
+
+function openGallery() {
+  galleryState.value = 'opening'
+  galleryOpenTimer = setTimeout(() => (galleryState.value = 'open'), 1300)
+}
+
+onUnmounted(() => clearTimeout(galleryOpenTimer))
+
 function onKeydown(event) {
   if (event.key === 'Escape') {
     if (lightboxProject.value) closeLightbox()
@@ -283,7 +294,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <span v-reveal class="section-label">
             <span class="section-label__num">03</span> Proyek
           </span>
-          <h2 v-reveal="80" class="section-title">
+          <h2 v-reveal.clip="80" class="section-title">
             Karya yang pernah saya <span class="serif-accent">bangun</span>
           </h2>
           <p v-reveal="160" class="section-lead projects__lead">
@@ -309,8 +320,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <!-- Galeri coverflow -->
       <div
         ref="galleryEl"
-        v-reveal="120"
+        v-reveal.scale="{ delay: 120, onReveal: openGallery }"
         class="gallery"
+        :class="{
+          'gallery--folded': galleryState === 'folded',
+          'gallery--opening': galleryState === 'opening',
+        }"
         role="region"
         aria-roledescription="carousel"
         aria-label="Galeri proyek"
@@ -623,6 +638,21 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     scale(var(--scale));
   transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.5s ease,
     box-shadow 0.5s ease, border-color 0.3s ease;
+}
+
+/* Sebelum terlihat: semua slide menumpuk di tengah, lalu menyebar ke posisinya */
+.gallery--folded .gallery__slide {
+  transform: translate(-50%, -50%) scale(calc(var(--scale) * 0.92));
+}
+
+.gallery--folded .gallery__slide:not(.gallery__slide--active) {
+  opacity: 0;
+}
+
+/* Saat membuka: slide yang lebih jauh menyusul sedikit belakangan */
+.gallery--opening .gallery__slide {
+  transition-duration: 0.95s, 0.7s, 0.5s, 0.3s;
+  transition-delay: calc(var(--abs) * 90ms + 150ms);
 }
 
 /* Lapisan gelap di slide samping supaya slide tengah menonjol */
