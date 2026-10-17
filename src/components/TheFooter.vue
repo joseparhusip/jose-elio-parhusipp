@@ -1,13 +1,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
-import { useChatWidgetStore } from '@/stores/chatWidget'
 import linkedinIcon from '@/components/icons/icons-about/linkedin-svgrepo-com.svg'
 import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-svgrepo-com.svg'
 
 const year = new Date().getFullYear()
-const EMAIL = 'joseparhusip7@gmail.com'
-const chatStore = useChatWidgetStore()
 
 const navLinks = [
   { label: 'Beranda', href: '#beranda' },
@@ -28,10 +25,6 @@ const marqueeItems = ['Web Landing Page', 'Web E-commerce', 'Mobile App', 'Data'
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-function openChat() {
-  chatStore.open()
 }
 
 // Tombol kembali ke atas: melayang di layar, hanya muncul setelah scroll ke bawah
@@ -70,25 +63,6 @@ onUnmounted(() => {
   clearInterval(clockId)
 })
 
-/* Salin email ke clipboard, dengan tanda "Tersalin" sebentar */
-const copied = ref(false)
-let copiedId = null
-
-async function copyEmail() {
-  try {
-    await navigator.clipboard.writeText(EMAIL)
-    copied.value = true
-    clearTimeout(copiedId)
-    copiedId = setTimeout(() => (copied.value = false), 1800)
-  } catch {
-    window.location.href = `mailto:${EMAIL}`
-  }
-}
-
-onUnmounted(() => {
-  clearTimeout(copiedId)
-})
-
 // Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
 function preventImageAction(event) {
   event.preventDefault()
@@ -100,42 +74,6 @@ function preventImageAction(event) {
   <footer class="footer">
     <span class="footer__grid-bg" aria-hidden="true"></span>
     <span class="footer__glow" aria-hidden="true"></span>
-
-    <div class="footer__inner">
-      <!-- Kartu ajakan -->
-      <div v-reveal.scale class="footer__cta">
-        <div class="footer__cta-text">
-          <span class="footer__status">
-            <span class="footer__status-dot" aria-hidden="true"></span>
-            Terbuka untuk kerja &amp; kolaborasi
-          </span>
-          <p class="footer__cta-title">
-            Mari bangun sesuatu yang <span class="footer__serif">berguna</span>.
-          </p>
-          <p class="footer__cta-desc">
-            Punya ide, proyek, atau lowongan? Ceritakan saja, saya akan membalas secepatnya.
-          </p>
-        </div>
-
-        <div class="footer__cta-actions">
-          <button type="button" class="footer__btn footer__btn--solid" @click="openChat">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
-            </svg>
-            Mulai Chat
-          </button>
-          <a href="#kontak" class="footer__btn footer__btn--ghost">
-            Hubungi Saya
-            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
-              <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
-            </svg>
-          </a>
-        </div>
-      </div>
-    </div>
 
     <!-- Pita teks berjalan -->
     <div class="footer__marquee" aria-hidden="true">
@@ -223,29 +161,6 @@ function preventImageAction(event) {
           </ul>
         </div>
 
-        <div class="footer__col">
-          <h3 class="footer__heading">Kontak</h3>
-          <a :href="`mailto:${EMAIL}`" class="footer__mail">{{ EMAIL }}</a>
-          <button
-            type="button"
-            class="footer__copy"
-            :class="{ 'is-copied': copied }"
-            :aria-label="copied ? 'Email tersalin' : 'Salin email'"
-            @click="copyEmail"
-          >
-            <svg v-if="!copied" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-              <rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" />
-              <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                d="M5 15V6a2 2 0 0 1 2-2h9" />
-            </svg>
-            <svg v-else viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-              <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                stroke-linejoin="round" d="M5 12.5 10 17.5 19 7" />
-            </svg>
-            <span aria-live="polite">{{ copied ? 'Tersalin' : 'Salin email' }}</span>
-          </button>
-          <p class="footer__location">Jawa Barat, Indonesia</p>
-        </div>
       </div>
 
       <!-- Baris bawah -->
@@ -298,7 +213,7 @@ function preventImageAction(event) {
   isolation: isolate;
   background: var(--color-primary-dark);
   color: #eef3ef;
-  padding: clamp(3rem, 7vw, 5rem) 0 0;
+  padding: clamp(1.5rem, 4vw, 2.5rem) 0 0;
 }
 
 /* Pola grid tipis + cahaya, senada dengan hero */
@@ -333,158 +248,11 @@ function preventImageAction(event) {
   box-sizing: content-box;
 }
 
-/* ---- Kartu ajakan ---- */
-.footer__cta {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 2rem 3rem;
-  padding: clamp(1.75rem, 4vw, 3rem);
-  border-radius: 28px;
-  border: 1px solid rgba(238, 243, 239, 0.2);
-  background:
-    radial-gradient(120% 140% at 100% 0%, rgba(79, 214, 192, 0.18), transparent 55%),
-    rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.45);
-}
-
-.footer__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.35rem 0.8rem 0.35rem 0.65rem;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.12);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  color: var(--soft);
-}
-
-.footer__status-dot {
-  position: relative;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #4fd6c0;
-}
-
-.footer__status-dot::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 1px solid #4fd6c0;
-  animation: footer-ping 2s var(--ease-out) infinite;
-}
-
-@keyframes footer-ping {
-  0% { transform: scale(0.6); opacity: 1; }
-  100% { transform: scale(1.8); opacity: 0; }
-}
-
-.footer__cta-title {
-  margin: 1.1rem 0 0;
-  max-width: 16ch;
-  font-family: var(--font-heading);
-  font-size: clamp(2.1rem, 5vw, 3.9rem);
-  font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -0.04em;
-  color: #fff;
-  text-wrap: balance;
-}
-
-.footer__serif {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  color: #4fd6c0;
-}
-
-.footer__cta-desc {
-  margin: 1rem 0 0;
-  max-width: 34rem;
-  font-size: 0.98rem;
-  line-height: 1.7;
-  color: var(--soft);
-  text-wrap: pretty;
-}
-
-.footer__cta-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-}
-
-.footer__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  min-height: 52px;
-  padding: 0 1.5rem;
-  border-radius: 999px;
-  font-family: var(--font-body);
-  font-size: 0.97rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    transform 0.3s var(--ease-out),
-    box-shadow 0.3s ease,
-    background 0.25s ease,
-    color 0.25s ease,
-    border-color 0.25s ease;
-}
-
-.footer__btn svg {
-  transition: transform 0.3s var(--ease-out);
-}
-
-.footer__btn--solid {
-  border: 0;
-  background: #fff;
-  color: #2b2470;
-}
-
-.footer__btn--solid:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 36px -18px rgba(0, 0, 0, 0.6);
-}
-
-.footer__btn--ghost {
-  border: 1px solid rgba(238, 243, 239, 0.35);
-  background: transparent;
-  color: #fff;
-}
-
-.footer__btn--ghost:hover {
-  border-color: #4fd6c0;
-  color: #4fd6c0;
-  transform: translateY(-2px);
-}
-
-.footer__btn--ghost:hover svg {
-  transform: rotate(45deg);
-}
-
-.footer__btn:focus-visible {
-  outline: 2px solid #4fd6c0;
-  outline-offset: 3px;
-}
-
 /* ---- Pita teks berjalan ---- */
 .footer__marquee {
   display: flex;
   overflow: hidden;
-  margin: clamp(2.5rem, 6vw, 4rem) 0;
+  margin: 0 0 clamp(2.5rem, 6vw, 3.5rem);
   padding: 1rem 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -536,7 +304,7 @@ function preventImageAction(event) {
 /* ---- Kolom informasi ---- */
 .footer__grid {
   display: grid;
-  grid-template-columns: 1.3fr 0.8fr 1.1fr 1.1fr;
+  grid-template-columns: 1.4fr 1fr 1.1fr;
   gap: 2.5rem;
   padding-bottom: clamp(2.25rem, 5vw, 3rem);
 }
@@ -733,58 +501,6 @@ function preventImageAction(event) {
   transform: rotate(45deg);
 }
 
-.footer__mail {
-  display: inline-block;
-  font-size: 0.98rem;
-  font-weight: 500;
-  color: #fff;
-  text-decoration: none;
-  overflow-wrap: anywhere;
-  background: linear-gradient(#4fd6c0, #4fd6c0) 0 100% / 0 1px no-repeat;
-  transition:
-    background-size 0.4s var(--ease-out),
-    color 0.25s ease;
-}
-
-.footer__mail:hover {
-  color: #4fd6c0;
-  background-size: 100% 1px;
-}
-
-.footer__copy {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.9rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.06);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: #eef3ef;
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
-}
-
-.footer__copy:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.footer__copy.is-copied {
-  border-color: #4fd6c0;
-  color: #4fd6c0;
-}
-
-.footer__location {
-  margin: 1rem 0 0;
-  font-size: 0.88rem;
-  color: var(--soft);
-}
-
 /* ---- Baris bawah ---- */
 .footer__bottom {
   display: flex;
@@ -906,27 +622,20 @@ function preventImageAction(event) {
     grid-template-columns: 1fr 1fr;
     gap: 2.25rem 2rem;
   }
+
+  .footer__brand {
+    grid-column: 1 / -1;
+  }
 }
 
 /* ---- HP ---- */
 @media (max-width: 560px) {
-  .footer__cta {
-    border-radius: 22px;
-  }
-
-  .footer__cta-actions {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
   .footer__grid {
     grid-template-columns: 1fr 1fr;
   }
 
   .footer__brand,
-  .footer__grid > .footer__col:nth-child(3),
-  .footer__grid > .footer__col:nth-child(4) {
+  .footer__grid > .footer__col:nth-child(3) {
     grid-column: 1 / -1;
   }
 
@@ -943,10 +652,6 @@ function preventImageAction(event) {
     grid-template-columns: 1fr 1fr;
   }
 
-  .footer__copy {
-    display: flex;
-    width: fit-content;
-  }
 
   /* Ruang di kanan supaya teks tidak tertutup tombol chat & ke atas */
   .footer__bottom {
