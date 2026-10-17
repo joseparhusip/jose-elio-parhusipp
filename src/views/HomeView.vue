@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { loaderDone } from '@/composables/useLoaderState'
 import { vReveal } from '@/directives/reveal'
 import AboutSection from '@/components/AboutSection.vue'
@@ -18,6 +18,13 @@ const stats = [
   { value: '3,75', label: 'IPK S1 Bisnis Digital' },
 ]
 
+const prefersReducedMotion =
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+/* ---------------------------------------------------------
+   Teks peran yang diketik bergantian.
+   Kalau animasi dimatikan di OS, cukup tampilkan peran pertama.
+--------------------------------------------------------- */
 const roles = ['Full Stack Developer', 'Flutter Developer', 'Data Analyst', 'Business Analyst']
 const typedRole = ref('')
 
@@ -57,6 +64,10 @@ function tick() {
 }
 
 onMounted(() => {
+  if (prefersReducedMotion) {
+    typedRole.value = roles[0]
+    return
+  }
   timeoutId = setTimeout(tick, TYPING_SPEED)
 })
 
@@ -64,6 +75,9 @@ onUnmounted(() => {
   clearTimeout(timeoutId)
 })
 
+/* ---------------------------------------------------------
+   Unduh CV
+--------------------------------------------------------- */
 const CV_PATH = '/CV - Jose Elio Parhusip.pdf'
 const CV_FILENAME = 'CV - Jose Elio Parhusip.pdf'
 const downloadState = ref('idle')
@@ -144,13 +158,126 @@ onMounted(() => {
 onUnmounted(() => {
   clearTimeout(photoFallbackId)
 })
+
+/* ---------------------------------------------------------
+   Parallax + spotlight mengikuti kursor (hanya desktop/mouse).
+   Nilai posisi ditulis ke CSS variable, jadi tidak ada re-render Vue.
+--------------------------------------------------------- */
+const heroEl = ref(null)
+let pointerFrame = 0
+let canParallax = false
+
+function onHeroPointerMove(event) {
+  if (!canParallax || !heroEl.value) return
+  cancelAnimationFrame(pointerFrame)
+  pointerFrame = requestAnimationFrame(() => {
+    const rect = heroEl.value.getBoundingClientRect()
+    const x = (event.clientX - rect.left) / rect.width
+    const y = (event.clientY - rect.top) / rect.height
+    const style = heroEl.value.style
+    style.setProperty('--px', (x * 2 - 1).toFixed(3))
+    style.setProperty('--py', (y * 2 - 1).toFixed(3))
+    style.setProperty('--sx', `${Math.round(event.clientX - rect.left)}px`)
+    style.setProperty('--sy', `${Math.round(event.clientY - rect.top)}px`)
+    heroEl.value.classList.add('is-pointer')
+  })
+}
+
+function onHeroPointerLeave() {
+  if (!heroEl.value) return
+  cancelAnimationFrame(pointerFrame)
+  heroEl.value.style.setProperty('--px', '0')
+  heroEl.value.style.setProperty('--py', '0')
+  heroEl.value.classList.remove('is-pointer')
+}
+
+onMounted(() => {
+  canParallax =
+    !prefersReducedMotion && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+})
+
+onUnmounted(() => {
+  cancelAnimationFrame(pointerFrame)
+})
+
+/* ---------------------------------------------------------
+   Angka statistik naik dari 0 saat terlihat di layar.
+   Format desimal pakai koma (3,75) dan akhiran (+) dipertahankan.
+--------------------------------------------------------- */
+function parseStat(value) {
+  const [int, dec = ''] = value.replace(/[^\d,]/g, '').split(',')
+  return {
+    target: Number(`${int}.${dec || 0}`),
+    decimals: dec.length,
+    suffix: value.replace(/[\d,]/g, ''),
+  }
+}
+
+const parsedStats = stats.map((item) => parseStat(item.value))
+const statDisplay = ref(stats.map((item, i) => (prefersReducedMotion ? item.value : formatStat(0, parsedStats[i]))))
+const statsEl = ref(null)
+const statsVisible = ref(false)
+let statsObserver = null
+let countFrame = 0
+
+function formatStat(num, { decimals, suffix }) {
+  return num.toFixed(decimals).replace('.', ',') + suffix
+}
+
+function runCountUp() {
+  const DURATION = 1400
+  const start = performance.now()
+
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / DURATION)
+    const eased = 1 - Math.pow(1 - t, 3)
+    statDisplay.value = parsedStats.map((p) => formatStat(p.target * eased, p))
+    if (t < 1) countFrame = requestAnimationFrame(step)
+  }
+
+  countFrame = requestAnimationFrame(step)
+}
+
+// Mulai hitung kalau statistik sudah terlihat DAN loader sudah selesai
+watch(
+  () => statsVisible.value && loaderDone.value,
+  (ready) => {
+    if (ready && !prefersReducedMotion) runCountUp()
+  },
+)
+
+onMounted(() => {
+  if (prefersReducedMotion || !statsEl.value) return
+  statsObserver = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) {
+        statsVisible.value = true
+        statsObserver.disconnect()
+      }
+    },
+    { threshold: 0.4 },
+  )
+  statsObserver.observe(statsEl.value)
+})
+
+onUnmounted(() => {
+  statsObserver?.disconnect()
+  cancelAnimationFrame(countFrame)
+})
 </script>
 
 <template>
   <main>
-    <section id="beranda" class="hero">
+    <section
+      id="beranda"
+      ref="heroEl"
+      class="hero"
+      @pointermove="onHeroPointerMove"
+      @pointerleave="onHeroPointerLeave"
+    >
       <div class="hero__bg" aria-hidden="true">
         <span class="hero__grid"></span>
+        <span class="hero__spot"></span>
         <span class="hero__glow hero__glow--a"></span>
         <span class="hero__glow hero__glow--b"></span>
       </div>
@@ -163,14 +290,19 @@ onUnmounted(() => {
           </span>
 
           <h1 class="hero__title" v-reveal="90">
-            Jose Elio<br />
-            Parhusip<span class="hero__title-dot">.</span>
+            <span class="hero__title-line">Jose Elio</span>
+            <span class="hero__title-line"
+              ><span class="hero__title-accent">Parhusip</span
+              ><span class="hero__title-dot">.</span></span
+            >
           </h1>
 
           <p class="hero__role" v-reveal="160">
             <span class="hero__role-prefix">Saya seorang</span>
-            <span class="hero__role-typed serif-accent">
-              {{ typedRole }}<span class="hero__cursor" aria-hidden="true"></span>
+            <!-- Pembaca layar membaca daftar peran lengkap, bukan huruf yang sedang diketik -->
+            <span class="hero__sr">{{ roles.join(', ') }}</span>
+            <span class="hero__role-typed serif-accent" aria-hidden="true">
+              {{ typedRole }}<span class="hero__cursor"></span>
             </span>
           </p>
 
@@ -181,6 +313,7 @@ onUnmounted(() => {
 
           <div class="hero__actions" v-reveal="300">
             <a href="#proyek" class="hero__btn hero__btn--primary">
+              <span class="hero__btn-shine" aria-hidden="true"></span>
               Lihat Proyek
               <svg viewBox="0 0 24 24" class="hero__btn-arrow" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
@@ -267,9 +400,12 @@ onUnmounted(() => {
 
             <span class="hero__meta-divider" aria-hidden="true"></span>
 
-            <ul class="hero__stack" aria-label="Fokus pengerjaan">
-              <li v-for="tech in stack" :key="tech" class="hero__stack-item">{{ tech }}</li>
-            </ul>
+            <div class="hero__focus">
+              <span class="hero__focus-label">Fokus</span>
+              <ul class="hero__stack" aria-label="Fokus pengerjaan">
+                <li v-for="tech in stack" :key="tech" class="hero__stack-item">{{ tech }}</li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -294,6 +430,11 @@ onUnmounted(() => {
             @dragstart.prevent="preventImageAction"
           />
 
+          <div class="hero__chip" aria-hidden="true">
+            <span class="hero__chip-dot"></span>
+            SAP Certified
+          </div>
+
           <div class="hero__badge hero__badge--top">
             <span class="hero__badge-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="m8 6-6 6 6 6M16 6l6 6-6 6" /></svg>
@@ -316,10 +457,13 @@ onUnmounted(() => {
       </div>
 
       <div class="container">
-        <dl class="hero__stats" v-reveal="120">
-          <div v-for="item in stats" :key="item.label" class="hero__stat">
+        <dl ref="statsEl" class="hero__stats" v-reveal="120">
+          <div v-for="(item, index) in stats" :key="item.label" class="hero__stat">
             <dt class="hero__stat-label">{{ item.label }}</dt>
-            <dd class="hero__stat-value">{{ item.value }}</dd>
+            <dd class="hero__stat-value">
+              <span aria-hidden="true">{{ statDisplay[index] }}</span>
+              <span class="hero__sr">{{ item.value }}</span>
+            </dd>
           </div>
           <a href="#tentang" class="hero__scroll">
             <span>Gulir</span>
@@ -341,13 +485,28 @@ onUnmounted(() => {
    HERO
    ========================================================= */
 .hero {
+  --px: 0;
+  --py: 0;
   position: relative;
   padding: clamp(2.5rem, 6vw, 4.5rem) 0 clamp(2.5rem, 5vw, 3.5rem);
   overflow: hidden;
   isolation: isolate;
 }
 
-/* ---- Latar: grid halus + dua cahaya warna brand ---- */
+/* Teks khusus pembaca layar */
+.hero__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Latar: grid halus + cahaya warna brand + spotlight kursor ---- */
 .hero__bg {
   position: absolute;
   inset: 0;
@@ -365,12 +524,33 @@ onUnmounted(() => {
   mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 20%, transparent 75%);
   -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 20%, transparent 75%);
   opacity: 0.55;
+  /* grid ikut bergeser sedikit berlawanan arah kursor */
+  translate: calc(var(--px) * -10px) calc(var(--py) * -10px);
+  transition: translate 0.8s var(--ease-out);
+}
+
+/* Cahaya lembut yang mengikuti kursor (muncul hanya saat mouse di atas hero) */
+.hero__spot {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    420px circle at var(--sx, 50%) var(--sy, 30%),
+    var(--color-primary-soft),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.hero.is-pointer .hero__spot {
+  opacity: 1;
 }
 
 .hero__glow {
   position: absolute;
   border-radius: 50%;
   filter: blur(90px);
+  animation: hero-glow-drift 14s ease-in-out infinite alternate;
 }
 
 .hero__glow--a {
@@ -387,6 +567,12 @@ onUnmounted(() => {
   bottom: -140px;
   left: -120px;
   background: var(--color-accent-soft);
+  animation-delay: -7s;
+}
+
+@keyframes hero-glow-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-40px, 30px) scale(1.08); }
 }
 
 .hero__inner {
@@ -444,8 +630,27 @@ onUnmounted(() => {
   margin: 1.4rem 0 1.2rem;
 }
 
+.hero__title-line {
+  display: block;
+}
+
+/* Nama belakang diberi gradasi halus dari warna teks ke warna utama */
+.hero__title-accent {
+  background: linear-gradient(100deg, var(--color-text) 35%, var(--color-primary) 110%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 .hero__title-dot {
+  display: inline-block;
   color: var(--color-primary);
+  animation: hero-dot-pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes hero-dot-pulse {
+  0%, 100% { color: var(--color-primary); }
+  50% { color: var(--color-accent); }
 }
 
 .hero__role {
@@ -467,8 +672,21 @@ onUnmounted(() => {
 }
 
 .hero__role-typed {
+  position: relative;
   font-size: 1.12em;
   white-space: nowrap;
+}
+
+/* Garis bawah tipis di bawah peran yang sedang diketik */
+.hero__role-typed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 6px;
+  bottom: -0.12em;
+  height: 0.12em;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-accent-soft), transparent);
 }
 
 .hero__cursor {
@@ -503,6 +721,7 @@ onUnmounted(() => {
 }
 
 .hero__btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -517,7 +736,13 @@ onUnmounted(() => {
   transition: transform 0.25s var(--ease-out), background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
+.hero__btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
 .hero__btn--primary {
+  overflow: hidden;
   background: var(--color-primary);
   color: #fff;
   box-shadow: 0 14px 30px -14px var(--color-primary), inset 0 1px 0 rgba(255, 255, 255, 0.25);
@@ -526,6 +751,21 @@ onUnmounted(() => {
 .hero__btn--primary:hover {
   background: var(--color-primary-dark);
   transform: translateY(-2px);
+  box-shadow: 0 18px 36px -14px var(--color-primary), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Kilau yang menyapu tombol saat hover */
+.hero__btn-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+.hero__btn--primary:hover .hero__btn-shine {
+  transform: translateX(120%);
+  transition: transform 0.75s var(--ease-out);
 }
 
 .hero__btn-arrow {
@@ -551,7 +791,6 @@ onUnmounted(() => {
 }
 
 .hero__btn--download {
-  position: relative;
   overflow: hidden;
   isolation: isolate;
 }
@@ -647,7 +886,12 @@ onUnmounted(() => {
 .hero__social-link:hover {
   border-color: var(--color-primary);
   background: var(--color-primary-soft);
-  transform: translateY(-2px);
+  transform: translateY(-2px) rotate(-6deg);
+}
+
+.hero__social-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .hero__social-icon,
@@ -668,6 +912,21 @@ onUnmounted(() => {
   background: var(--color-border);
 }
 
+.hero__focus {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.hero__focus-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
 .hero__stack {
   display: flex;
   flex-wrap: wrap;
@@ -684,6 +943,12 @@ onUnmounted(() => {
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
   border: 1px dashed var(--color-border);
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+
+.hero__stack-item:hover {
+  color: var(--color-text);
+  border-color: var(--color-accent);
 }
 
 /* ---- Foto: figur keluar dari bingkai lengkung ---- */
@@ -696,6 +961,14 @@ onUnmounted(() => {
   --hero-slide-x: 60vw;
 }
 
+/* Parallax pakai properti `translate` supaya tidak bentrok dengan `transform` animasi */
+.hero__arch,
+.hero__photo,
+.hero__badge,
+.hero__chip {
+  transition: translate 0.7s var(--ease-out);
+}
+
 .hero__arch {
   position: absolute;
   left: 50%;
@@ -703,6 +976,7 @@ onUnmounted(() => {
   width: 74%;
   height: 84%;
   transform: translateX(-50%);
+  translate: calc(var(--px) * 6px) calc(var(--py) * 4px);
   border-radius: 999px 999px var(--radius-lg) var(--radius-lg);
   background:
     radial-gradient(120% 70% at 50% 0%, var(--color-primary-soft), transparent 70%),
@@ -728,6 +1002,12 @@ onUnmounted(() => {
   border-radius: 50%;
   background: var(--color-accent);
   box-shadow: 0 0 0 6px var(--color-accent-soft);
+  animation: hero-orbit-pulse 3s ease-in-out infinite;
+}
+
+@keyframes hero-orbit-pulse {
+  0%, 100% { box-shadow: 0 0 0 6px var(--color-accent-soft); }
+  50% { box-shadow: 0 0 0 11px var(--color-accent-soft); }
 }
 
 .hero__photo {
@@ -738,6 +1018,7 @@ onUnmounted(() => {
   max-width: none;
   height: auto;
   transform: translateX(-50%);
+  translate: calc(var(--px) * -10px) calc(var(--py) * -6px);
   /* pudarkan sedikit bagian bawah supaya menyatu dengan bingkai */
   mask-image: linear-gradient(to bottom, #000 70%, transparent 98%);
   -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 98%);
@@ -745,6 +1026,34 @@ onUnmounted(() => {
   user-select: none;
   -webkit-touch-callout: none;
   pointer-events: none;
+}
+
+/* Chip kecil di pojok kanan atas bingkai */
+.hero__chip {
+  position: absolute;
+  top: 12%;
+  right: 4%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+  translate: calc(var(--px) * 18px) calc(var(--py) * 12px);
+}
+
+.hero__chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
 }
 
 .hero__badge {
@@ -760,6 +1069,7 @@ onUnmounted(() => {
   -webkit-backdrop-filter: blur(12px);
   box-shadow: var(--shadow-card);
   animation: hero-float 6s ease-in-out infinite;
+  translate: calc(var(--px) * 16px) calc(var(--py) * 12px);
 }
 
 .hero__badge--top {
@@ -772,6 +1082,7 @@ onUnmounted(() => {
   bottom: 8%;
   right: -6%;
   animation-delay: -3s;
+  translate: calc(var(--px) * 22px) calc(var(--py) * 16px);
 }
 
 @keyframes hero-float {
@@ -828,6 +1139,30 @@ onUnmounted(() => {
   animation: hero-visual-slide-in 1.3s var(--ease-out) backwards;
 }
 
+/* Badge & chip muncul bergantian setelah foto sampai */
+.hero__visual.is-in .hero__badge {
+  animation:
+    hero-pop-in 0.6s var(--ease-out) backwards,
+    hero-float 6s ease-in-out infinite;
+}
+
+.hero__visual.is-in .hero__badge--top {
+  animation-delay: 1s, 0s;
+}
+
+.hero__visual.is-in .hero__badge--bottom {
+  animation-delay: 1.15s, -3s;
+}
+
+.hero__visual.is-in .hero__chip {
+  animation: hero-pop-in 0.6s var(--ease-out) 1.3s backwards;
+}
+
+@keyframes hero-pop-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 @keyframes hero-visual-slide-in {
   from { opacity: 0; transform: translateX(var(--hero-slide-x)); }
   15% { opacity: 1; }
@@ -867,7 +1202,13 @@ onUnmounted(() => {
   font-weight: 600;
   line-height: 1;
   letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums; /* angka tidak goyang saat menghitung */
   color: var(--color-text);
+  transition: color 0.3s ease;
+}
+
+.hero__stat:hover .hero__stat-value {
+  color: var(--color-primary);
 }
 
 .hero__stat-label {
@@ -879,9 +1220,6 @@ onUnmounted(() => {
 
 .hero__scroll {
   align-self: end;
-}
-
-.hero__scroll {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -892,6 +1230,11 @@ onUnmounted(() => {
   text-transform: uppercase;
   color: var(--color-text-soft);
   text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+.hero__scroll:hover {
+  color: var(--color-text);
 }
 
 .hero__scroll-line {
@@ -915,6 +1258,23 @@ onUnmounted(() => {
 
 @keyframes hero-scroll {
   to { top: 100%; }
+}
+
+/* Animasi dimatikan di pengaturan OS: semua elemen tampil diam */
+@media (prefers-reduced-motion: reduce) {
+  .hero__glow,
+  .hero__title-dot,
+  .hero__arch-orbit,
+  .hero__badge,
+  .hero__visual.is-in .hero__badge,
+  .hero__visual.is-in .hero__chip,
+  .hero__cursor {
+    animation: none;
+  }
+
+  .hero__btn--primary:hover .hero__btn-shine {
+    transition: none;
+  }
 }
 
 /* =========================================================
@@ -972,6 +1332,13 @@ onUnmounted(() => {
   .hero__badge--bottom {
     bottom: 6%;
     right: -8%;
+  }
+
+  .hero__chip {
+    top: 8%;
+    right: -2%;
+    font-size: 0.62rem;
+    padding: 0.3rem 0.6rem;
   }
 
   .hero__role {

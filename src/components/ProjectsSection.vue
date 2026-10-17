@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
 
 // Tech stack icons
@@ -21,6 +21,9 @@ import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.png'
 import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.png'
 import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.png'
 import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.png'
+
+// Link tombol "Lihat proyek lainnya" di kanan atas
+const moreProjectsHref = 'https://github.com/joseparhusip?tab=repositories'
 
 const projects = [
   {
@@ -93,9 +96,11 @@ const projects = [
       'Merancang landing page responsif dengan komponen dinamis: hero carousel, grid solusi, timeline cara kerja, dan segmentasi target audiens.',
       'Membangun modul profil tim dengan struktur visual (tree layout) menggunakan komponen reusable.',
     ],
+    // Nama file gambarnya tertukar di folder: img-toko-kelontong.png berisi screenshot Secura Kost
     thumb: tokoKelontongThumb,
+    // Disamakan dengan deskripsi (Vue.js + Tailwind CSS)
     techStack: [
-      { name: 'React', icon: reactIcon },
+      { name: 'Vue.js', icon: vueIcon },
       { name: 'Tailwind CSS', icon: tailwindIcon },
     ],
     demoHref: 'https://secura-kost.vercel.app/',
@@ -113,9 +118,12 @@ const projects = [
       'Membangun komponen reusable (navbar, footer, page header, promo banner, testimonial) untuk konsistensi desain.',
       'Menyusun halaman informasi pendukung (FAQ, cara pemesanan, kebijakan privasi, syarat & ketentuan, hubungi kami).',
     ],
+    // Nama file gambarnya tertukar di folder: img-secura-kost.png berisi screenshot Toko Kelontong
     thumb: securaKostThumb,
+    // Disamakan dengan deskripsi (Vue.js + Tailwind CSS)
     techStack: [
-      { name: 'React', icon: reactIcon },
+      { name: 'Vue.js', icon: vueIcon },
+      { name: 'Tailwind CSS', icon: tailwindIcon },
     ],
     demoHref: 'https://toko-kelontong-online.vercel.app/',
     codeHref: 'https://github.com/joseparhusip/toko-kelontong-online',
@@ -142,18 +150,80 @@ const projects = [
   },
 ]
 
-// Bottom sheet: hanya satu kartu yang bisa terbuka dalam satu waktu
-const activeIndex = ref(null)
+const total = projects.length
 
-function toggleSheet(index) {
-  activeIndex.value = activeIndex.value === index ? null : index
+// ---- Galeri (coverflow) ----
+// Index proyek yang sedang di tengah
+const activeIndex = ref(0)
+const activeProject = computed(() => projects[activeIndex.value])
+
+// Jarak tiap slide dari slide tengah, melingkar (proyek terakhir ada di kiri proyek pertama).
+// Hasil: 0 = tengah, -1/1 = samping, -2/2 = paling luar, sisanya disembunyikan.
+function offsetOf(index) {
+  let d = (index - activeIndex.value + total) % total
+  if (d > total / 2) d -= total
+  return d
 }
 
-function closeSheet() {
-  activeIndex.value = null
+function goTo(index) {
+  activeIndex.value = (index + total) % total
 }
 
-// Lightbox: klik gambar project untuk melihat versi penuhnya
+function next() {
+  goTo(activeIndex.value + 1)
+}
+
+function prev() {
+  goTo(activeIndex.value - 1)
+}
+
+// Klik gambar: kalau slide samping → geser ke tengah, kalau slide tengah → buka lightbox
+function onSlideClick(index) {
+  if (index === activeIndex.value) openLightbox(projects[index])
+  else goTo(index)
+}
+
+// Geser dengan swipe (HP) atau drag mouse
+let pointerStartX = null
+let pointerMoved = false
+
+function onPointerDown(event) {
+  pointerStartX = event.clientX
+  pointerMoved = false
+}
+
+function onPointerUp(event) {
+  if (pointerStartX === null) return
+  const dx = event.clientX - pointerStartX
+  pointerStartX = null
+  if (Math.abs(dx) < 45) return
+  pointerMoved = true
+  if (dx < 0) next()
+  else prev()
+}
+
+// Klik yang terjadi tepat setelah swipe diabaikan supaya tidak ikut membuka lightbox
+function onSlideClickGuarded(index) {
+  if (pointerMoved) {
+    pointerMoved = false
+    return
+  }
+  onSlideClick(index)
+}
+
+// ---- Detail pengerjaan (daftar poin di bawah judul) ----
+const detailOpen = ref(false)
+
+function toggleDetail() {
+  detailOpen.value = !detailOpen.value
+}
+
+// Tutup detail setiap pindah proyek supaya tampilan tetap ringkas
+watch(activeIndex, () => {
+  detailOpen.value = false
+})
+
+// ---- Lightbox: klik gambar tengah untuk melihat versi penuhnya ----
 const lightboxProject = ref(null)
 
 function openLightbox(project) {
@@ -180,11 +250,25 @@ function demoHost(url) {
   }
 }
 
-// Tombol Esc menutup lightbox / deskripsi yang sedang terbuka
+// Keyboard: Esc menutup lightbox/detail, panah kiri/kanan menggeser galeri
+const galleryEl = ref(null)
+
 function onKeydown(event) {
-  if (event.key !== 'Escape') return
-  if (lightboxProject.value) closeLightbox()
-  else if (activeIndex.value !== null) closeSheet()
+  if (event.key === 'Escape') {
+    if (lightboxProject.value) closeLightbox()
+    else if (detailOpen.value) detailOpen.value = false
+    return
+  }
+  if (lightboxProject.value) return
+  // Panah hanya aktif kalau fokus sedang ada di galeri, supaya tidak bentrok dengan scroll halaman
+  if (!galleryEl.value || !galleryEl.value.contains(document.activeElement)) return
+  if (event.key === 'ArrowRight') {
+    event.preventDefault()
+    next()
+  } else if (event.key === 'ArrowLeft') {
+    event.preventDefault()
+    prev()
+  }
 }
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
@@ -202,75 +286,128 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <h2 v-reveal="80" class="section-title">
             Karya yang pernah saya <span class="serif-accent">bangun</span>
           </h2>
+          <p v-reveal="160" class="section-lead projects__lead">
+            Kumpulan proyek yang menunjukkan cara saya berpikir, mulai dari
+            menyusun struktur sampai menyelesaikan detail kecil.
+          </p>
         </div>
-        <p v-reveal="160" class="section-lead projects__lead">
-          Kumpulan proyek yang menunjukkan cara saya berpikir, mulai dari
-          menyusun struktur sampai menyelesaikan detail kecil.
-        </p>
+        <a
+          v-reveal="200"
+          :href="moreProjectsHref"
+          class="projects__more"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Lihat proyek lainnya
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+          </svg>
+        </a>
       </header>
 
-      <div class="projects__grid">
-        <article
-          v-for="(project, index) in projects"
-          :key="project.title"
-          v-reveal="(index % 3) * 90"
-          class="project-card"
+      <!-- Galeri coverflow -->
+      <div
+        ref="galleryEl"
+        v-reveal="120"
+        class="gallery"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Galeri proyek"
+      >
+        <div
+          class="gallery__stage"
+          @pointerdown="onPointerDown"
+          @pointerup="onPointerUp"
+          @pointercancel="pointerStartX = null"
         >
-          <!-- Mockup jendela browser berisi screenshot proyek -->
-          <div class="project-card__frame">
-            <div class="project-card__chrome" aria-hidden="true">
-              <span class="project-card__dots"><i></i><i></i><i></i></span>
-              <span class="project-card__url">{{ demoHost(project.demoHref) }}</span>
-            </div>
-            <button
-              type="button"
-              class="project-card__shot"
-              :aria-label="`Perbesar gambar ${project.title}`"
-              oncontextmenu="return false"
-              @click="openLightbox(project)"
-              @contextmenu.prevent="preventImageAction"
-            >
+          <button
+            v-for="(project, index) in projects"
+            :key="project.title"
+            type="button"
+            class="gallery__slide"
+            :class="{
+              'gallery__slide--active': offsetOf(index) === 0,
+              'gallery__slide--hidden': Math.abs(offsetOf(index)) > 2,
+              'gallery__slide--far': Math.abs(offsetOf(index)) === 2,
+            }"
+            :style="{ '--d': offsetOf(index), '--abs': Math.abs(offsetOf(index)) }"
+            :tabindex="Math.abs(offsetOf(index)) > 1 ? -1 : 0"
+            :aria-hidden="Math.abs(offsetOf(index)) > 2"
+            :aria-current="offsetOf(index) === 0 ? 'true' : undefined"
+            :aria-label="offsetOf(index) === 0
+              ? `Perbesar gambar ${project.title}`
+              : `Tampilkan proyek ${project.title}`"
+            oncontextmenu="return false"
+            @click="onSlideClickGuarded(index)"
+            @contextmenu.prevent="preventImageAction"
+          >
+            <!-- Mockup jendela browser -->
+            <span class="gallery__chrome" aria-hidden="true">
+              <span class="gallery__dots"><i></i><i></i><i></i></span>
+              <span class="gallery__url">{{ demoHost(project.demoHref) }}</span>
+            </span>
+            <span class="gallery__shot">
               <img
                 :src="project.thumb"
                 :alt="project.title"
-                class="project-card__shot-img"
-                loading="lazy"
+                class="gallery__img"
+                :loading="Math.abs(offsetOf(index)) <= 1 ? 'eager' : 'lazy'"
                 draggable="false"
                 oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
                 @dragstart.prevent="preventImageAction"
               />
-              <span class="project-card__zoom" aria-hidden="true">
+              <span v-if="offsetOf(index) === 0" class="gallery__zoom" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="16" height="16">
                   <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
                 </svg>
               </span>
-            </button>
-          </div>
+            </span>
+          </button>
+        </div>
 
-          <div class="project-card__body">
-            <div class="project-card__meta">
-              <span class="project-card__num">{{ String(index + 1).padStart(2, '0') }}</span>
-              <span class="project-card__category">{{ project.category }}</span>
+        <!-- Titik penanda posisi -->
+        <div class="gallery__dots-nav" role="tablist" aria-label="Pilih proyek">
+          <button
+            v-for="(project, index) in projects"
+            :key="`dot-${project.title}`"
+            type="button"
+            role="tab"
+            class="gallery__dot"
+            :class="{ 'gallery__dot--active': index === activeIndex }"
+            :aria-selected="index === activeIndex"
+            :aria-label="`Proyek ${index + 1}: ${project.title}`"
+            @click="goTo(index)"
+          ></button>
+        </div>
+
+        <!-- Info proyek aktif -->
+        <Transition name="info" mode="out-in">
+          <div :key="activeProject.title" class="gallery__info" aria-live="polite">
+            <div class="gallery__meta">
+              <span class="gallery__num">
+                {{ String(activeIndex + 1).padStart(2, '0') }} / {{ String(total).padStart(2, '0') }}
+              </span>
+              <span class="gallery__category">{{ activeProject.category }}</span>
             </div>
 
-            <h3 class="project-card__title">{{ project.title }}</h3>
-            <p class="project-card__summary">{{ project.desc[0] }}</p>
+            <h3 class="gallery__title">{{ activeProject.title }}</h3>
+            <p class="gallery__summary">{{ activeProject.desc[0] }}</p>
 
-            <ul class="project-card__stack">
+            <ul class="gallery__stack">
               <li
-                v-for="tech in project.techStack"
+                v-for="tech in activeProject.techStack"
                 :key="tech.name"
-                class="project-card__chip"
+                class="gallery__chip"
                 oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
               >
                 <img
                   :src="tech.icon"
                   alt=""
-                  class="project-card__chip-icon"
-                  loading="lazy"
+                  class="gallery__chip-icon"
                   draggable="false"
                   @dragstart.prevent="preventImageAction"
                 />
@@ -278,96 +415,84 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               </li>
             </ul>
 
-            <div class="project-card__footer">
+            <div class="gallery__actions">
               <button
                 type="button"
-                class="project-card__detail-btn"
-                :aria-expanded="activeIndex === index"
-                :aria-controls="`project-sheet-${index}`"
-                @click="toggleSheet(index)"
+                class="gallery__detail-btn"
+                :aria-expanded="detailOpen"
+                aria-controls="project-detail"
+                @click="toggleDetail"
               >
-                Detail pengerjaan
-                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                {{ detailOpen ? 'Tutup detail' : 'Detail pengerjaan' }}
+                <svg
+                  viewBox="0 0 24 24"
+                  width="15"
+                  height="15"
+                  aria-hidden="true"
+                  class="gallery__detail-icon"
+                  :class="{ 'gallery__detail-icon--open': detailOpen }"
+                >
                   <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round" d="M12 5v14M5 12h14" />
                 </svg>
               </button>
 
-              <div class="project-card__links">
-                <a
-                  :href="project.codeHref"
-                  class="project-card__icon-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  :aria-label="`Kode sumber ${project.title} di GitHub`"
-                  title="Kode Sumber"
-                >
-                  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
-                    <path
-                      fill="currentColor"
-                      d="M12 .5C5.73.5.75 5.48.75 11.75c0 5.02 3.26 9.27 7.78 10.77.57.1.78-.25.78-.55
-                         0-.27-.01-1-.02-1.96-3.16.69-3.83-1.52-3.83-1.52-.52-1.31-1.26-1.66-1.26-1.66
-                         -1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94
-                         .1-.73.4-1.23.72-1.51-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04
-                         -.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.16a10.9 10.9 0 0 1 5.74 0
-                         c2.19-1.47 3.15-1.16 3.15-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04
-                         0 4.35-2.66 5.31-5.19 5.59.41.35.77 1.04.77 2.1 0 1.51-.01 2.73-.01 3.1
-                         0 .3.2.66.79.55A11.26 11.26 0 0 0 23.25 11.75C23.25 5.48 18.27.5 12 .5Z"
-                    />
-                  </svg>
-                </a>
-                <a
-                  :href="project.demoHref"
-                  class="project-card__icon-link project-card__icon-link--primary"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  :aria-label="`Lihat demo ${project.title}`"
-                  title="Lihat Demo"
-                >
-                  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
-                    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                      stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Panel deskripsi: naik dari bawah kartu -->
-          <div
-            :id="`project-sheet-${index}`"
-            class="project-card__sheet"
-            :class="{ 'project-card__sheet--open': activeIndex === index }"
-            role="region"
-            :aria-label="`Detail ${project.title}`"
-            :aria-hidden="activeIndex !== index"
-            :inert="activeIndex !== index"
-          >
-            <div class="project-card__sheet-head">
-              <div>
-                <span class="project-card__sheet-eyebrow">Ringkasan pengerjaan</span>
-                <h4 class="project-card__sheet-title">{{ project.title }}</h4>
-              </div>
-              <button
-                type="button"
-                class="project-card__sheet-close"
-                aria-label="Tutup deskripsi"
-                @click="closeSheet"
+              <a
+                :href="activeProject.codeHref"
+                class="gallery__icon-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                :aria-label="`Kode sumber ${activeProject.title} di GitHub`"
+                title="Kode Sumber"
               >
-                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    d="M6 6l12 12M18 6 6 18" />
+                <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M12 .5C5.73.5.75 5.48.75 11.75c0 5.02 3.26 9.27 7.78 10.77.57.1.78-.25.78-.55
+                       0-.27-.01-1-.02-1.96-3.16.69-3.83-1.52-3.83-1.52-.52-1.31-1.26-1.66-1.26-1.66
+                       -1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94
+                       .1-.73.4-1.23.72-1.51-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04
+                       -.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.16a10.9 10.9 0 0 1 5.74 0
+                       c2.19-1.47 3.15-1.16 3.15-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04
+                       0 4.35-2.66 5.31-5.19 5.59.41.35.77 1.04.77 2.1 0 1.51-.01 2.73-.01 3.1
+                       0 .3.2.66.79.55A11.26 11.26 0 0 0 23.25 11.75C23.25 5.48 18.27.5 12 .5Z"
+                  />
                 </svg>
-              </button>
+              </a>
+              <a
+                :href="activeProject.demoHref"
+                class="gallery__icon-link gallery__icon-link--primary"
+                target="_blank"
+                rel="noopener noreferrer"
+                :aria-label="`Lihat demo ${activeProject.title}`"
+                title="Lihat Demo"
+              >
+                <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
+                </svg>
+              </a>
             </div>
 
-            <ol class="project-card__sheet-list">
-              <li v-for="point in project.desc" :key="point" class="project-card__sheet-point">
-                {{ point }}
-              </li>
-            </ol>
+            <!-- Detail pengerjaan -->
+            <div
+              id="project-detail"
+              class="gallery__detail"
+              :class="{ 'gallery__detail--open': detailOpen }"
+              :aria-hidden="!detailOpen"
+              :inert="!detailOpen"
+            >
+              <div class="gallery__detail-inner">
+                <span class="gallery__detail-eyebrow">Ringkasan pengerjaan</span>
+                <ol class="gallery__detail-list">
+                  <li v-for="point in activeProject.desc" :key="point" class="gallery__detail-point">
+                    {{ point }}
+                  </li>
+                </ol>
+              </div>
+            </div>
           </div>
-        </article>
+        </Transition>
       </div>
     </div>
 
@@ -420,95 +545,152 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   padding: var(--section-y) 0;
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
+  overflow: hidden; /* slide paling luar tidak bikin scroll horizontal */
 }
 
 .projects__header {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 1.5rem 3rem;
-  align-items: end;
-  margin-bottom: clamp(2.5rem, 5vw, 3.75rem);
+  margin-bottom: clamp(2rem, 4vw, 3rem);
 }
 
 .projects__lead {
-  margin: 0;
+  margin: 0.9rem 0 0;
+  max-width: 34rem;
 }
 
-.projects__grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(1rem, 2vw, 1.5rem);
-}
-
-/* ---- Kartu ---- */
-.project-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--radius-lg);
+.projects__more {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 999px;
   border: 1px solid var(--color-border);
   background: var(--color-bg);
-  overflow: hidden;
-  isolation: isolate;
-  transition: border-color 0.3s ease, transform 0.4s var(--ease-out), box-shadow 0.4s ease;
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease,
+    transform 0.25s var(--ease-out);
 }
 
-.project-card.reveal-done:hover {
-  transform: translateY(-6px);
-  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
-  box-shadow: 0 30px 60px -35px color-mix(in srgb, var(--color-primary) 70%, transparent);
+.projects__more:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  transform: translateY(-2px);
 }
 
-/* Mockup browser */
-.project-card__frame {
-  margin: 0.75rem 0.75rem 0;
-  border-radius: calc(var(--radius-lg) - 0.5rem);
+/* ---- Galeri ---- */
+.gallery {
+  --slide-w: min(440px, 46%);
+  --slide-gap: 64%; /* jarak geser tiap slide, relatif terhadap lebar slide */
+  position: relative;
+}
+
+.gallery__stage {
+  position: relative;
+  height: clamp(220px, 26vw, 320px);
+  perspective: 1400px;
+  touch-action: pan-y; /* scroll vertikal tetap jalan, swipe horizontal untuk galeri */
+  user-select: none;
+}
+
+.gallery__slide {
+  --scale: calc(1 - var(--abs) * 0.18);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--slide-w);
+  padding: 0;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background:
     radial-gradient(120% 120% at 0% 0%, var(--color-primary-soft), transparent 55%),
     radial-gradient(120% 120% at 100% 100%, var(--color-accent-soft), transparent 55%),
-    var(--color-surface);
+    var(--color-bg);
   overflow: hidden;
+  cursor: pointer;
+  z-index: calc(10 - var(--abs));
+  transform:
+    translate(-50%, -50%)
+    translateX(calc(var(--d) * var(--slide-gap)))
+    scale(var(--scale));
+  transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.5s ease,
+    box-shadow 0.5s ease, border-color 0.3s ease;
 }
 
-.project-card__chrome {
+/* Lapisan gelap di slide samping supaya slide tengah menonjol */
+.gallery__slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg);
+  opacity: calc(var(--abs) * 0.3);
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.gallery__slide--active {
+  cursor: zoom-in;
+  border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+  box-shadow: 0 40px 80px -40px color-mix(in srgb, var(--color-primary) 75%, transparent);
+}
+
+.gallery__slide:not(.gallery__slide--active):hover {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
+}
+
+.gallery__slide:not(.gallery__slide--active):hover::after {
+  opacity: calc(var(--abs) * 0.18);
+}
+
+.gallery__slide--far {
+  opacity: 0.75;
+}
+
+.gallery__slide--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gallery__slide:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* Mockup browser */
+.gallery__chrome {
   display: flex;
   align-items: center;
   gap: 0.7rem;
   padding: 0.6rem 0.8rem;
   border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
-.project-card__dots {
+.gallery__dots {
   display: inline-flex;
   gap: 5px;
   flex-shrink: 0;
 }
 
-.project-card__dots i {
+.gallery__dots i {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-text-soft);
-  opacity: 0.35;
 }
 
-.project-card__dots i:first-child {
-  background: #ff6b6b;
-  opacity: 0.9;
-}
+.gallery__dots i:nth-child(1) { background: #ff6b6b; }
+.gallery__dots i:nth-child(2) { background: #ffbd4a; }
+.gallery__dots i:nth-child(3) { background: #3ecf8e; }
 
-.project-card__dots i:nth-child(2) {
-  background: #ffbd4a;
-  opacity: 0.9;
-}
-
-.project-card__dots i:nth-child(3) {
-  background: #3ecf8e;
-  opacity: 0.9;
-}
-
-.project-card__url {
+.gallery__url {
   flex: 1;
   min-width: 0;
   padding: 0.2rem 0.6rem;
@@ -516,25 +698,21 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   background: var(--color-bg);
   font-family: var(--font-mono);
   font-size: 0.66rem;
+  text-align: left;
   color: var(--color-text-soft);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.project-card__shot {
+.gallery__shot {
   position: relative;
   display: block;
-  width: 100%;
   aspect-ratio: 16 / 10;
-  padding: 0;
-  border: 0;
-  background: none;
   overflow: hidden;
-  cursor: zoom-in;
 }
 
-.project-card__shot-img {
+.gallery__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -547,19 +725,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   pointer-events: none;
 }
 
-.project-card__shot:hover .project-card__shot-img {
-  transform: scale(1.05);
+.gallery__slide--active:hover .gallery__img {
+  transform: scale(1.04);
 }
 
-.project-card__zoom {
+.gallery__zoom {
   position: absolute;
-  right: 0.7rem;
-  bottom: 0.7rem;
+  right: 0.8rem;
+  bottom: 0.8rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: rgba(11, 14, 23, 0.7);
   color: #fff;
@@ -569,83 +747,109 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   transition: opacity 0.3s ease, transform 0.3s var(--ease-out);
 }
 
-.project-card__shot:hover .project-card__zoom,
-.project-card__shot:focus-visible .project-card__zoom {
+.gallery__slide--active:hover .gallery__zoom,
+.gallery__slide--active:focus-visible .gallery__zoom {
   opacity: 1;
   transform: none;
 }
 
-/* Isi kartu */
-.project-card__body {
+/* Titik penanda */
+.gallery__dots-nav {
   display: flex;
-  flex: 1;
-  flex-direction: column;
-  padding: 1.3rem 1.4rem 1.4rem;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 1.4rem;
 }
 
-.project-card__meta {
+.gallery__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-border);
+  cursor: pointer;
+  transition: width 0.35s var(--ease-out), background 0.25s ease;
+}
+
+.gallery__dot:hover {
+  background: var(--color-text-soft);
+}
+
+.gallery__dot--active {
+  width: 26px;
+  background: var(--color-primary);
+}
+
+/* Info proyek aktif */
+.gallery__info {
+  max-width: 46rem;
+  margin: 1.8rem auto 0;
+  text-align: center;
+}
+
+.gallery__meta {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  justify-content: center;
+  gap: 0.7rem;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.project-card__num {
+.gallery__num {
   color: var(--color-text-soft);
 }
 
-.project-card__category {
+.gallery__category {
   color: var(--color-accent);
 }
 
-.project-card__title {
+.gallery__title {
   font-family: var(--font-heading);
-  font-size: clamp(1.2rem, 1.8vw, 1.4rem);
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.2;
   color: var(--color-text);
-  margin: 0.55rem 0 0.5rem;
+  margin: 0.6rem 0 0.7rem;
 }
 
-.project-card__summary {
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.65;
+.gallery__summary {
+  margin: 0 auto;
+  max-width: 40rem;
+  font-size: 0.95rem;
+  line-height: 1.7;
   color: var(--color-text-soft);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  text-wrap: pretty;
 }
 
-.project-card__stack {
+.gallery__stack {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.4rem;
   list-style: none;
-  margin: 1.1rem 0 0;
+  margin: 1.2rem 0 0;
   padding: 0;
 }
 
-.project-card__chip {
+.gallery__chip {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.28rem 0.6rem 0.28rem 0.32rem;
+  padding: 0.28rem 0.65rem 0.28rem 0.32rem;
   border-radius: 999px;
   border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  font-size: 0.74rem;
+  background: var(--color-bg);
+  font-size: 0.76rem;
   font-weight: 500;
   color: var(--color-text);
 }
 
-.project-card__chip-icon {
+.gallery__chip-icon {
   width: 20px;
   height: 20px;
   padding: 3px;
@@ -657,48 +861,51 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   pointer-events: none;
 }
 
-.project-card__footer {
+.gallery__actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 1.3rem;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.4rem;
 }
 
-.project-card__detail-btn {
+.gallery__detail-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.55rem 0.95rem;
+  padding: 0.6rem 1rem;
   border-radius: 999px;
   border: 1px solid var(--color-border);
   background: transparent;
   font-family: var(--font-body);
-  font-size: 0.84rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-text);
   cursor: pointer;
   transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
 }
 
-.project-card__detail-btn:hover {
+.gallery__detail-btn:hover,
+.gallery__detail-btn[aria-expanded='true'] {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-soft);
 }
 
-.project-card__links {
-  display: flex;
-  gap: 0.45rem;
+.gallery__detail-icon {
+  transition: transform 0.35s var(--ease-out);
 }
 
-.project-card__icon-link {
+.gallery__detail-icon--open {
+  transform: rotate(45deg);
+}
+
+.gallery__icon-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 1px solid var(--color-border);
   color: var(--color-text);
@@ -706,54 +913,45 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     border-color 0.25s ease;
 }
 
-.project-card__icon-link:hover {
+.gallery__icon-link:hover {
   transform: translateY(-2px);
   border-color: var(--color-text-soft);
 }
 
-.project-card__icon-link--primary {
+.gallery__icon-link--primary {
   border-color: transparent;
   background: var(--color-primary);
   color: #fff;
 }
 
-.project-card__icon-link--primary:hover {
+.gallery__icon-link--primary:hover {
   border-color: transparent;
   background: var(--color-primary-dark);
   transform: translateY(-2px) rotate(45deg);
 }
 
-/* ---- Panel deskripsi ---- */
-.project-card__sheet {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  padding: 1.4rem 1.4rem 1.2rem;
-  background: var(--color-surface);
-  border-radius: inherit;
-  transform: translateY(101%);
-  visibility: hidden;
-  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 0.45s;
+/* Detail pengerjaan: buka-tutup dengan animasi tinggi (grid 0fr → 1fr) */
+.gallery__detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.project-card__sheet--open {
-  transform: translateY(0);
-  visibility: visible;
-  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s;
+.gallery__detail--open {
+  grid-template-rows: 1fr;
 }
 
-.project-card__sheet-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px dashed var(--color-border);
+.gallery__detail-inner {
+  min-height: 0;
+  overflow: hidden;
+  text-align: left;
 }
 
-.project-card__sheet-eyebrow {
+.gallery__detail-eyebrow {
+  display: block;
+  margin-top: 1.6rem;
+  padding-top: 1.2rem;
+  border-top: 1px dashed var(--color-border);
   font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.08em;
@@ -761,59 +959,27 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   color: var(--color-accent);
 }
 
-.project-card__sheet-title {
-  font-family: var(--font-heading);
-  font-size: 1.2rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--color-text);
-  margin: 0.3rem 0 0;
-}
-
-.project-card__sheet-close {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  color: var(--color-text-soft);
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.project-card__sheet-close:hover {
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.project-card__sheet-list {
+.gallery__detail-list {
   list-style: none;
-  counter-reset: sheet-point;
-  margin: 0;
-  padding: 1rem 0.2rem 0.5rem 0;
-  overflow-y: auto;
+  counter-reset: detail-point;
   display: grid;
   gap: 0.8rem;
-  align-content: start;
-  scrollbar-width: thin;
+  margin: 1rem 0 0.25rem;
+  padding: 0;
 }
 
-.project-card__sheet-point {
+.gallery__detail-point {
   position: relative;
   padding-left: 2rem;
-  counter-increment: sheet-point;
-  font-size: 0.88rem;
+  counter-increment: detail-point;
+  font-size: 0.9rem;
   line-height: 1.65;
   color: var(--color-text-soft);
   text-wrap: pretty;
 }
 
-.project-card__sheet-point::before {
-  content: counter(sheet-point, decimal-leading-zero);
+.gallery__detail-point::before {
+  content: counter(detail-point, decimal-leading-zero);
   position: absolute;
   left: 0;
   top: 0.1em;
@@ -822,18 +988,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   color: var(--color-primary);
 }
 
-.project-card__sheet--open .project-card__sheet-point {
-  animation: project-point-in 0.45s var(--ease-out) backwards;
+.gallery__detail--open .gallery__detail-point {
+  animation: detail-point-in 0.45s var(--ease-out) backwards;
 }
 
-.project-card__sheet-point:nth-child(1) { animation-delay: 0.1s; }
-.project-card__sheet-point:nth-child(2) { animation-delay: 0.15s; }
-.project-card__sheet-point:nth-child(3) { animation-delay: 0.2s; }
-.project-card__sheet-point:nth-child(4) { animation-delay: 0.25s; }
-.project-card__sheet-point:nth-child(5) { animation-delay: 0.3s; }
-.project-card__sheet-point:nth-child(n + 6) { animation-delay: 0.35s; }
+.gallery__detail-point:nth-child(1) { animation-delay: 0.08s; }
+.gallery__detail-point:nth-child(2) { animation-delay: 0.13s; }
+.gallery__detail-point:nth-child(3) { animation-delay: 0.18s; }
+.gallery__detail-point:nth-child(4) { animation-delay: 0.23s; }
+.gallery__detail-point:nth-child(5) { animation-delay: 0.28s; }
+.gallery__detail-point:nth-child(n + 6) { animation-delay: 0.33s; }
 
-@keyframes project-point-in {
+@keyframes detail-point-in {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -842,6 +1008,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     opacity: 1;
     transform: none;
   }
+}
+
+/* Transisi ganti info proyek */
+.info-enter-active,
+.info-leave-active {
+  transition: opacity 0.25s ease, transform 0.3s var(--ease-out);
+}
+
+.info-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.info-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
 }
 
 /* ---- Lightbox ---- */
@@ -932,41 +1114,54 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .project-card__sheet-point {
+  .gallery__slide,
+  .gallery__slide::after,
+  .gallery__detail {
+    transition: none;
+  }
+
+  .gallery__detail-point {
     animation: none !important;
   }
 }
 
 /* ---- Tablet ---- */
-@media (max-width: 1080px) {
-  .projects__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 860px) {
   .projects__header {
-    grid-template-columns: 1fr;
-    align-items: start;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gallery {
+    --slide-w: min(420px, 60%);
+    --slide-gap: 62%;
   }
 }
 
 /* ---- HP ---- */
 @media (max-width: 640px) {
-  .projects__grid {
-    grid-template-columns: 1fr;
+  /* Slide samping dibuat mengintip di pinggir layar supaya tetap bisa diklik */
+  .gallery {
+    --slide-w: 64%;
+    --slide-gap: 70%;
   }
 
-  .project-card__body {
-    padding: 1.15rem 1.15rem 1.2rem;
+  .gallery__stage {
+    height: clamp(170px, 50vw, 250px);
   }
 
-  .project-card__sheet {
-    padding: 1.15rem;
+  /* Di HP cukup 3 slide yang kelihatan */
+  .gallery__slide--far {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .gallery__summary {
+    font-size: 0.9rem;
   }
 
   /* Di layar sentuh ikon zoom selalu terlihat sebagai petunjuk */
-  .project-card__zoom {
+  .gallery__slide--active .gallery__zoom {
     opacity: 1;
     transform: none;
   }

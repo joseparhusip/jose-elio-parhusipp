@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import spkdLogo from './icons-experience/spkd.svg'
 import jecLogo from './icons-experience/jec.svg'
@@ -88,109 +88,12 @@ const experiences = [
 ]
 
 /* ---------------------------------------------------------
-   Scroll-driven "connecting line" animation
-   - Setiap garis punya elemen `fill` yang di-scaleY() dari 0 -> 1
-     mengikuti posisi scroll (bukan cuma on/off, tapi bertahap).
-   - Dot menyala (glow) begitu garis di atasnya mulai tersambung.
-   - Warna dasar TIDAK diubah sama sekali, cuma ditambah box-shadow
-     (efek "menyala") di warna yang sama.
---------------------------------------------------------- */
-
-const lineFillRefs = ref([])
-const dotRefs = ref([])
-
-function setLineFillRef(el, index) {
-  if (el) lineFillRefs.value[index] = el
-}
-
-function setDotRef(el, index) {
-  if (el) dotRefs.value[index] = el
-}
-
-let ticking = false
-
-function updateTimelineProgress() {
-  // Titik acuan di viewport tempat garis mulai "tersambung".
-  // Semakin kecil angka pengalinya, semakin cepat garis terisi
-  // saat item mulai muncul dari bawah layar.
-  const triggerY = window.innerHeight * 0.75
-
-  lineFillRefs.value.forEach((fillEl) => {
-    if (!fillEl) return
-    const track = fillEl.parentElement
-    const rect = track.getBoundingClientRect()
-    if (rect.height <= 0) return
-
-    // progress = 0 saat garis belum menyentuh triggerY,
-    // progress = 1 saat seluruh tinggi garis sudah melewati triggerY.
-    let progress = (triggerY - rect.top) / rect.height
-    progress = Math.min(1, Math.max(0, progress))
-
-    fillEl.style.transform = `scaleY(${progress})`
-  })
-
-  dotRefs.value.forEach((dotEl) => {
-    if (!dotEl) return
-    const rect = dotEl.getBoundingClientRect()
-    const isActive = rect.top < triggerY
-    dotEl.classList.toggle('is-active', isActive)
-  })
-
-  ticking = false
-}
-
-function onScroll() {
-  if (ticking) return
-  ticking = true
-  window.requestAnimationFrame(updateTimelineProgress)
-}
-
-onMounted(async () => {
-  await nextTick()
-  window.addEventListener('scroll', onScroll, { passive: true })
-  window.addEventListener('resize', onScroll)
-  updateTimelineProgress()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', onScroll)
-  window.removeEventListener('resize', onScroll)
-})
-
-/* ---------------------------------------------------------
-   Poin panjang dilipat: tampil 3 dulu, sisanya lewat tombol
-   "Lihat semua" supaya kartu tidak jadi tembok teks.
---------------------------------------------------------- */
-const PREVIEW_COUNT = 3
-const expanded = ref({})
-
-function toggleExpanded(index) {
-  expanded.value = { ...expanded.value, [index]: !expanded.value[index] }
-  // Tinggi kartu berubah, hitung ulang progress garis
-  nextTick(onScroll)
-}
-
-function visiblePoints(item, index) {
-  return expanded.value[index] ? item.desc : item.desc.slice(0, PREVIEW_COUNT)
-}
-
-/* ---------------------------------------------------------
    Durasi otomatis dari teks periode, mis. "Juli 2024 — September 2024"
    menjadi "3 bln". "Sekarang" dihitung sampai bulan berjalan.
 --------------------------------------------------------- */
 const MONTHS = [
-  'januari',
-  'februari',
-  'maret',
-  'april',
-  'mei',
-  'juni',
-  'juli',
-  'agustus',
-  'september',
-  'oktober',
-  'november',
-  'desember',
+  'januari', 'februari', 'maret', 'april', 'mei', 'juni',
+  'juli', 'agustus', 'september', 'oktober', 'november', 'desember',
 ]
 
 function parseMonth(text) {
@@ -199,18 +102,34 @@ function parseMonth(text) {
   return m < 0 || !year ? null : Number(year) * 12 + m
 }
 
-function duration(period) {
+function monthsOf(period) {
   const [startText, endText = ''] = period.split('—')
   const start = parseMonth(startText)
   const now = new Date()
   const end = /sekarang/i.test(endText)
     ? now.getFullYear() * 12 + now.getMonth()
     : parseMonth(endText)
-  if (start === null || end === null) return ''
-  const total = Math.max(1, end - start + 1)
+  if (start === null || end === null) return 0
+  return Math.max(1, end - start + 1)
+}
+
+function formatMonths(total) {
+  if (!total) return ''
   const years = Math.floor(total / 12)
   const months = total % 12
   return [years && `${years} thn`, months && `${months} bln`].filter(Boolean).join(' ')
+}
+
+function duration(period) {
+  return formatMonths(monthsOf(period))
+}
+
+// Tahun mulai–selesai singkat untuk tab, mis. "2024" atau "2023–2024"
+function yearRange(period) {
+  const [startText, endText = ''] = period.split('—')
+  const startYear = startText.trim().split(/\s+/).pop()
+  const endYear = /sekarang/i.test(endText) ? 'Kini' : endText.trim().split(/\s+/).pop()
+  return startYear === endYear ? startYear : `${startYear}–${endYear}`
 }
 
 // "Solo Project — JEC Eye ..." dipecah jadi badge tipe + nama tempat
@@ -218,139 +137,327 @@ function splitCompany(company) {
   const [first, ...rest] = company.split(' — ')
   return rest.length ? { type: first, name: rest.join(' — ') } : { type: '', name: first }
 }
+
+// Panjang "bar durasi" di tiap tab, relatif terhadap peran terlama
+const longest = Math.max(...experiences.map((e) => monthsOf(e.period)))
+function tenureRatio(item) {
+  return Math.max(0.08, monthsOf(item.period) / longest)
+}
+
+const totalMonths = experiences.reduce((sum, e) => sum + monthsOf(e.period), 0)
+const firstYear = Math.min(...experiences.map((e) => Number(e.period.split('—')[0].trim().split(/\s+/).pop())))
+
+/* ---------------------------------------------------------
+   Tab: pilih satu peran, detailnya tampil di panel kanan
+--------------------------------------------------------- */
+const activeIndex = ref(0)
+const active = computed(() => experiences[activeIndex.value])
+const activeCompany = computed(() => splitCompany(active.value.company))
+
+const tabRefs = ref([])
+const tablistEl = ref(null)
+
+function setTabRef(el, index) {
+  if (el) tabRefs.value[index] = el
+}
+
+function select(index, focus = false) {
+  activeIndex.value = (index + experiences.length) % experiences.length
+  if (focus) nextTick(() => tabRefs.value[activeIndex.value]?.focus())
+}
+
+// Navigasi keyboard pola WAI-ARIA tabs: panah, Home, End
+function onTabKeydown(event) {
+  const keys = {
+    ArrowDown: 1,
+    ArrowRight: 1,
+    ArrowUp: -1,
+    ArrowLeft: -1,
+  }
+  if (event.key in keys) {
+    event.preventDefault()
+    select(activeIndex.value + keys[event.key], true)
+  } else if (event.key === 'Home') {
+    event.preventDefault()
+    select(0, true)
+  } else if (event.key === 'End') {
+    event.preventDefault()
+    select(experiences.length - 1, true)
+  }
+}
+
+/* Indikator yang "meluncur" ke tab aktif (desktop: vertikal, HP: horizontal) */
+const indicator = ref({ x: 0, y: 0, w: 0, h: 0 })
+
+function updateIndicator() {
+  const tab = tabRefs.value[activeIndex.value]
+  if (!tab) return
+  indicator.value = { x: tab.offsetLeft, y: tab.offsetTop, w: tab.offsetWidth, h: tab.offsetHeight }
+}
+
+// Di HP tab berbentuk baris yang bisa digeser; tab aktif digeser ke tengah
+function scrollActiveTabIntoView() {
+  const list = tablistEl.value
+  const tab = tabRefs.value[activeIndex.value]
+  if (!list || !tab || list.scrollWidth <= list.clientWidth) return
+  const left = tab.offsetLeft - (list.clientWidth - tab.offsetWidth) / 2
+  list.scrollTo({ left, behavior: 'smooth' })
+}
+
+/* Poin panjang dilipat: tampil 4 dulu, sisanya lewat "Lihat semua" */
+const PREVIEW_COUNT = 4
+const expanded = ref(false)
+const visiblePoints = computed(() =>
+  expanded.value ? active.value.desc : active.value.desc.slice(0, PREVIEW_COUNT),
+)
+
+watch(activeIndex, () => {
+  expanded.value = false
+  nextTick(() => {
+    updateIndicator()
+    scrollActiveTabIntoView()
+  })
+})
+
+let resizeObserver
+onMounted(() => {
+  nextTick(updateIndicator)
+  // Ukuran tab berubah saat font selesai dimuat / layar diubah
+  resizeObserver = new ResizeObserver(() => updateIndicator())
+  if (tablistEl.value) resizeObserver.observe(tablistEl.value)
+  window.addEventListener('resize', updateIndicator)
+})
+
+onUnmounted(() => {
+  resizeObserver?.disconnect()
+  window.removeEventListener('resize', updateIndicator)
+})
+
+const logoStyle = (item) =>
+  item.logoBg ? { background: item.logoBg, borderColor: 'transparent' } : null
 </script>
 
 <template>
   <section id="pengalaman" class="experience">
-    <div class="container experience__grid">
+    <div class="container">
       <header class="experience__header">
-        <div class="experience__header-sticky">
+        <div>
           <span v-reveal class="section-label">
             <span class="section-label__num">02</span> Pengalaman
           </span>
           <h2 v-reveal="80" class="section-title">
             Perjalanan singkat <span class="serif-accent">sejauh</span> ini
           </h2>
-          <p v-reveal="160" class="section-lead">
+          <p v-reveal="160" class="section-lead experience__lead">
             Beberapa peran yang pernah saya jalani, dari pekerjaan profesional, proyek mandiri,
             sampai organisasi, yang membentuk cara saya bekerja.
           </p>
-
-          <dl v-reveal="240" class="experience__summary">
-            <div>
-              <dt>Peran</dt>
-              <dd>{{ experiences.length }}</dd>
-            </div>
-            <div>
-              <dt>Rentang</dt>
-              <dd>2022<span>–</span>{{ new Date().getFullYear() }}</dd>
-            </div>
-          </dl>
         </div>
+
+        <dl v-reveal="240" class="experience__summary">
+          <div>
+            <dt>Peran</dt>
+            <dd>{{ experiences.length }}</dd>
+          </div>
+          <div>
+            <dt>Rentang</dt>
+            <dd>{{ firstYear }}<span>–</span>{{ new Date().getFullYear() }}</dd>
+          </div>
+          <div>
+            <dt>Total</dt>
+            <dd class="experience__summary-small">{{ formatMonths(totalMonths) }}</dd>
+          </div>
+        </dl>
       </header>
 
-      <ol class="experience__timeline">
-        <li
-          v-for="(item, index) in experiences"
-          :key="item.role + item.period"
-          class="experience__item"
+      <div v-reveal="120" class="experience__layout">
+        <!-- Daftar peran (tab) -->
+        <div
+          ref="tablistEl"
+          class="experience__tabs"
+          role="tablist"
+          aria-label="Daftar pengalaman"
+          aria-orientation="vertical"
+          @keydown="onTabKeydown"
         >
-          <div class="experience__marker">
-            <span class="experience__dot" :ref="(el) => setDotRef(el, index)"></span>
-            <span class="experience__line">
-              <span class="experience__line-fill" :ref="(el) => setLineFillRef(el, index)"></span>
-            </span>
-          </div>
+          <span
+            class="experience__indicator"
+            aria-hidden="true"
+            :style="{
+              '--ix': `${indicator.x}px`,
+              '--iy': `${indicator.y}px`,
+              '--iw': `${indicator.w}px`,
+              '--ih': `${indicator.h}px`,
+            }"
+          ></span>
 
-          <article v-reveal.left="index * 60" class="experience__card">
-            <div class="experience__head">
-              <span
-                class="experience__mono"
-                :class="{ 'experience__mono--logo': item.logo }"
-                :style="
-                  item.logoBg ? { background: item.logoBg, borderColor: 'transparent' } : null
-                "
-                oncontextmenu="return false"
-              >
-                <img
-                  v-if="item.logo"
-                  :src="item.logo"
-                  :alt="`Logo ${item.short}`"
-                  width="52"
-                  height="36"
-                  loading="lazy"
-                  draggable="false"
-                />
-                <span v-else aria-hidden="true">{{ item.short }}</span>
+          <button
+            v-for="(item, index) in experiences"
+            :id="`exp-tab-${index}`"
+            :key="item.role + item.period"
+            :ref="(el) => setTabRef(el, index)"
+            type="button"
+            role="tab"
+            class="experience__tab"
+            :class="{ 'experience__tab--active': index === activeIndex }"
+            :aria-selected="index === activeIndex"
+            aria-controls="exp-panel"
+            :tabindex="index === activeIndex ? 0 : -1"
+            @click="select(index)"
+          >
+            <span
+              class="experience__logo experience__logo--sm"
+              :style="logoStyle(item)"
+              oncontextmenu="return false"
+            >
+              <img
+                v-if="item.logo"
+                :src="item.logo"
+                alt=""
+                width="40"
+                height="28"
+                loading="lazy"
+                draggable="false"
+              />
+              <span v-else aria-hidden="true">{{ item.short }}</span>
+            </span>
+
+            <span class="experience__tab-text">
+              <span class="experience__tab-role">{{ item.role }}</span>
+              <span class="experience__tab-company">{{ item.short }}</span>
+            </span>
+
+            <span class="experience__tab-year">
+              <span v-if="item.current" class="experience__now" aria-hidden="true"></span>
+              {{ yearRange(item.period) }}
+            </span>
+
+            <!-- Bar durasi: makin panjang, makin lama perannya -->
+            <span class="experience__tenure" aria-hidden="true">
+              <span class="experience__tenure-fill" :style="{ '--ratio': tenureRatio(item) }"></span>
+            </span>
+          </button>
+        </div>
+
+        <!-- Detail peran aktif -->
+        <div
+          id="exp-panel"
+          class="experience__panel"
+          role="tabpanel"
+          :aria-labelledby="`exp-tab-${activeIndex}`"
+        >
+          <Transition name="panel" mode="out-in">
+            <article :key="active.role + active.period" class="experience__card">
+              <span class="experience__card-num" aria-hidden="true">
+                {{ String(activeIndex + 1).padStart(2, '0') }}
               </span>
 
-              <div class="experience__head-text">
-                <h3 class="experience__role">{{ item.role }}</h3>
-                <span class="experience__company">{{ splitCompany(item.company).name }}</span>
+              <div class="experience__head">
+                <span
+                  class="experience__logo"
+                  :style="logoStyle(active)"
+                  oncontextmenu="return false"
+                >
+                  <img
+                    v-if="active.logo"
+                    :src="active.logo"
+                    :alt="`Logo ${active.short}`"
+                    width="52"
+                    height="36"
+                    draggable="false"
+                  />
+                  <span v-else aria-hidden="true">{{ active.short }}</span>
+                </span>
+
+                <div class="experience__head-text">
+                  <span v-if="activeCompany.type" class="experience__type">{{ activeCompany.type }}</span>
+                  <h3 class="experience__role">{{ active.role }}</h3>
+                  <span class="experience__company">{{ activeCompany.name }}</span>
+                </div>
               </div>
 
-              <span v-if="splitCompany(item.company).type" class="experience__type">
-                {{ splitCompany(item.company).type }}
-              </span>
-            </div>
+              <div class="experience__meta">
+                <span class="experience__period">
+                  <span v-if="active.current" class="experience__now" aria-hidden="true"></span>
+                  {{ active.period }}
+                </span>
+                <span v-if="duration(active.period)" class="experience__duration">
+                  {{ duration(active.period) }}
+                </span>
+                <span v-if="active.current" class="experience__current">Sedang berjalan</span>
+              </div>
 
-            <div class="experience__meta">
-              <span class="experience__period">
-                <span v-if="item.current" class="experience__now" aria-hidden="true"></span>
-                {{ item.period }}
-              </span>
-              <span v-if="duration(item.period)" class="experience__duration">
-                {{ duration(item.period) }}
-              </span>
-            </div>
-
-            <ul :id="`exp-points-${index}`" class="experience__points">
-              <li
-                v-for="(point, pIndex) in visiblePoints(item, index)"
-                :key="pIndex"
-                class="experience__point"
-              >
-                {{ point }}
-              </li>
-            </ul>
-
-            <div class="experience__card-bottom">
-              <ul class="experience__tags">
-                <li v-for="tag in item.tags" :key="tag" class="experience__tag">
-                  {{ tag }}
-                </li>
-              </ul>
-
-              <button
-                v-if="item.desc.length > PREVIEW_COUNT"
-                type="button"
-                class="experience__more"
-                :aria-expanded="!!expanded[index]"
-                :aria-controls="`exp-points-${index}`"
-                @click="toggleExpanded(index)"
-              >
-                {{ expanded[index] ? 'Ringkas' : `Lihat semua (${item.desc.length})` }}
-                <svg
-                  viewBox="0 0 24 24"
-                  width="14"
-                  height="14"
-                  aria-hidden="true"
-                  :class="{ 'is-open': expanded[index] }"
+              <ol class="experience__points">
+                <li
+                  v-for="(point, pIndex) in visiblePoints"
+                  :key="pIndex"
+                  class="experience__point"
+                  :style="{ '--i': pIndex }"
                 >
-                  <path
-                    d="M6 9l6 6 6-6"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          </article>
-        </li>
-      </ol>
+                  {{ point }}
+                </li>
+              </ol>
+
+              <div class="experience__card-bottom">
+                <ul class="experience__tags">
+                  <li v-for="tag in active.tags" :key="tag" class="experience__tag">{{ tag }}</li>
+                </ul>
+
+                <button
+                  v-if="active.desc.length > PREVIEW_COUNT"
+                  type="button"
+                  class="experience__more"
+                  :aria-expanded="expanded"
+                  @click="expanded = !expanded"
+                >
+                  {{ expanded ? 'Ringkas' : `Lihat semua (${active.desc.length})` }}
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="14"
+                    height="14"
+                    aria-hidden="true"
+                    :class="{ 'is-open': expanded }"
+                  >
+                    <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            </article>
+          </Transition>
+
+          <!-- Pindah ke peran sebelum/berikutnya tanpa balik ke daftar -->
+          <nav class="experience__pager" aria-label="Navigasi pengalaman">
+            <button
+              type="button"
+              class="experience__pager-btn"
+              :disabled="activeIndex === 0"
+              @click="select(activeIndex - 1)"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              Lebih baru
+            </button>
+            <span class="experience__pager-count">
+              {{ activeIndex + 1 }} / {{ experiences.length }}
+            </span>
+            <button
+              type="button"
+              class="experience__pager-btn"
+              :disabled="activeIndex === experiences.length - 1"
+              @click="select(activeIndex + 1)"
+            >
+              Lebih lama
+              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                <path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -361,25 +468,26 @@ function splitCompany(company) {
   background: var(--color-bg);
 }
 
-.experience__grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
-  gap: clamp(2rem, 6vw, 5rem);
-  align-items: start;
+/* ---- Header ---- */
+.experience__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem 3rem;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
 }
 
-/* Judul ikut "nempel" saat timeline di kanan discroll (desktop) */
-.experience__header-sticky {
-  position: sticky;
-  top: 110px;
+.experience__lead {
+  max-width: 36rem;
 }
 
 .experience__summary {
+  flex-shrink: 0;
   display: flex;
-  gap: 2.5rem;
-  margin: 2.2rem 0 0;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  margin: 0;
+  padding-left: clamp(1.5rem, 3vw, 2.5rem);
+  border-left: 1px solid var(--color-border);
 }
 
 .experience__summary dt {
@@ -405,74 +513,192 @@ function splitCompany(company) {
   margin: 0 0.1em;
 }
 
-/* ---- Timeline ---- */
-.experience__timeline {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.experience__summary .experience__summary-small {
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  line-height: 1.6;
 }
 
-.experience__item {
+/* ---- Layout tab + panel ---- */
+.experience__layout {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
-  gap: clamp(0.9rem, 2.5vw, 1.6rem);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
 }
 
-.experience__marker {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Dot tetap warna aslinya. Saat aktif cuma ditambah glow (box-shadow) */
-.experience__dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  border: 3px solid var(--color-mint);
-  flex-shrink: 0;
-  margin-top: 1.7rem;
-  box-shadow: 0 0 0 0 rgba(124, 111, 240, 0);
-  transition: box-shadow 0.4s ease;
-}
-
-.experience__dot.is-active {
-  box-shadow:
-    0 0 0 5px rgba(124, 111, 240, 0.18),
-    0 0 14px 4px rgba(124, 111, 240, 0.55);
-}
-
-/* Track dasar nyaris tak terlihat, fill yang "menyambung" saat discroll */
-.experience__line {
+/* ---- Tab ---- */
+.experience__tabs {
   position: relative;
-  flex: 1;
-  width: 2px;
-  margin: 0.5rem 0 0;
-  background: rgba(124, 111, 240, 0.12);
+  display: grid;
+  gap: 0.5rem;
+  position: sticky;
+  top: 110px;
+}
+
+/* Kotak sorot yang meluncur mengikuti tab aktif */
+.experience__indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--iw);
+  height: var(--ih);
+  transform: translate(var(--ix), var(--iy));
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  pointer-events: none;
+  transition:
+    transform 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+    width 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+    height 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Garis aksen di sisi kiri kotak sorot */
+.experience__tab {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.85rem 1rem 1.05rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  font-family: var(--font-body);
+  text-align: left;
+  color: var(--color-text-soft);
+  cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.experience__tab:hover:not(.experience__tab--active) {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.experience__tab:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.experience__tab--active {
+  color: var(--color-text);
+}
+
+.experience__tab-text {
+  display: grid;
+  min-width: 0;
+}
+
+.experience__tab-role {
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.experience__tab-company {
+  margin-top: 0.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.experience__tab--active .experience__tab-company {
+  color: var(--color-accent);
+}
+
+.experience__tab-year {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-soft);
+  white-space: nowrap;
+}
+
+/* Bar durasi tipis di bawah tiap tab */
+.experience__tenure {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.45rem;
+  height: 2px;
   border-radius: 2px;
+  background: var(--color-border);
   overflow: hidden;
 }
 
-.experience__line-fill {
+.experience__tenure-fill {
   position: absolute;
   inset: 0;
-  background: linear-gradient(var(--color-primary), var(--color-accent));
-  border-radius: 2px;
-  transform: scaleY(0);
-  transform-origin: top center;
-  transition: transform 0.12s ease-out;
+  border-radius: inherit;
+  background: var(--color-text-soft);
+  opacity: 0.45;
+  transform: scaleX(var(--ratio));
+  transform-origin: left;
+  transition: background 0.3s ease, opacity 0.3s ease;
 }
 
-.experience__item:last-child .experience__line {
-  display: none;
+.experience__tab--active .experience__tenure-fill {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  opacity: 1;
 }
 
-/* ---- Kartu ---- */
+/* ---- Logo ---- */
+.experience__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 64px;
+  height: 48px;
+  padding: 6px 7px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.experience__logo--sm {
+  width: 46px;
+  height: 34px;
+  padding: 4px 5px;
+  border-radius: 9px;
+}
+
+.experience__logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ---- Panel detail ---- */
+.experience__panel {
+  min-width: 0;
+}
+
 .experience__card {
   position: relative;
-  margin-bottom: 1.25rem;
-  padding: clamp(1.3rem, 3vw, 1.75rem);
+  padding: clamp(1.4rem, 3vw, 2rem);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background:
@@ -485,7 +711,6 @@ function splitCompany(company) {
     var(--color-surface);
   box-shadow: var(--shadow-card);
   overflow: hidden;
-  transition: border-color 0.3s ease;
 }
 
 /* Pola titik hanya terlihat di pojok kanan atas */
@@ -497,7 +722,7 @@ function splitCompany(company) {
   pointer-events: none;
 }
 
-/* Garis aksen tipis di atas kartu saat hover (senada kartu Tentang) */
+/* Garis aksen di atas kartu */
 .experience__card::after {
   content: '';
   position: absolute;
@@ -507,127 +732,75 @@ function splitCompany(company) {
   height: 2px;
   border-radius: 0 0 2px 2px;
   background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.5s var(--ease-out);
 }
 
 .experience__card > * {
   position: relative;
 }
 
-.experience__item:last-child .experience__card {
-  margin-bottom: 0;
-}
-
-.experience__card:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
-}
-
-.experience__card:hover::after {
-  transform: scaleX(1);
-}
-
-/* Baris kepala: monogram instansi + jabatan + tipe */
-.experience__head {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.9rem;
-}
-
-.experience__mono {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 48px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
-  background: var(--color-primary-soft);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--color-primary);
-  transition:
-    color 0.3s ease,
-    background 0.3s ease,
-    border-color 0.3s ease;
-}
-
-/* Logo instansi: selalu di atas latar putih supaya warna aslinya terbaca
-   di mode gelap maupun terang */
-.experience__mono--logo {
-  padding: 6px 7px;
-  border-color: var(--color-border);
-  background: #fff;
-  box-sizing: border-box;
-}
-
-.experience__mono img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  -webkit-user-drag: none;
-  user-select: none;
+/* Nomor besar transparan di pojok kartu */
+.experience__card-num {
+  position: absolute;
+  top: 0.4rem;
+  right: 1.2rem;
+  font-family: var(--font-heading);
+  font-size: clamp(3.5rem, 7vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: var(--color-text);
+  opacity: 0.06;
   pointer-events: none;
 }
 
-.experience__card:hover .experience__mono:not(.experience__mono--logo) {
-  color: var(--color-accent);
-  background: var(--color-accent-soft);
-  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
-}
-
-.experience__card:hover .experience__mono--logo {
-  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+.experience__head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-right: 3rem;
 }
 
 .experience__head-text {
   min-width: 0;
 }
 
+.experience__type {
+  display: inline-block;
+  margin-bottom: 0.45rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--color-primary);
+}
+
 .experience__role {
   font-family: var(--font-heading);
-  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.2;
   color: var(--color-text);
-  margin: 0 0 0.2rem;
+  margin: 0 0 0.25rem;
 }
 
 .experience__company {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 500;
   color: var(--color-text-soft);
 }
 
-.experience__type {
-  align-self: start;
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
-  padding: 0.3rem 0.65rem;
-  border-radius: 999px;
-  line-height: 1.4;
-  max-width: 14rem;
-  text-align: center;
-}
-
-/* Baris periode + durasi */
 .experience__meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 0.75rem;
-  margin-top: 1.1rem;
+  margin-top: 1.2rem;
 }
 
 .experience__period {
@@ -635,12 +808,13 @@ function splitCompany(company) {
   align-items: center;
   gap: 0.45rem;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   letter-spacing: 0.02em;
   color: var(--color-accent);
 }
 
-.experience__duration {
+.experience__duration,
+.experience__current {
   padding: 0.15rem 0.5rem;
   border-radius: 6px;
   border: 1px solid var(--color-border);
@@ -648,6 +822,12 @@ function splitCompany(company) {
   font-family: var(--font-mono);
   font-size: 0.68rem;
   color: var(--color-text-soft);
+}
+
+.experience__current {
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
 }
 
 /* Titik berdenyut untuk pekerjaan yang masih berjalan */
@@ -668,41 +848,48 @@ function splitCompany(company) {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .experience__now {
-    animation: none;
-  }
-}
-
+/* Poin bernomor 01, 02, ... */
 .experience__points {
   list-style: none;
-  margin: 1.2rem 0 0;
-  padding: 1.2rem 0 0;
-  border-top: 1px dashed var(--color-border);
+  counter-reset: exp-point;
   display: grid;
-  gap: 0.7rem;
+  gap: 0.8rem;
+  margin: 1.3rem 0 0;
+  padding: 1.3rem 0 0;
+  border-top: 1px dashed var(--color-border);
 }
 
 .experience__point {
   position: relative;
-  padding-left: 1.3rem;
+  padding-left: 2.1rem;
+  counter-increment: exp-point;
   font-size: 0.94rem;
   line-height: 1.7;
   color: var(--color-text-soft);
   text-wrap: pretty;
+  animation: exp-point-in 0.45s var(--ease-out) backwards;
+  animation-delay: calc(var(--i) * 0.05s + 0.1s);
 }
 
 .experience__point::before {
-  content: '';
+  content: counter(exp-point, decimal-leading-zero);
   position: absolute;
   left: 0;
-  top: 0.68em;
-  width: 7px;
-  height: 7px;
-  border-radius: 2px;
-  background: var(--color-primary);
-  transform: rotate(45deg);
-  opacity: 0.8;
+  top: 0.15em;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-primary);
+}
+
+@keyframes exp-point-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .experience__card-bottom {
@@ -711,7 +898,7 @@ function splitCompany(company) {
   align-items: center;
   justify-content: space-between;
   gap: 0.8rem;
-  margin-top: 1.3rem;
+  margin-top: 1.4rem;
 }
 
 .experience__tags {
@@ -760,29 +947,154 @@ function splitCompany(company) {
   transform: rotate(180deg);
 }
 
-/* ---- Tablet & HP ---- */
-@media (max-width: 960px) {
-  .experience__grid {
-    grid-template-columns: 1fr;
+/* Navigasi sebelum/berikutnya */
+.experience__pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.9rem;
+  padding: 0 0.25rem;
+}
+
+.experience__pager-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease, opacity 0.25s ease;
+}
+
+.experience__pager-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.experience__pager-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.experience__pager-count {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-soft);
+}
+
+/* Transisi ganti panel */
+.panel-enter-active,
+.panel-leave-active {
+  transition: opacity 0.25s ease, transform 0.35s var(--ease-out);
+}
+
+.panel-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.panel-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience__now,
+  .experience__point {
+    animation: none;
   }
 
-  .experience__header-sticky {
-    position: static;
+  .experience__indicator {
+    transition: none;
+  }
+}
+
+/* ---- Tablet & HP: tab jadi baris horizontal yang bisa digeser ---- */
+@media (max-width: 960px) {
+  .experience__header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .experience__summary {
-    margin-top: 1.6rem;
+    padding: 1.4rem 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+    width: 100%;
+  }
+
+  .experience__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .experience__tabs {
+    position: relative;
+    top: auto;
+    display: flex;
+    gap: 0.5rem;
+    margin: 0 calc(var(--gutter, 1.25rem) * -1);
+    padding: 0.25rem var(--gutter, 1.25rem) 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .experience__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .experience__tab {
+    flex: 0 0 auto;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+    gap: 0.2rem 0.65rem;
+    width: auto;
+    min-width: 9.5rem;
+    padding: 0.7rem 0.9rem 0.95rem;
+    border-color: var(--color-border);
+    scroll-snap-align: center;
+  }
+
+  .experience__tab .experience__logo--sm {
+    grid-row: 1 / 3;
+  }
+
+  .experience__tab-role {
+    display: none;
+  }
+
+  .experience__tab-company {
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--color-text);
+  }
+
+  .experience__tab-year {
+    font-size: 0.66rem;
   }
 }
 
 @media (max-width: 480px) {
-  .experience__item {
-    grid-template-columns: 14px minmax(0, 1fr);
+  .experience__summary {
+    gap: 1.25rem;
   }
 
-  .experience__dot {
-    width: 12px;
-    height: 12px;
+  .experience__head {
+    align-items: flex-start;
+    padding-right: 2rem;
+  }
+
+  .experience__logo {
+    width: 56px;
+    height: 42px;
   }
 
   .experience__point {
@@ -790,22 +1102,9 @@ function splitCompany(company) {
     line-height: 1.65;
   }
 
-  .experience__head {
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.75rem;
-  }
-
-  .experience__mono {
-    width: 56px;
-    height: 42px;
-    font-size: 0.6rem;
-  }
-
-  .experience__type {
-    grid-column: 1 / -1;
-    justify-self: start;
-    max-width: none;
-    text-align: left;
+  .experience__pager-btn {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.76rem;
   }
 }
 </style>
