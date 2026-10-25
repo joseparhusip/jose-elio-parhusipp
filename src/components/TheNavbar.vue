@@ -2,19 +2,21 @@
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import ThemeSwitch from '@/components/ThemeSwitch.vue'
 import { useTheme } from '@/composables/useTheme'
+import { navLinks, useSectionNav } from '@/composables/useSectionNav'
 
-const navLinks = [
-  { label: 'Beranda', href: '#beranda' },
-  { label: 'Tentang', href: '#tentang' },
-  { label: 'Pengalaman', href: '#pengalaman' },
-  { label: 'Proyek', href: '#proyek' },
-  { label: 'Kontak', href: '#kontak' },
-]
+const homeLink = navLinks[0]
+const contactLink = navLinks[navLinks.length - 1]
 
 const { theme } = useTheme()
+const { route, onNavClick } = useSectionNav()
 const isMenuOpen = ref(false)
 const isScrolled = ref(false)
-const activeHref = ref('#beranda')
+const activeHref = ref(route.path)
+
+function onLinkClick(event, link) {
+  closeMenu()
+  onNavClick(event, link)
+}
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value
@@ -25,9 +27,10 @@ function closeMenu() {
 }
 
 /* ---------------------------------------------------------
-   Scroll-spy: menu yang sedang dilihat ditandai otomatis.
-   Bagian aktif = bagian terakhir yang bagian atasnya sudah
-   melewati 40% tinggi layar. Dihitung ulang tiap frame scroll.
+   Menu aktif.
+   - Di beranda (scroll-spy): bagian aktif = bagian terakhir yang
+     bagian atasnya sudah melewati 40% tinggi layar.
+   - Di halaman lain (/tentang, dst.): ikut alamat halaman.
 --------------------------------------------------------- */
 let frame = 0
 
@@ -35,19 +38,29 @@ function updateActive() {
   frame = 0
   isScrolled.value = window.scrollY > 12
 
+  if (route.name !== 'home') {
+    activeHref.value = route.path
+    return
+  }
+
   const line = window.innerHeight * 0.4
-  let current = '#beranda'
+  let current = homeLink.path
   for (const link of navLinks) {
-    const el = document.querySelector(link.href)
-    if (el && el.getBoundingClientRect().top <= line) current = link.href
+    const el = document.getElementById(link.sectionId)
+    if (el && el.getBoundingClientRect().top <= line) current = link.path
   }
   // Sudah mentok bawah: tandai menu terakhir
   if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
-    const last = navLinks[navLinks.length - 1]
-    if (document.querySelector(last.href)) current = last.href
+    if (document.getElementById(contactLink.sectionId)) current = contactLink.path
   }
   activeHref.value = current
 }
+
+// Pindah halaman: tunggu isi halaman baru tampil, lalu hitung ulang
+watch(
+  () => route.path,
+  () => nextTick(updateActive),
+)
 
 function onScroll() {
   if (!frame) frame = requestAnimationFrame(updateActive)
@@ -123,7 +136,7 @@ onUnmounted(() => {
     :class="{ 'navbar--scrolled': isScrolled, 'navbar--menu-open': isMenuOpen }"
   >
     <nav class="navbar__inner" aria-label="Navigasi utama">
-      <a href="#beranda" class="navbar__logo" aria-label="Beranda" @click="closeMenu">
+      <a :href="homeLink.path" class="navbar__logo" aria-label="Beranda" @click="onLinkClick($event, homeLink)">
         <img
           :src="theme === 'light' ? '/logo-navbar-sebelum-scroll.png' : '/logo-navbar-footer.png'"
           alt="Jose Elio Parhusip"
@@ -140,15 +153,16 @@ onUnmounted(() => {
           :style="{ '--pill-x': `${pill.x}px`, '--pill-w': `${pill.w}px` }"
           aria-hidden="true"
         ></span>
-        <li v-for="link in navLinks" :key="link.href">
+        <li v-for="link in navLinks" :key="link.path">
           <a
-            :ref="(el) => setLinkRef(el, link.href)"
-            :href="link.href"
+            :ref="(el) => setLinkRef(el, link.path)"
+            :href="link.path"
             class="navbar__link"
-            :class="{ 'navbar__link--active': activeHref === link.href }"
-            :aria-current="activeHref === link.href ? 'true' : undefined"
-            @mouseenter="hoverHref = link.href"
-            @focus="hoverHref = link.href"
+            :class="{ 'navbar__link--active': activeHref === link.path }"
+            :aria-current="activeHref === link.path ? 'page' : undefined"
+            @click="onLinkClick($event, link)"
+            @mouseenter="hoverHref = link.path"
+            @focus="hoverHref = link.path"
             @blur="hoverHref = null"
           >
             {{ link.label }}
@@ -158,7 +172,7 @@ onUnmounted(() => {
 
       <div class="navbar__actions">
         <ThemeSwitch />
-        <a href="#kontak" class="navbar__cta navbar__cta--desktop">
+        <a :href="contactLink.path" class="navbar__cta navbar__cta--desktop" @click="onLinkClick($event, contactLink)">
           Hubungi Saya
           <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
@@ -188,15 +202,15 @@ onUnmounted(() => {
         <ul class="navbar__sheet-links">
           <li
             v-for="(link, index) in navLinks"
-            :key="link.href"
+            :key="link.path"
             class="navbar__sheet-item"
             :style="{ '--i': index }"
           >
             <a
-              :href="link.href"
+              :href="link.path"
               class="navbar__sheet-link"
-              :class="{ 'navbar__sheet-link--active': activeHref === link.href }"
-              @click="closeMenu"
+              :class="{ 'navbar__sheet-link--active': activeHref === link.path }"
+              @click="onLinkClick($event, link)"
             >
               <span class="navbar__sheet-num">0{{ index + 1 }}</span>
               <span class="navbar__sheet-text">{{ link.label }}</span>
@@ -209,10 +223,10 @@ onUnmounted(() => {
         </ul>
 
         <a
-          href="#kontak"
+          :href="contactLink.path"
           class="navbar__cta navbar__cta--sheet"
           :style="{ '--i': navLinks.length }"
-          @click="closeMenu"
+          @click="onLinkClick($event, contactLink)"
         >
           Hubungi Saya
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">

@@ -3,16 +3,11 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import linkedinIcon from '@/components/icons/icons-about/linkedin-svgrepo-com.svg'
 import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-svgrepo-com.svg'
+import { navLinks, useSectionNav } from '@/composables/useSectionNav'
+
+const { onNavClick } = useSectionNav()
 
 const year = new Date().getFullYear()
-
-const navLinks = [
-  { label: 'Beranda', href: '#beranda' },
-  { label: 'Tentang', href: '#tentang' },
-  { label: 'Pengalaman', href: '#pengalaman' },
-  { label: 'Proyek', href: '#proyek' },
-  { label: 'Kontak', href: '#kontak' },
-]
 
 const socials = [
   { name: 'GitHub', handle: '@joseparhusip', href: 'https://github.com/joseparhusip', icon: null },
@@ -88,7 +83,7 @@ function preventImageAction(event) {
       <!-- Kolom informasi -->
       <div v-reveal.stagger="{ delay: 60, step: 90 }" class="footer__grid">
         <div class="footer__brand">
-          <a href="#beranda" class="footer__logo" aria-label="Kembali ke beranda">
+          <a :href="navLinks[0].path" class="footer__logo" aria-label="Kembali ke beranda" @click="onNavClick($event, navLinks[0])">
             <img src="/logo-navbar-footer.png" alt="Jose Elio Parhusip" class="footer__logo-img" draggable="false" />
           </a>
           <p class="footer__name">Jose Elio Parhusip</p>
@@ -102,8 +97,8 @@ function preventImageAction(event) {
         <nav class="footer__col" aria-label="Navigasi footer">
           <h3 class="footer__heading">Navigasi</h3>
           <ul class="footer__list">
-            <li v-for="link in navLinks" :key="link.href">
-              <a :href="link.href" class="footer__link">
+            <li v-for="link in navLinks" :key="link.path">
+              <a :href="link.path" class="footer__link" @click="onNavClick($event, link)">
                 <span class="footer__link-dash" aria-hidden="true"></span>
                 {{ link.label }}
               </a>

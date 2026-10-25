@@ -36,6 +36,17 @@ export default defineConfig([
     },
   },
 
+  // Script build (Node.js / ES module) di /scripts
+  {
+    name: 'app/scripts-env',
+    files: ['scripts/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
 
