@@ -19,7 +19,7 @@ Referensi rasa:
    aksen yang berani, banyak ruang kosong.
 2. **Biru Klein (International Klein Blue)**: biru kobalt pekat sebagai warna
    tanda tangan.
-3. **Peta topografi & jurnal arsitek**: garis kontur, metadata mono, koordinat.
+3. **Jurnal arsitek**: garis struktur tipis, metadata mono, koordinat.
 
 Kepribadian: percaya diri, tegas, rapi, tidak berisik.
 
@@ -97,14 +97,12 @@ ukuran "tengah-tengah" yang saling mirip.
 - **Tombol** `.btn` + `.btn--primary` / `.btn--ghost`: kotak radius kecil,
   tinggi 46px.
 - **Metadata** `.mono-meta`: mono kecil, huruf besar, tracking lebar.
-- **Tekstur**:
-  - `.topo` / `.topo--alt`: garis kontur topografi (SVG di
-    `src/assets/textures/`, dipasang lewat CSS mask sehingga warnanya ikut
-    tema). Pasang sebagai `<span class="topo" aria-hidden="true">` di dalam
-    elemen `position: relative; isolation: isolate`. Hanya untuk hero, kontak,
-    dan footer, jangan di setiap section.
-  - Grain kertas: global di `body::after`, kekuatannya diatur
-    `--grain-opacity`.
+- **Tekstur**: hanya grain kertas yang sangat halus, global di `body::after`
+  (`--grain-opacity`). **Tidak ada** garis kontur/pola garis di latar.
+- **Kartu foto 3D** (hero, `HomeView.vue`): panel lebih pendek dari foto
+  sehingga kepala "keluar" dari bingkai; kartu miring maks ±9° mengikuti
+  kursor (hanya mouse), foto di lapisan depan (`translateZ`), kilau halus
+  mengikuti kursor. Di layar sentuh dan mode kurangi animasi kartu diam.
 - Detail khas: koordinat Bandung `6°55′S 107°37′E`, nomor gambar
   ("Gbr. 01"), indeks "No. 03 / 06".
 
@@ -134,11 +132,14 @@ ukuran "tengah-tengah" yang saling mirip.
 - Blob cahaya blur (`radial-gradient` + `filter: blur`) sebagai dekorasi.
 - Bento grid kartu membulat besar dengan bayangan.
 - Dekorasi bintang ✦, marquee teks berjalan, atau gradien di tombol.
+- Pola garis di latar (kontur topografi, grid, garis diagonal).
 - Hex warna yang ditulis langsung di komponen. Tambahkan token di
   `base.css` dulu.
 
 ## Changelog
 
+- **2026-10-29**: Garis kontur topografi di latar dihapus. Foto hero jadi
+  kartu 3D (miring mengikuti kursor, kepala keluar dari bingkai).
 - **2026-10-29**: Palet cokelat/terakota diganti **grafit + biru kobalt +
   hijau sinyal**. Footer jadi blok kobalt penuh, peta jadi hitam-putih.
 - **2026-10-29**: Redesign layout "Field Notes": header section bergaris,

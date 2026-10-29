@@ -148,7 +148,6 @@ onBeforeUnmount(() => {
 
 <template>
   <section id="kontak" class="contact">
-    <span class="topo topo--alt" aria-hidden="true"></span>
 
     <div class="container">
       <header class="section-head">

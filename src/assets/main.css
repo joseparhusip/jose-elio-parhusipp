@@ -232,28 +232,9 @@ img {
 }
 
 /* =====================================================
-   Tekstur latar
-   .topo   : garis kontur topografi (taruh sebagai <span aria-hidden>
-             di dalam elemen ber-position relative). Warnanya ikut tema.
-   .topo--alt : variasi kontur kedua.
-   Grain kertas dipasang global di body::after.
+   Tekstur latar: grain kertas yang sangat halus, dipasang global.
+   Kekuatannya diatur --grain-opacity.
    ===================================================== */
-.topo {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: var(--color-text);
-  opacity: var(--topo-opacity);
-  -webkit-mask: url('./textures/topo.svg') center / cover no-repeat;
-  mask: url('./textures/topo.svg') center / cover no-repeat;
-}
-
-.topo--alt {
-  -webkit-mask-image: url('./textures/topo-2.svg');
-  mask-image: url('./textures/topo-2.svg');
-}
-
 body::after {
   content: '';
   position: fixed;

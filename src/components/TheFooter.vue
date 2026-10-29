@@ -65,7 +65,6 @@ function preventImageAction(event) {
 
 <template>
   <footer class="footer">
-    <span class="topo topo--alt footer__topo" aria-hidden="true"></span>
 
     <div class="footer__inner">
       <!-- Baris bidang kerja: satu garis tenang, bukan pita berjalan -->
@@ -173,7 +172,7 @@ function preventImageAction(event) {
 <style scoped>
 /* =========================================================
    Footer "Field Notes": blok kobalt penuh (sama di kedua tema),
-   kontur topografi samar, kolom dipisah garis tipis, dan nama
+   kolom dipisah garis tipis, dan nama
    besar sebagai tanda tangan di bagian bawah.
    ========================================================= */
 .footer {
@@ -187,12 +186,6 @@ function preventImageAction(event) {
   background: var(--footer-bg);
   color: var(--ink);
   padding: clamp(3rem, 7vw, 5rem) 0 0;
-}
-
-/* Kontur di latar gelap: pakai warna teks footer, sangat samar */
-.footer__topo {
-  background: var(--ink);
-  opacity: 0.07;
 }
 
 .footer__inner {

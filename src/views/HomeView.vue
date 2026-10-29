@@ -167,6 +167,51 @@ onUnmounted(() => {
 })
 
 /* ---------------------------------------------------------
+   Kartu foto 3D: miring mengikuti kursor, foto di lapisan depan
+   bergerak lebih jauh dari panel sehingga terasa berlapis.
+   Hanya untuk mouse; di layar sentuh & "kurangi animasi" kartu diam.
+   Nilai ditulis ke CSS variable, jadi tidak ada re-render Vue.
+--------------------------------------------------------- */
+const cardEl = ref(null)
+const MAX_TILT_Y = 9
+const MAX_TILT_X = 7
+let canTilt = false
+let tiltFrame = 0
+
+function onCardMove(event) {
+  if (!canTilt || !cardEl.value) return
+  const rect = event.currentTarget.getBoundingClientRect()
+  const x = (event.clientX - rect.left) / rect.width
+  const y = (event.clientY - rect.top) / rect.height
+  cancelAnimationFrame(tiltFrame)
+  tiltFrame = requestAnimationFrame(() => {
+    const style = cardEl.value.style
+    style.setProperty('--ry', `${((x - 0.5) * 2 * MAX_TILT_Y).toFixed(2)}deg`)
+    style.setProperty('--rx', `${((0.5 - y) * 2 * MAX_TILT_X).toFixed(2)}deg`)
+    style.setProperty('--gx', `${(x * 100).toFixed(1)}%`)
+    style.setProperty('--gy', `${(y * 100).toFixed(1)}%`)
+    cardEl.value.classList.add('is-tilting')
+  })
+}
+
+function onCardLeave() {
+  if (!cardEl.value) return
+  cancelAnimationFrame(tiltFrame)
+  const style = cardEl.value.style
+  style.setProperty('--rx', '0deg')
+  style.setProperty('--ry', '0deg')
+  cardEl.value.classList.remove('is-tilting')
+}
+
+onMounted(() => {
+  canTilt = !prefersReducedMotion && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+})
+
+onUnmounted(() => {
+  cancelAnimationFrame(tiltFrame)
+})
+
+/* ---------------------------------------------------------
    Angka statistik naik dari 0 saat terlihat di layar.
    Format desimal pakai koma (3,75) dan akhiran (+) dipertahankan.
 --------------------------------------------------------- */
@@ -235,7 +280,6 @@ onUnmounted(() => {
 <template>
   <main>
     <section id="beranda" class="hero">
-      <span class="topo" aria-hidden="true"></span>
 
       <div class="container">
         <!-- Strip metadata ala sampul jurnal -->
@@ -371,23 +415,27 @@ onUnmounted(() => {
 
           <!-- Foto sebagai "pelat" bergambar, lengkap dengan keterangan -->
           <figure class="hero__visual" :class="{ 'is-in': photoReady }">
-            <div class="hero__plate">
-              <span class="hero__plate-mark hero__plate-mark--tl" aria-hidden="true"></span>
-              <span class="hero__plate-mark hero__plate-mark--br" aria-hidden="true"></span>
-              <img
-                ref="photoEl"
-                :src="myPhoto"
-                alt="Jose Elio Parhusip"
-                class="hero__photo"
-                draggable="false"
-                fetchpriority="high"
-                width="944"
-                height="944"
-                @load="markPhotoLoaded"
-                @error="markPhotoLoaded"
-                @contextmenu.prevent="preventImageAction"
-                @dragstart.prevent="preventImageAction"
-              />
+            <div class="hero__plate" @pointermove="onCardMove" @pointerleave="onCardLeave">
+              <div ref="cardEl" class="hero__card">
+                <span class="hero__card-panel" aria-hidden="true">
+                  <span class="hero__plate-mark hero__plate-mark--tl"></span>
+                  <span class="hero__plate-mark hero__plate-mark--br"></span>
+                </span>
+                <img
+                  ref="photoEl"
+                  :src="myPhoto"
+                  alt="Jose Elio Parhusip"
+                  class="hero__photo"
+                  draggable="false"
+                  fetchpriority="high"
+                  width="944"
+                  height="944"
+                  @load="markPhotoLoaded"
+                  @error="markPhotoLoaded"
+                  @contextmenu.prevent="preventImageAction"
+                  @dragstart.prevent="preventImageAction"
+                />
+              </div>
             </div>
             <figcaption class="hero__caption mono-meta">
               <span>Gbr. 01</span>
@@ -439,22 +487,6 @@ onUnmounted(() => {
   isolation: isolate;
   overflow: hidden;
   padding: clamp(1.25rem, 3vw, 2rem) 0 clamp(2.5rem, 5vw, 3.5rem);
-}
-
-/* Kontur topografi memudar ke bawah supaya transisi ke section berikutnya halus */
-.hero .topo {
-  -webkit-mask-size: cover;
-  mask-size: cover;
-}
-
-.hero::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 0;
-  height: 30%;
-  z-index: -1;
-  background: linear-gradient(to bottom, transparent, var(--color-bg));
-  pointer-events: none;
 }
 
 /* Teks khusus pembaca layar */
@@ -806,30 +838,63 @@ onUnmounted(() => {
 .hero__plate {
   position: relative;
   aspect-ratio: 4 / 5;
-  overflow: hidden;
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  perspective: 1100px;
 }
 
-/* Garis kontur kedua di dalam pelat, warnanya ikut tema */
-.hero__plate::before {
+/* Kartu yang dimiringkan. Anak-anaknya tetap 3D (preserve-3d). */
+.hero__card {
+  --rx: 0deg;
+  --ry: 0deg;
+  --gx: 50%;
+  --gy: 30%;
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 0.7s var(--ease-out);
+}
+
+.hero__card.is-tilting {
+  transition: transform 0.12s linear;
+}
+
+/* Panel kartu lebih pendek dari foto, jadi kepala & bahu "keluar" dari bingkai */
+.hero__card-panel {
+  position: absolute;
+  inset: 16% 0 0;
+  overflow: hidden;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-soft);
+  box-shadow: 0 40px 70px -40px rgba(0, 0, 0, 0.55);
+}
+
+/* Kilau cahaya halus di permukaan panel, mengikuti kursor */
+.hero__card-panel::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--color-text);
-  opacity: calc(var(--topo-opacity) * 1.2);
-  -webkit-mask: url('@/assets/textures/topo-2.svg') center / cover no-repeat;
-  mask: url('@/assets/textures/topo-2.svg') center / cover no-repeat;
+  background: radial-gradient(circle at var(--gx) var(--gy), rgba(255, 255, 255, 0.16), transparent 50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
+.hero__card.is-tilting .hero__card-panel::after {
+  opacity: 1;
+}
+
+/* Foto di lapisan depan. scale() menetralkan pembesaran dari translateZ,
+   jadi saat kartu diam ukurannya pas dengan panel. */
 .hero__photo {
   position: absolute;
-  inset: auto 0 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center bottom;
+  transform: translateZ(50px) scale(0.955);
+  clip-path: inset(0 0 0 0 round 0 0 var(--radius-lg) var(--radius-lg));
+  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.3));
   user-select: none;
   -webkit-user-drag: none;
 }
