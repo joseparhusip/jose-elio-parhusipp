@@ -47,7 +47,7 @@ export default async (req, res) => {
 
   try {
     const ownerEmail = buildOwnerNotificationEmail({ name, email, message })
-    const visitorEmail = buildVisitorConfirmationEmail({ name })
+    const visitorEmail = buildVisitorConfirmationEmail({ name, message })
 
     await transporter.sendMail({
       from: `"Portofolio - ${name}" <${EMAIL_USER}>`,

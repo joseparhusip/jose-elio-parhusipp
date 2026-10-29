@@ -6,11 +6,30 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // ------------------------------------------------------------------
-// GANTI dua link ini kalau nanti berubah
+// GANTI link ini kalau nanti berubah
 // ------------------------------------------------------------------
 const LINKEDIN_URL = 'https://www.linkedin.com/in/joseparhusip/'
 const INSTAGRAM_URL = 'https://www.instagram.com/joseparhusip_/'
-const SITE_URL = 'https://joseelioparhusip.vercel.app' // ganti sesuai url portofolio kamu
+const SITE_URL = 'https://jose-elio-parhusipp.vercel.app' // sama dengan SITE_URL di src/router/pages.js
+
+// Warna mengikuti DESIGN.md (mode terang): grafit netral + biru azure.
+// Email tidak bisa memakai CSS variable, jadi nilainya ditulis di sini.
+// Tanpa gradien: banyak aplikasi email (Outlook, sebagian Gmail) tidak
+// mendukungnya dan latar bisa hilang.
+const C = {
+  page: '#F4F4F1',
+  card: '#FFFFFF',
+  ink: '#111214',
+  text: '#2B2E33',
+  soft: '#5B6068',
+  rule: '#E3E4E2',
+  panel: '#F4F4F1',
+  accent: '#0059B3',
+  onInk: '#FFFFFF',
+  onInkSoft: '#A9AEB6',
+}
+const FONT = "'Segoe UI', Helvetica, Arial, sans-serif"
+const MONO = "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace"
 
 // Logo LinkedIn & Instagram disimpan di dalam folder ini juga (api/_lib/email-assets),
 // jadi ikut ke-deploy bareng function-nya, nggak perlu path ke folder src/ lagi.
@@ -37,69 +56,106 @@ function escapeHtml(str = '') {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
-function emailShell({ previewText, bodyHtml }) {
+// Label kecil huruf besar, seperti ".mono-meta" di website
+function label(text, color = C.soft) {
+  return `<p style="margin:0; font-family:${MONO}; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:${color};">${text}</p>`
+}
+
+// Tombol yang aman di semua aplikasi email (tabel + bgcolor, bukan hanya CSS)
+function button(href, text) {
   return `
-  <!doctype html>
-  <html lang="id">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Jose Elio Parhusip</title>
-  </head>
-  <body style="margin:0; padding:0; background:#f1f4f1; font-family:'Segoe UI', Arial, sans-serif;">
-    <div style="display:none; max-height:0; overflow:hidden; opacity:0;">${escapeHtml(previewText)}</div>
-
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f4f1; padding:32px 16px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
       <tr>
-        <td align="center">
-          <table role="presentation" width="100%" style="max-width:560px;" cellpadding="0" cellspacing="0">
-
-            <tr>
-              <td style="background:linear-gradient(135deg, #6b9080, #4f7566); border-radius:20px 20px 0 0; padding:32px 28px;">
-                <p style="margin:0; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:#dceee5;">Portofolio</p>
-                <p style="margin:4px 0 0; font-size:19px; font-weight:700; color:#ffffff;">Jose Elio Parhusip</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td style="background:#ffffff; padding:32px 28px;">
-                ${bodyHtml}
-              </td>
-            </tr>
-
-            <tr>
-              <td style="background:#ffffff; border-radius:0 0 20px 20px; padding:0 28px 28px;">
-                <hr style="border:none; border-top:1px solid #e7ede9; margin:0 0 20px;" />
-                <table role="presentation" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td style="padding-right:12px;">
-                      <a href="${LINKEDIN_URL}" target="_blank" style="display:inline-block; width:34px; height:34px; border-radius:10px; background:#f1f4f1; text-align:center; line-height:34px;">
-                        <img src="cid:linkedinIcon" width="18" height="18" alt="LinkedIn" style="vertical-align:middle;" />
-                      </a>
-                    </td>
-                    <td>
-                      <a href="${INSTAGRAM_URL}" target="_blank" style="display:inline-block; width:34px; height:34px; border-radius:10px; background:#f1f4f1; text-align:center; line-height:34px;">
-                        <img src="cid:instagramIcon" width="18" height="18" alt="Instagram" style="vertical-align:middle;" />
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-                <p style="margin:18px 0 0; font-size:12px; color:#9aa9a3;">
-                  Dikirim otomatis dari form kontak di
-                  <a href="${SITE_URL}" style="color:#6b9080; text-decoration:none;">portofolio Jose</a>.
-                </p>
-              </td>
-            </tr>
-
-          </table>
+        <td bgcolor="${C.accent}" style="border-radius:6px;">
+          <a href="${href}" target="_blank"
+             style="display:inline-block; padding:12px 22px; font-family:${FONT}; font-size:14px; font-weight:600; color:#FFFFFF; text-decoration:none; border-radius:6px;">
+            ${text}
+          </a>
         </td>
       </tr>
-    </table>
-  </body>
-  </html>
-  `
+    </table>`
+}
+
+function emailShell({ previewText, eyebrow, bodyHtml }) {
+  return `<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Jose Elio Parhusip</title>
+</head>
+<body style="margin:0; padding:0; background:${C.page}; font-family:${FONT};">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0;">${escapeHtml(previewText)}</div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${C.page}" style="background:${C.page}; padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
+
+          <!-- Kepala: blok tinta, nama besar, label mono -->
+          <tr>
+            <td bgcolor="${C.ink}" style="background:${C.ink}; border-radius:14px 14px 0 0; padding:28px 28px 26px;">
+              ${label(eyebrow, C.onInkSoft)}
+              <p style="margin:8px 0 0; font-family:${FONT}; font-size:22px; font-weight:700; letter-spacing:-0.02em; color:${C.onInk};">
+                Jose Elio Parhusip
+              </p>
+            </td>
+          </tr>
+
+          <!-- Isi -->
+          <tr>
+            <td bgcolor="${C.card}" style="background:${C.card}; padding:30px 28px 26px; border-left:1px solid ${C.rule}; border-right:1px solid ${C.rule};">
+              ${bodyHtml}
+            </td>
+          </tr>
+
+          <!-- Kaki: sosial + asal email -->
+          <tr>
+            <td bgcolor="${C.card}" style="background:${C.card}; border-radius:0 0 14px 14px; padding:0 28px 26px; border:1px solid ${C.rule}; border-top:0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${C.rule};">
+                <tr>
+                  <td style="padding-top:18px;">
+                    <a href="${LINKEDIN_URL}" target="_blank" style="display:inline-block; margin-right:8px; text-decoration:none;">
+                      <img src="cid:linkedinIcon" width="20" height="20" alt="LinkedIn" style="vertical-align:middle; border:0;" />
+                    </a>
+                    <a href="${INSTAGRAM_URL}" target="_blank" style="display:inline-block; text-decoration:none;">
+                      <img src="cid:instagramIcon" width="20" height="20" alt="Instagram" style="vertical-align:middle; border:0;" />
+                    </a>
+                  </td>
+                  <td align="right" style="padding-top:18px;">
+                    <a href="${SITE_URL}" target="_blank" style="font-family:${MONO}; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:${C.accent}; text-decoration:none;">
+                      Lihat portofolio
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:16px 0 0; font-family:${FONT}; font-size:12px; line-height:1.6; color:${C.soft};">
+                Dikirim otomatis dari chat kontak di portofolio Jose. Bandung, Indonesia.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
+// Kotak data bergaris tipis: label mono di atas, nilai di bawah
+function detailRow(name, valueHtml, last = false) {
+  return `
+    <tr>
+      <td style="padding:14px 0; ${last ? '' : `border-bottom:1px solid ${C.rule};`}">
+        ${label(name)}
+        <div style="margin-top:4px; font-family:${FONT}; font-size:15px; line-height:1.65; color:${C.text};">${valueHtml}</div>
+      </td>
+    </tr>`
 }
 
 function buildOwnerNotificationEmail({ name, email, message }) {
@@ -109,89 +165,74 @@ function buildOwnerNotificationEmail({ name, email, message }) {
   const gmailReplyUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent('Re: Pesan dari portofolio')}`
 
   const bodyHtml = `
-    <p style="margin:0 0 6px; font-size:13px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#6b9080;">
-      Pesan baru masuk
-    </p>
-    <h1 style="margin:0 0 20px; font-size:21px; color:#253632;">
+    <h1 style="margin:0 0 6px; font-family:${FONT}; font-size:21px; line-height:1.3; letter-spacing:-0.01em; color:${C.ink};">
       ${safeName} baru saja menghubungi kamu
     </h1>
+    <p style="margin:0 0 18px; font-family:${FONT}; font-size:14px; line-height:1.6; color:${C.soft};">
+      Pesan ini masuk lewat chat di portofolio. Balas langsung ke email pengirim.
+    </p>
 
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f4f1; border-radius:14px; padding:18px 20px; margin-bottom:20px;">
-      <tr>
-        <td style="padding-bottom:10px;">
-          <p style="margin:0; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:#5c6f69;">Nama</p>
-          <p style="margin:2px 0 0; font-size:15px; font-weight:600; color:#253632;">${safeName}</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding-bottom:10px;">
-          <p style="margin:0; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:#5c6f69;">Email</p>
-          <p style="margin:2px 0 0; font-size:15px; font-weight:600; color:#253632;">${safeEmail}</p>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <p style="margin:0; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:#5c6f69;">Pesan</p>
-          <p style="margin:6px 0 0; font-size:14.5px; line-height:1.7; color:#3c4a45;">${safeMessage}</p>
-        </td>
-      </tr>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${C.ink}; margin-bottom:24px;">
+      ${detailRow('Nama', `<strong style="color:${C.ink};">${safeName}</strong>`)}
+      ${detailRow('Email', `<a href="mailto:${safeEmail}" style="color:${C.accent}; text-decoration:none; font-weight:600;">${safeEmail}</a>`)}
+      ${detailRow('Pesan', safeMessage, true)}
     </table>
 
-
-      href="${gmailReplyUrl}"
-      target="_blank"
-      style="display:inline-block; background:#6b9080; color:#ffffff; font-size:14px; font-weight:600; text-decoration:none; padding:12px 24px; border-radius:999px;"
-    >
-      Balas ${safeName} →
-    </a>
+    ${button(gmailReplyUrl, `Balas ${safeName} &rarr;`)}
   `
 
   return {
-    subject: `📩 Pesan baru dari ${name} lewat portofolio`,
-    text: `Nama: ${name}\nEmail: ${email}\n\nPesan:\n${message}`,
+    subject: `Pesan baru dari ${name} lewat portofolio`,
+    text: `Pesan baru lewat portofolio\n\nNama: ${name}\nEmail: ${email}\n\nPesan:\n${message}\n\nBalas: ${gmailReplyUrl}`,
     html: emailShell({
-      previewText: `${name} mengirim pesan baru lewat form kontak portofolio kamu.`,
+      previewText: `${name}: ${String(message).slice(0, 90)}`,
+      eyebrow: 'Pesan baru masuk',
       bodyHtml,
     }),
     attachments: brandAttachments,
   }
 }
 
-function buildVisitorConfirmationEmail({ name }) {
+function buildVisitorConfirmationEmail({ name, message = '' }) {
   const safeName = escapeHtml(name)
+  const safeMessage = escapeHtml(message).replace(/\n/g, '<br/>')
 
   const bodyHtml = `
-    <p style="margin:0 0 6px; font-size:13px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#6b9080;">
-      Pesan diterima
-    </p>
-    <h1 style="margin:0 0 16px; font-size:21px; color:#253632;">
-      Terima kasih, ${safeName}! 👋
+    <h1 style="margin:0 0 16px; font-family:${FONT}; font-size:21px; line-height:1.3; letter-spacing:-0.01em; color:${C.ink};">
+      Terima kasih, ${safeName}!
     </h1>
-    <p style="margin:0 0 14px; font-size:15px; line-height:1.75; color:#3c4a45;">
-      Pesan kamu lewat form kontak di portofolio saya sudah masuk dengan aman. Saya akan
-      membaca dan membalas pesan kamu secepatnya, paling lambat dalam waktu 1 x 24 jam.
-    </p>
-    <p style="margin:0 0 24px; font-size:15px; line-height:1.75; color:#3c4a45;">
-      Sambil menunggu balasan, kalau kamu ingin kenalan lebih jauh atau melihat proyek-proyek
-      saya yang lain, silakan mampir ke sosial media saya di bawah ini. Saya selalu senang
-      berkenalan dengan orang baru.
+    <p style="margin:0 0 14px; font-family:${FONT}; font-size:15px; line-height:1.75; color:${C.text};">
+      Pesan kamu lewat portofolio saya sudah masuk dengan aman. Saya akan membaca dan
+      membalasnya secepatnya, paling lambat dalam 1 x 24 jam.
     </p>
 
-    <p style="margin:0 0 4px; font-size:15px; line-height:1.75; color:#3c4a45;">
-      Terima kasih banyak sudah menyempatkan waktu untuk menghubungi saya.
+    ${
+      safeMessage
+        ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 20px; border-top:1px solid ${C.ink};">
+            ${detailRow('Salinan pesan kamu', safeMessage, true)}
+          </table>`
+        : ''
+    }
+
+    <p style="margin:0 0 22px; font-family:${FONT}; font-size:15px; line-height:1.75; color:${C.text};">
+      Sambil menunggu, kamu bisa lihat proyek-proyek saya yang lain di portofolio atau
+      sapa saya di LinkedIn dan Instagram.
     </p>
 
-    <p style="margin:28px 0 0; font-size:14px; line-height:1.7; color:#5c6f69;">
-      Salam hangat,<br />
-      <strong style="color:#253632;">Jose Elio Parhusip</strong>
+    ${button(SITE_URL, 'Lihat portofolio &rarr;')}
+
+    <p style="margin:28px 0 0; font-family:${FONT}; font-size:14px; line-height:1.7; color:${C.soft};">
+      Salam,<br />
+      <strong style="color:${C.ink};">Jose Elio Parhusip</strong>
     </p>
   `
 
   return {
-    subject: 'Terima kasih sudah menghubungi saya 👋',
-    text: `Halo ${name},\n\nTerima kasih sudah mengirim pesan lewat portofolio saya. Pesan kamu sudah saya terima dan akan saya balas paling lambat dalam 1 x 24 jam.\n\nSalam hangat,\nJose Elio Parhusip`,
+    subject: 'Pesan kamu sudah saya terima',
+    text: `Halo ${name},\n\nTerima kasih sudah mengirim pesan lewat portofolio saya. Pesan kamu sudah saya terima dan akan saya balas paling lambat dalam 1 x 24 jam.${message ? `\n\nSalinan pesan kamu:\n${message}` : ''}\n\nPortofolio: ${SITE_URL}\n\nSalam,\nJose Elio Parhusip`,
     html: emailShell({
-      previewText: 'Pesanmu sudah saya terima, akan saya balas secepatnya!',
+      previewText: 'Pesan kamu sudah saya terima, akan saya balas secepatnya.',
+      eyebrow: 'Pesan diterima',
       bodyHtml,
     }),
     attachments: brandAttachments,

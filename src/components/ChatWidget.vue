@@ -26,6 +26,16 @@ import {
   looksLikeQuestion,
   PEKERJAAN_CLARIFY_HISTORY_RX,
   PEKERJAAN_CLARIFY_OFFER_RX,
+  normalizeChat,
+  pickVariant,
+  matchConversation,
+  findTechEvidence,
+  joinList,
+  YES_RX,
+  NO_RX,
+  ABOUT_SHORT_HTML,
+  TOOLS_TEXT,
+  EXPERIENCES,
 } from './chatKnowledge'
 
 const chatStore = useChatWidgetStore()
@@ -42,20 +52,18 @@ const chatInputEl = ref(null)
 
 const form = ref({ name: '', email: '', message: '' })
 
-// Nyimpen status kalau bot baru aja nanya "mau link demo/repo-nya juga?"
-// (dipicu dari answerFaq intent 'projects' pas wantsLink masih false).
-// Selama true, pesan berikutnya dari user diartikan sebagai jawaban
-// ya/tidak buat pertanyaan itu dulu, BUKAN dianggap email/nama/pesan,
-// supaya nggak ketuker kaya bug "ya" dikira format email salah.
-const pendingLinkOffer = ref(false)
-
-// Sama kayak pendingLinkOffer di atas, tapi buat kasus pertanyaan ambigu
+// Bot sedang menunggu klarifikasi untuk pertanyaan ambigu
 // "pekerjaan"/"kerjaan" (bisa berarti riwayat kerja Jose, atau user yang
 // mau nawarin kerjaan ke Jose). Nilainya string nama topik yang lagi
 // diklarifikasi (misal 'pekerjaan'), atau null kalau tidak ada yang
 // sedang diklarifikasi. Selama ada nilainya, pesan berikutnya dari user
 // diartikan dulu sebagai jawaban klarifikasi ini, BUKAN nama/email/pesan.
 const pendingClarify = ref(null)
+
+// Tawaran lanjutan dari bot yang menunggu jawaban "iya/boleh" atau "nggak",
+// misalnya setelah profil singkat: "mau aku ceritain lebih lengkap?".
+// Bentuknya { type: 'aboutFull' | 'techProjects' | 'contact', ... } atau null.
+const pendingOffer = ref(null)
 
 // --- Persist ke localStorage, khusus buat chat widget ini -----------------
 // Key sengaja dibuat spesifik (bukan cuma "chat") supaya kalau nanti ada
@@ -75,8 +83,8 @@ function saveChatState() {
         step: step.value === 'submitting' ? 'message' : step.value,
         messages: messages.value,
         form: form.value,
-        pendingLinkOffer: pendingLinkOffer.value,
         pendingClarify: pendingClarify.value,
+        pendingOffer: pendingOffer.value,
         msgId,
       }),
     )
@@ -170,20 +178,38 @@ async function answerSmallTalk(talk, text = '') {
     await botSay(`${greetBack(text, name)} ${extras[time]}`, 550)
   } else if (talk.type === 'howAreYou') {
     await botSay(
-      `Kabar baik dong${name}, makasih udah nanya! Semoga kamu juga lagi baik-baik aja ya.`,
+      pickVariant('howAreYou', [
+        `Kabar baik dong${name}, makasih udah nanya! Kamu sendiri gimana?`,
+        `Baik banget${name}, apalagi ada yang mampir ngobrol. Semoga kamu juga lagi baik ya.`,
+        `Aku baik${name}! Makasih udah nanya, jarang-jarang ada yang nanyain kabar bot, hehe.`,
+      ]),
       550,
     )
   } else if (talk.type === 'thanks') {
-    await botSay(`Sama-sama${name}! Senang bisa bantu.`, 450)
+    await botSay(
+      pickVariant('thanks', [
+        `Sama-sama${name}! Senang bisa bantu.`,
+        `Sama-sama${name}, santai aja. Kalau ada yang mau ditanyain lagi, aku di sini.`,
+        `Dengan senang hati${name}!`,
+      ]),
+      450,
+    )
   } else if (talk.type === 'bye') {
     await botSay(
-      `Sampai jumpa${name}! Selamat ${time} dan semoga harinya menyenangkan. Kapan-kapan mampir lagi ya.`,
+      pickVariant('bye', [
+        `Sampai jumpa${name}! Selamat ${time} dan semoga harinya menyenangkan. Kapan-kapan mampir lagi ya.`,
+        `Dadah${name}! Makasih udah mampir, semoga lancar urusannya.`,
+        `Oke${name}, sampai ketemu lagi! Pintu chat ini selalu terbuka kok.`,
+      ]),
       500,
     )
     return true
   } else if (talk.type === 'aboutBot') {
     await botSay(
-      'Aku asisten chat otomatis di portofolio Jose. Aku bisa cerita soal Jose dan bantu nyampein pesan kamu langsung ke email Jose.',
+      pickVariant('aboutBot', [
+        'Aku asisten chat otomatis di portofolio Jose. Bukan Jose langsung ya, tapi aku hafal cerita soal dia dan bisa bantu nyampein pesan kamu ke email Jose.',
+        'Aku bot asistennya Jose, hehe. Tugasku nemenin kamu ngobrol soal Jose dan nerusin pesan kamu ke dia.',
+      ]),
       550,
     )
   } else if (talk.type === 'ack') {
@@ -212,45 +238,80 @@ async function answerSmallTalk(talk, text = '') {
 // tidak terganggu, cuma "dijeda" sebentar buat jawab pertanyaan ini.
 // Semua teks di sini HTML siap render (dirender pakai v-html khusus
 // pesan dari bot, lihat template di bawah).
+function projectCards(list, withLinks) {
+  return list.map((item) => ({
+    title: item.title,
+    desc: item.summary,
+    image: item.image,
+    tags: item.tags,
+    links: withLinks
+      ? [
+          { label: 'Lihat Demo', url: item.demoHref },
+          { label: 'Lihat Code', url: item.codeHref },
+        ]
+      : [],
+  }))
+}
+
 async function answerFaq(intent) {
   if (intent.type === 'education') {
-    await botSay(EDUCATION_HTML)
+    await botSay(
+      pickVariant('educationLead', [
+        'Boleh! Soal pendidikan, gini ceritanya:',
+        'Oke, ini latar belakang kuliah Jose:',
+        'Siap, aku ceritain soal kuliahnya ya.',
+      ]),
+      450,
+    )
+    await botSay(EDUCATION_HTML, 400)
     return
   }
 
+  // Profil: ringkas dulu, baru tawarkan versi lengkap (tidak langsung
+  // menumpahkan teks panjang, seperti orang yang ditanya "Jose itu siapa?").
   if (intent.type === 'about') {
-    await botSay(ABOUT_HTML)
-    return
+    await botSay(
+      pickVariant('aboutLead', ['Boleh banget!', 'Oh, tentang Jose ya? Boleh!', 'Siap, aku kenalin.']),
+      400,
+    )
+    await botSay(ABOUT_SHORT_HTML, 500)
+    await botSay(
+      pickVariant('aboutOffer', [
+        'Mau aku ceritain lebih lengkap? Misalnya keahlian dan tools yang dia kuasai.',
+        'Kalau mau, aku bisa ceritain versi lengkapnya. Mau?',
+      ]),
+      450,
+    )
+    pendingOffer.value = { type: 'aboutFull' }
+    return true
   }
 
   if (intent.type === 'experience') {
-    await botSay('Ini beberapa pengalaman kerja Jose', 500)
+    await botSay(
+      pickVariant('experienceLead', [
+        'Boleh! Ini perjalanan kerja Jose sejauh ini:',
+        'Siap, ini beberapa peran yang pernah Jose jalani, dari kerja profesional sampai organisasi:',
+        'Oke, aku rangkum pengalaman Jose ya:',
+      ]),
+      500,
+    )
     await botSay(buildExperienceListHtml(), 350)
     return false
   }
 
   if (intent.type === 'projects') {
-    await botSay('Ini beberapa proyek yang pernah Jose kerjakan', 500)
     await botSay(
-      '',
-      350,
-      'cards',
-      PROJECTS.map((item) => ({
-        title: item.title,
-        desc: item.summary,
-        image: item.image,
-        tags: item.tags,
-        links: intent.wantsLink
-          ? [
-              { label: 'Lihat Demo', url: item.demoHref },
-              { label: 'Lihat Code', url: item.codeHref },
-            ]
-          : [],
-      })),
+      pickVariant('projectsLead', [
+        'Boleh! Ini beberapa proyek yang pernah Jose kerjakan:',
+        'Siap, ini karya-karya Jose. Ada web, mobile, sampai dasbor data:',
+        'Oke, nih proyek-proyeknya Jose:',
+      ]),
+      500,
     )
+    await botSay('', 350, 'cards', projectCards(PROJECTS, intent.wantsLink))
     if (!intent.wantsLink) {
-      await botSay('Mau aku kasih link demo dan repo-nya juga? Tinggal bilang "link" ya', 500)
-      pendingLinkOffer.value = true
+      await botSay('Mau aku kasih link demo dan repo-nya juga?', 500)
+      pendingOffer.value = { type: 'projectLinks' }
       return true // suppress prompt lanjutan form (nama/email/pesan) di giliran ini
     }
     return false
@@ -263,7 +324,7 @@ async function answerFaq(intent) {
 
   // "pekerjaan"/"kerjaan" sendirian itu ambigu (riwayat kerja Jose, atau
   // user mau nawarin kerjaan ke Jose?), jadi nanya balik dulu daripada
-  // asal nebak. Jawabannya ditangkep di handleSend lewat pendingClarify.
+  // asal nebak. Jawabannya ditangkep di processMessage lewat pendingClarify.
   if (intent.type === 'ambiguous_pekerjaan') {
     await botSay(
       'Maksudnya gimana nih, kamu mau tau riwayat/pengalaman kerja Jose, atau kamu yang mau nawarin kerjaan atau kolaborasi ke Jose?',
@@ -280,21 +341,532 @@ async function answerFaq(intent) {
   }
 }
 
+// --- Maksud percakapan yang lebih spesifik (lihat matchConversation) -------
+// Return true kalau pertanyaan lanjutan form (nama/email/pesan) tidak perlu
+// ditanyakan di giliran ini (mis. bot baru saja menawarkan sesuatu).
+async function answerConversation(intent, body) {
+  const name = form.value.name ? `, ${escapeHtml(form.value.name)}` : ''
+
+  if (intent.type === 'meetBot') {
+    // "aku mau kenalan sama kamu, namaku budi" -> langsung pakai namanya
+    const stated = step.value === 'name' ? matchNameStatement(body) : null
+    if (stated) {
+      form.value.name = stated.name
+      step.value = form.value.email ? 'message' : 'email'
+      await botSay(
+        `Boleh banget, salam kenal ${escapeHtml(stated.name)}! Aku asisten chat di portofolio Jose.`,
+        500,
+      )
+      await botSay(
+        form.value.email
+          ? 'Ada yang mau kamu tanyain atau sampein ke Jose?'
+          : 'Kalau nanti mau kirim pesan ke Jose, email kamu apa? Atau mau ngobrol soal Jose dulu juga boleh.',
+        450,
+      )
+      return true
+    }
+    if (form.value.name) {
+      await botSay(
+        pickVariant('meetAgain', [
+          `Hehe, kita kan udah kenalan${name}! Aku asisten chat-nya Jose. Ada yang mau kamu tau soal dia?`,
+          `Udah kenal dong kita${name}. Ngobrol aja, mau tanya soal Jose apa?`,
+        ]),
+        500,
+      )
+      return true
+    }
+    await botSay(
+      pickVariant('meetBot', [
+        'Boleh banget! Senang bisa kenalan sama kamu.',
+        'Wah, boleh dong! Aku juga senang kenalan.',
+        'Tentu boleh!',
+      ]),
+      450,
+    )
+    await botSay(
+      'Aku asisten chat di portofolio Jose. Tugasku nemenin kamu ngobrol soal Jose dan bantu nyampein pesan ke dia. Nah, gantian dong, nama kamu siapa?',
+      550,
+    )
+    return true
+  }
+
+  if (intent.type === 'aboutJose') return answerFaq({ type: 'about' })
+
+  if (intent.type === 'askBotName') {
+    await botSay(
+      'Aku belum punya nama resmi, hehe. Panggil aja "asisten Jose". Kalau kamu, namanya siapa?',
+      500,
+    )
+    return true
+  }
+
+  if (intent.type === 'botCapabilities') {
+    await botSay(
+      pickVariant('capLead', ['Banyak kok!', 'Boleh, ini yang bisa aku bantu:', 'Siap!']),
+      350,
+    )
+    await botSay(TOPICS_MENU_HTML, 400)
+    return true
+  }
+
+  if (intent.type === 'askHuman') {
+    await botSay(
+      'Ini aku, asisten chat-nya, bukan Jose langsung. Tapi pesan kamu bisa aku teruskan ke email Jose, dan dia biasanya balas dalam sehari. Mau aku bantu kirimin?',
+      550,
+    )
+    pendingOffer.value = { type: 'contact' }
+    return true
+  }
+
+  if (intent.type === 'personal') {
+    await botSay(
+      pickVariant('personal', [
+        'Hmm, itu info pribadi yang aku nggak pegang. Kalau memang perlu, kamu bisa tanya langsung ke Jose lewat pesan ya.',
+        'Wah, yang itu aku nggak tahu, hehe. Aku cuma pegang info soal kerjaan, pendidikan, dan proyek Jose.',
+      ]),
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'gpa') {
+    await botSay(
+      'IPK Jose <strong>3,75 dari 4,00</strong>, lulusan S1 Bisnis Digital di Universitas Logistik dan Bisnis Internasional (ULBI), Bandung.',
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'cert') {
+    await botSay(
+      'Jose punya <strong>sertifikasi SAP</strong>. Itu jadi nilai tambah buat dia di sisi sistem bisnis dan ERP.',
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'cv') {
+    await botSay(
+      'CV Jose bisa kamu unduh lewat tombol <strong>"Unduh CV"</strong> di bagian paling atas halaman ini. Formatnya PDF.',
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'currentJob') {
+    const now = EXPERIENCES[0]
+    await botSay(
+      `Sekarang Jose kerja sebagai ${now.role}, ${now.company.charAt(0).toLowerCase()}${now.company.slice(1)}. Di sana dia ngerjain <em>backend</em> MedCredix pakai Go, Gin, dan PostgreSQL.`,
+      550,
+    )
+    return false
+  }
+
+  if (intent.type === 'location') {
+    await botSay(
+      'Jose berbasis di Jawa Barat, tepatnya Bandung dan Bekasi. Kerja kontraknya sekarang di Jakarta Selatan.',
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'availability') {
+    await botSay(
+      `Iya${name}, Jose lagi terbuka buat peluang kerja, <em>freelance</em>, maupun kolaborasi. Mau aku bantu sampein pesan atau tawaran kamu ke dia?`,
+      550,
+    )
+    pendingOffer.value = { type: 'contact' }
+    return true
+  }
+
+  if (intent.type === 'social') {
+    await botSay(
+      [
+        '<p>Ini akun-akun Jose:</p>',
+        '<ul class="chat-widget__highlight-list">',
+        '<li>GitHub: <a href="https://github.com/joseparhusip" target="_blank" rel="noopener noreferrer">github.com/joseparhusip</a></li>',
+        '<li>LinkedIn: <a href="https://www.linkedin.com/in/joseparhusip/" target="_blank" rel="noopener noreferrer">linkedin.com/in/joseparhusip</a></li>',
+        '<li>Instagram: <a href="https://www.instagram.com/joseparhusip_/" target="_blank" rel="noopener noreferrer">@joseparhusip_</a></li>',
+        '</ul>',
+      ].join(''),
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'skills') {
+    await botSay(
+      `Jose biasa pakai ${TOOLS_TEXT}. Dia juga terbiasa merancang sistem pakai UML, ERD, dan Flowchart, plus punya sertifikasi SAP.`,
+      550,
+    )
+    await botSay('Mau tanya soal satu tools tertentu? Misalnya "Jose bisa Flutter?"', 400)
+    return true
+  }
+
+  if (intent.type === 'techCheck') {
+    const { projects, roles } = findTechEvidence(intent.tech)
+    const places = [
+      ...(projects.length ? [`proyek ${joinList(projects.map((p) => p.title))}`] : []),
+      ...roles.map((r) => `waktu jadi ${r.role.replace(/<[^>]+>/g, '')}`),
+    ]
+    if (!places.length) {
+      await botSay(`Bisa! ${intent.tech.name} termasuk tools yang Jose kuasai.`, 500)
+      return false
+    }
+    await botSay(
+      `${pickVariant('techYes', ['Bisa dong!', 'Bisa!', 'Iya, bisa.'])} Jose pernah pakai ${intent.tech.name} di ${joinList(places)}.`,
+      500,
+    )
+    if (projects.length) {
+      await botSay(`Mau aku tunjukin proyek yang pakai ${intent.tech.name}?`, 400)
+      pendingOffer.value = { type: 'techProjects', titles: projects.map((p) => p.title) }
+      return true
+    }
+    return false
+  }
+
+  if (intent.type === 'techUnknown') {
+    const tech = intent.tech.charAt(0).toUpperCase() + intent.tech.slice(1)
+    await botSay(
+      `Hmm, ${escapeHtml(tech)} belum ada di daftar tools Jose yang aku tahu. Yang biasa dia pakai itu ${TOOLS_TEXT}. Kalau penting, coba tanya langsung ke Jose ya, siapa tahu dia juga bisa.`,
+      550,
+    )
+    return false
+  }
+
+  if (intent.type === 'projectDetail') {
+    const one = intent.projects.length === 1
+    await botSay(
+      one
+        ? `Oh, ${intent.projects[0].title}! Ini detailnya:`
+        : 'Ada dua proyek yang cocok nih:',
+      450,
+    )
+    await botSay('', 350, 'cards', projectCards(intent.projects, true))
+    return false
+  }
+
+  if (intent.type === 'compliment') {
+    await botSay(
+      pickVariant('compliment', [
+        `Makasih banyak${name}! Nanti aku sampein ke Jose, pasti dia senang.`,
+        `Wah, makasih${name}! Jose bakal senang dengarnya.`,
+        `Hehe, makasih ya${name}! Ada yang mau kamu tau lebih jauh soal karyanya?`,
+      ]),
+      450,
+    )
+    return false
+  }
+
+  if (intent.type === 'laugh') {
+    await botSay(pickVariant('laugh', ['Hehe.', 'Wkwk, iya.', 'Haha, santai ya.']), 350)
+    return false
+  }
+
+  if (intent.type === 'projectInquiry') {
+    await botSay(
+      `Bisa banget dibicarakan${name}! Jose terbuka untuk proyek web, mobile, maupun dasbor data.`,
+      500,
+    )
+    await botSay(
+      'Soal detail kebutuhan, waktu, dan budget, paling pas langsung dibahas sama Jose. Mau aku bantu kirim pesan ke dia sekarang?',
+      500,
+    )
+    pendingOffer.value = { type: 'contact' }
+    return true
+  }
+
+  // --- Filter: permintaan yang memang tidak bisa / tidak pantas dilayani ---
+  if (intent.type === 'money') {
+    await botSay(
+      pickVariant('money', [
+        'Waduh, kalau soal uang aku nggak bisa bantu, hehe. Aku cuma asisten chat, nggak pegang dompet sama sekali.',
+        'Hehe, maaf ya, aku nggak bisa kasih atau minjemin uang. Aku di sini cuma buat cerita soal Jose dan nyampein pesan ke dia.',
+        'Aduh, dompetku kosong, aku kan cuma bot. Kalau soal Jose, aku siap bantu!',
+      ]),
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'inappropriate') {
+    await botSay(
+      'Maaf, untuk hal seperti itu aku nggak bisa bantu. Aku cuma bisa ngobrol soal profil, pengalaman, proyek, dan kontak Jose ya.',
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'illegal') {
+    await botSay(
+      'Maaf, aku nggak bisa bantu untuk hal yang merugikan orang lain atau melanggar aturan. Kalau mau ngobrol soal Jose atau proyeknya, aku siap.',
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'flirt') {
+    await botSay(
+      pickVariant('flirt', [
+        'Hehe, makasih, tapi aku cuma bot asistennya Jose. Hatiku isinya data proyek semua.',
+        'Waduh, aku jadi salah tingkah, padahal aku cuma bot. Mending kita ngobrolin karya-karya Jose aja, yuk?',
+      ]),
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'homework') {
+    await botSay(
+      'Aku nggak bisa ngerjain tugas atau kode kamu langsung di sini. Tapi kalau kamu butuh bantuan untuk proyek, Jose bisa diajak diskusi. Mau aku bantu sampein pesan ke dia?',
+      550,
+    )
+    pendingOffer.value = { type: 'contact' }
+    return true
+  }
+
+  if (intent.type === 'offtopicTopic') {
+    await botSay(
+      pickVariant('offtopicTopic', [
+        `Wah, soal ${intent.topic} aku nggak bisa bantu jawab. Aku khusus ngobrolin Jose: profil, pengalaman, proyek, dan cara menghubungi dia.`,
+        `Hmm, ${intent.topic} itu di luar yang aku tahu, hehe. Tapi kalau mau tahu soal Jose, tanya aja.`,
+        `Maaf, untuk urusan ${intent.topic} aku bukan ahlinya. Aku cuma asisten portofolio Jose.`,
+      ]),
+      500,
+    )
+    return false
+  }
+
+  // --- Obrolan ringan ke bot ---
+  if (intent.type === 'testMsg') {
+    await botSay(
+      pickVariant('testMsg', ['Masuk kok! Pesannya sampai.', 'Ada, aku di sini. Ada yang bisa aku bantu?']),
+      350,
+    )
+    return false
+  }
+
+  // Jam & tanggal diambil dari perangkat pengunjung (zona waktunya sendiri)
+  if (intent.type === 'timeNow') {
+    const time = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(new Date())
+    await botSay(
+      `Sekarang jam <strong>${time}</strong> menurut jam di perangkat kamu. Selamat ${getTimeOfDay()}${name}!`,
+      400,
+    )
+    return false
+  }
+
+  if (intent.type === 'dateNow') {
+    const date = new Intl.DateTimeFormat('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date())
+    await botSay(`Hari ini <strong>${date}</strong>.`, 400)
+    return false
+  }
+
+  if (intent.type === 'botAge') {
+    await botSay('Hehe, aku masih baru kok, umurku seumur portofolio ini. Kalau Jose, dia sudah lulus kuliah dan sekarang kerja.', 450)
+    return false
+  }
+
+  if (intent.type === 'botLanguage') {
+    await botSay(
+      'Aku paling lancar bahasa Indonesia, termasuk bahasa gaul. Bahasa Inggris aku ngerti sedikit, misalnya "education" atau "projects". Jawabanku tetap pakai bahasa Indonesia ya.',
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'botLikes') {
+    await botSay(
+      'Aku paling suka kalau ada yang nanya soal proyek Jose, hehe. Mau aku tunjukin salah satunya?',
+      450,
+    )
+    pendingOffer.value = { type: 'projectsAll' }
+    return true
+  }
+
+  if (intent.type === 'apology') {
+    await botSay(
+      pickVariant('apology', ['Santai aja, nggak apa-apa kok!', 'Nggak masalah, tenang aja.']),
+      350,
+    )
+    return false
+  }
+
+  if (intent.type === 'askPermission') {
+    await botSay(
+      pickVariant('askPermission', [
+        'Boleh banget, tanya aja!',
+        'Tentu boleh, silakan!',
+        'Boleh dong, mau tanya soal apa?',
+      ]),
+      350,
+    )
+    return true
+  }
+
+  if (intent.type === 'goodnight') {
+    await botSay(
+      `Selamat istirahat${name}! Makasih udah mampir. Kalau besok ada yang mau ditanya soal Jose, aku masih di sini.`,
+      450,
+    )
+    return true
+  }
+
+  if (intent.type === 'botMaker') {
+    await botSay(
+      'Aku dibuat khusus untuk portofolio Jose, buat nemenin pengunjung ngobrol soal dia dan nyampein pesan ke emailnya.',
+      500,
+    )
+    return false
+  }
+
+  if (intent.type === 'botGender') {
+    await botSay('Hehe, aku bukan cewek atau cowok, aku cuma bot asistennya Jose.', 400)
+    return false
+  }
+
+  if (intent.type === 'botHome') {
+    await botSay(
+      'Aku "tinggal" di website ini, hehe. Kalau Jose sendiri, dia berbasis di Bandung dan Bekasi, Jawa Barat.',
+      450,
+    )
+    return false
+  }
+
+  if (intent.type === 'botEat') {
+    await botSay(
+      pickVariant('botEat', [
+        'Bot nggak perlu makan, hehe. Tapi makasih udah perhatian! Kamu sendiri jangan lupa makan ya.',
+        'Aku cukup "makan" listrik, hehe. Kamu udah?',
+      ]),
+      450,
+    )
+    return false
+  }
+
+  if (intent.type === 'botActivity') {
+    await botSay(
+      pickVariant('botActivity', [
+        'Lagi nungguin ada yang ngajak ngobrol, eh kamu datang. Ada yang mau ditanya soal Jose?',
+        'Lagi jagain portofolio Jose nih. Kamu lagi cari info soal dia?',
+      ]),
+      450,
+    )
+    return true
+  }
+
+  if (intent.type === 'mood') {
+    await botSay(
+      pickVariant('mood', [
+        `Semangat ya${name}! Kalau lagi capek, istirahat dulu juga gapapa.`,
+        `Peluk jauh${name}. Semoga cepat membaik ya. Kalau mau ngobrol santai soal Jose, aku temenin.`,
+      ]),
+      450,
+    )
+    return true
+  }
+
+  if (intent.type === 'happy') {
+    await botSay(`Ikut senang dengarnya${name}! Semoga harinya terus menyenangkan.`, 400)
+    return false
+  }
+
+  if (intent.type === 'rude') {
+    await botSay(
+      'Waduh, santai dulu ya. Aku di sini buat bantu. Kalau ada yang kurang pas, bilang aja, nanti aku coba bantu sebisanya.',
+      500,
+    )
+    return false
+  }
+
+  return false
+}
+
+// Jawab tawaran yang sedang menunggu (pendingOffer). Return true kalau
+// pesan user memang jawaban ya/tidak untuk tawaran itu.
+async function answerPendingOffer(text) {
+  const offer = pendingOffer.value
+  const norm = normalizeChat(text)
+  const yes = YES_RX.test(norm)
+  const no = !yes && NO_RX.test(norm)
+  if (!offer || (!yes && !no)) return false
+
+  pendingOffer.value = null
+  takeUserMessage(text)
+
+  if (no) {
+    await botSay(
+      pickVariant('offerNo', [
+        'Oke, gapapa! Ada lagi yang mau ditanyain soal Jose?',
+        'Siap, nggak masalah. Kalau ada yang mau ditanya lagi, bilang aja ya.',
+      ]),
+      400,
+    )
+    return true
+  }
+
+  if (offer.type === 'aboutFull') {
+    await botSay(ABOUT_HTML, 550)
+  } else if (offer.type === 'projectsAll') {
+    await answerFaq({ type: 'projects', wantsLink: true })
+    return true
+  } else if (offer.type === 'projectLinks') {
+    await botSay('Nih link demo dan repo-nya:', 400, 'cards', projectCards(PROJECTS, true))
+  } else if (offer.type === 'techProjects') {
+    await botSay('Nih proyeknya:', 400)
+    await botSay(
+      '',
+      350,
+      'cards',
+      projectCards(PROJECTS.filter((p) => offer.titles.includes(p.title)), true),
+    )
+  } else if (offer.type === 'contact') {
+    await resumeContact()
+    return true
+  }
+
+  const prompt = stepPrompt()
+  if (prompt) await botSay(prompt, 500)
+  return true
+}
+
 // Kalimat buat "kembali" ke pertanyaan form kontak setelah FAQ dijawab,
 // supaya alur pengumpulan nama/email/pesan tetap jalan.
+// Seperti orang ngobrol: setelah ditanya, jangan ditagih lagi di setiap
+// balasan. Pertanyaan yang sama baru diulang setelah beberapa giliran.
+let userTurn = 0
+let lastAskTurn = -10
+const ASK_EVERY_TURNS = 3
+
 function stepPrompt(after = 'faq') {
+  // Mode ngobrol bebas: user belum mau kasih data, jangan ditagih terus
+  if (step.value === 'chat' || !['name', 'email', 'message'].includes(step.value)) return ''
+  if (after !== 'greeting' && userTurn - lastAskTurn < ASK_EVERY_TURNS) return ''
+  lastAskTurn = userTurn
+
   if (step.value === 'name') {
     return after === 'greeting'
       ? 'Btw, aku asisten chat Jose. Boleh kenalan dulu, nama kamu siapa?'
-      : 'Btw, sebelum lanjut, boleh tau nama kamu dulu?'
+      : pickVariant('askName', [
+          'Oh iya, dari tadi belum kenalan. Nama kamu siapa?',
+          'Btw, boleh tau nama kamu?',
+        ])
   }
-  if (step.value === 'email') return 'Oke, lanjut ya, email kamu apa, biar Jose bisa balas ke sana?'
-  // Mode ngobrol bebas: user belum mau kasih data, jangan ditagih terus
-  if (step.value === 'chat') return ''
-  if (step.value === 'message') {
-    return 'Balik lagi ke soal tadi, ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?'
+  if (step.value === 'email') {
+    return pickVariant('askEmail', [
+      'Btw, kalau nanti mau kirim pesan ke Jose, email kamu apa? Santai, boleh nanti juga.',
+      'Oh iya, biar Jose bisa balas, boleh minta email kamu? Kalau mau tanya-tanya dulu juga gapapa.',
+    ])
   }
-  return ''
+  return pickVariant('askMessage', [
+    'Ngomong-ngomong, ada <em>project</em>, ide kolaborasi, atau pertanyaan yang mau kamu sampein ke Jose?',
+    'Kalau ada yang mau disampein langsung ke Jose, tulis aja di sini ya.',
+  ])
 }
 
 function isValidEmail(value) {
@@ -305,8 +877,8 @@ async function startConversation() {
   messages.value = []
   form.value = { name: '', email: '', message: '' }
   submitError.value = ''
-  pendingLinkOffer.value = false
   pendingClarify.value = null
+  pendingOffer.value = null
   step.value = 'name'
   msgId = 0
   // Sapaan sesuai waktu dulu, lalu topik yang bisa dijawab. Pertanyaan nama
@@ -331,8 +903,8 @@ function restoreOrStartConversation() {
   messages.value = saved.messages
   form.value = saved.form || { name: '', email: '', message: '' }
   step.value = saved.step || 'message'
-  pendingLinkOffer.value = !!saved.pendingLinkOffer
   pendingClarify.value = saved.pendingClarify || null
+  pendingOffer.value = saved.pendingOffer || null
   msgId =
     typeof saved.msgId === 'number'
       ? saved.msgId
@@ -411,6 +983,7 @@ async function handleSend() {
 }
 
 function takeUserMessage(text) {
+  userTurn += 1
   pushMessage('user', text)
   inputValue.value = ''
 }
@@ -448,22 +1021,57 @@ async function resumeContact(email = '') {
   }
 }
 
+// Maksud percakapan boleh dicek kalau pesannya bukan email dan, di langkah
+// "pesan", bukan isi pesan untuk Jose (kalimat panjang / berisi tawaran).
+function canMatchConversation(body) {
+  if (step.value === 'error' || step.value === 'submitting' || extractEmail(body)) return false
+  const wordCount = body.split(/\s+/).filter(Boolean).length
+  // Saat ditanya nama, jawaban satu kata yang masuk akal sebagai nama
+  // ("Bagus", "Rina") diperlakukan sebagai nama, bukan pujian/maksud lain.
+  if (step.value === 'name') return !(wordCount === 1 && extractPlainName(body))
+  if (step.value !== 'message') return true
+  return !looksLikeMessageToJose(body) && wordCount <= 8
+}
+
 async function processMessage(text) {
-  // 1) Basa-basi murni ("halo", "selamat malam", "makasih", "apa kabar")
-  //    dijawab dulu, TIDAK pernah dianggap nama/email/isi pesan.
-  const talk = matchSmallTalk(text)
-  if (talk) {
-    pendingLinkOffer.value = false
-    pendingClarify.value = null
-    takeUserMessage(text)
-    await answerSmallTalk(talk, text)
-    return
+  // 0) Jawaban "iya/boleh/nggak" untuk tawaran bot sebelumnya. Dicek paling
+  //    awal supaya "iya" tidak tertelan sebagai basa-basi.
+  if (pendingOffer.value) {
+    if (await answerPendingOffer(text)) return
+    pendingOffer.value = null
   }
 
   // "halo kak, aku budi" / "pagi, mau tanya proyeknya" -> sapa balik dulu,
   // lalu proses sisa kalimatnya.
   const greeted = hasGreetingPrefix(text)
   const body = greeted ? stripGreetingPrefix(text) || text : text
+
+  // 1) Maksud percakapan spesifik: ajakan kenalan, pujian, fakta (IPK, kerja
+  //    di mana), cek skill ("bisa Flutter?"), proyek tertentu, dst.
+  if (canMatchConversation(body)) {
+    const convo = matchConversation(body)
+    if (convo) {
+      pendingClarify.value = null
+      takeUserMessage(text)
+      if (greeted) await botSay(greetBack(text), 400)
+      const suppressPrompt = await answerConversation(convo, body)
+      if (!suppressPrompt && step.value !== 'done') {
+        const prompt = stepPrompt()
+        if (prompt) await botSay(prompt, 500)
+      }
+      return
+    }
+  }
+
+  // 2) Basa-basi murni ("halo", "selamat malam", "makasih", "apa kabar")
+  //    dijawab dulu, TIDAK pernah dianggap nama/email/isi pesan.
+  const talk = matchSmallTalk(text)
+  if (talk) {
+    pendingClarify.value = null
+    takeUserMessage(text)
+    await answerSmallTalk(talk, text)
+    return
+  }
 
   // Mode ngobrol bebas: kalau user ngetik email atau bilang mau kirim
   // pesan, lanjutkan alur kontak.
@@ -498,9 +1106,8 @@ async function processMessage(text) {
     step.value !== 'error' &&
     (step.value !== 'message' || (looksLikeQuestion(body) && !looksLikeMessageToJose(body)))
   ) {
-    const intent = matchFaqIntent(body)
+    const intent = matchFaqIntent(normalizeChat(body))
     if (intent) {
-      pendingLinkOffer.value = false
       pendingClarify.value = null
       takeUserMessage(text)
       if (greeted) await botSay(greetBack(text), 400)
@@ -523,47 +1130,6 @@ async function processMessage(text) {
     return
   }
 
-  // 3) Jawaban ya/tidak untuk tawaran link demo/repo
-  if (pendingLinkOffer.value) {
-    const wordCount = text.split(/\s+/).filter(Boolean).length
-    const isShortReply = wordCount <= 4
-    const wantsLink =
-      isShortReply &&
-      /\b(ya|iya|iy|yap|yoi|boleh|mau|oke|ok|sip|siap|link|demo|repo|source ?code)\b/i.test(text)
-    const declines =
-      isShortReply &&
-      /\b(nggak|enggak|ga|gak|tidak|engga|no|skip|nanti|gausah|ga usah)\b/i.test(text)
-
-    if (wantsLink || declines) {
-      pendingLinkOffer.value = false
-      takeUserMessage(text)
-
-      if (wantsLink) {
-        await botSay(
-          'Nih link demo dan repo-nya',
-          400,
-          'cards',
-          PROJECTS.map((item) => ({
-            title: item.title,
-            desc: item.summary,
-            image: item.image,
-            tags: item.tags,
-            links: [
-              { label: 'Lihat Demo', url: item.demoHref },
-              { label: 'Lihat Code', url: item.codeHref },
-            ],
-          })),
-        )
-      }
-
-      const prompt = stepPrompt()
-      if (prompt) await botSay(prompt, 500)
-      else if (declines) await botSay('Oke, gapapa! Ada lagi yang mau ditanyain soal Jose?', 400)
-      return
-    }
-    pendingLinkOffer.value = false
-  }
-
   // 4) Jawaban klarifikasi "pekerjaan" (riwayat kerja atau nawarin kerjaan)
   if (pendingClarify.value === 'pekerjaan') {
     const wantsHistory = PEKERJAAN_CLARIFY_HISTORY_RX.test(text)
@@ -584,7 +1150,15 @@ async function processMessage(text) {
   if (step.value === 'chat') {
     takeUserMessage(text)
     await botSay(
-      DECLINE_RX.test(body) ? 'Boleh, pilih aja topiknya ya.' : 'Hmm, aku belum nangkep maksudnya.',
+      // Hanya kalau user memang minta dipilihkan ("terserah", "bingung"), bukan
+      // setiap kalimat yang kebetulan mengandung "ga"/"tidak".
+      /^(?:terserah|bebas|apa\s*(?:aja|saja)|bingung|yang\s*lain|lain\s*aja)\b/i.test(body.trim())
+        ? 'Boleh, pilih aja topiknya ya.'
+        : pickVariant('unknown', [
+            'Hmm, yang itu aku belum bisa jawab. Aku paling nyambung kalau ditanya soal Jose.',
+            'Maaf, aku belum nangkep maksudnya. Coba tanya dengan kalimat lain, atau pilih topik di bawah ya.',
+            'Wah, itu di luar yang aku tahu. Tapi soal Jose, aku siap cerita!',
+          ]),
       400,
     )
     await botSay(TOPICS_MENU_HTML, 400)
@@ -616,8 +1190,11 @@ async function processMessage(text) {
     const name = matchNameStatement(body)?.name || extractPlainName(body)
     if (!name) {
       await botSay(
-        /\?/.test(body)
-          ? `${hello}Hmm, aku belum nangkep maksudnya. Boleh diulang, atau kenalan dulu, nama kamu siapa?`
+        /\?/.test(body) || looksLikeQuestion(body)
+          ? `${hello}${pickVariant('unknownName', [
+              'Hmm, yang itu aku belum bisa jawab. Aku paling nyambung kalau ditanya soal profil, pengalaman, proyek, atau skill Jose.',
+              'Maaf, aku belum nangkep maksudnya. Coba tanya soal Jose dengan kalimat lain ya.',
+            ])} Oh iya, boleh tau nama kamu siapa?`
           : `${hello}Hmm, kayaknya itu bukan nama deh. Nama panggilan kamu siapa? Cukup satu kata aja, contoh: Budi.`,
       )
       return
@@ -633,6 +1210,7 @@ async function processMessage(text) {
       return
     }
     step.value = 'email'
+    lastAskTurn = userTurn
     await botSay(`${hello}Salam kenal, ${safeName}! Email kamu apa, biar Jose bisa balas ke sana?`)
     return
   }
@@ -729,7 +1307,9 @@ watch(
 // Simpan otomatis ke localStorage setiap kali ada perubahan pada percakapan
 // (pesan baru, ganti step, isi form, dsb), supaya kalau halaman di-refresh
 // chat-nya tidak hilang.
-watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, { deep: true })
+watch([messages, step, form, pendingClarify, pendingOffer], saveChatState, {
+  deep: true,
+})
 </script>
 
 <template>
