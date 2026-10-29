@@ -10,10 +10,10 @@
   --color-text: #ECEEF1;
   --color-text-soft: #9AA0A8;
 
-  /* ---- Warna utama: biru kobalt. Aksen: hijau sinyal ---- */
-  --color-primary: #4A75FF;
-  --color-primary-dark: #3360F0;
-  --color-primary-soft: rgba(74, 117, 255, 0.16);
+  /* ---- Warna utama: biru azure (hue 210°, bukan ultramarine yang keunguan). Aksen: hijau sinyal ---- */
+  --color-primary: #1F7FE0;
+  --color-primary-dark: #1769BF;
+  --color-primary-soft: rgba(31, 127, 224, 0.16);
 
   --color-accent: #3FCB8A;
   --color-accent-soft: rgba(63, 203, 138, 0.14);
@@ -22,9 +22,9 @@
 
   --color-danger: #F2555A;
 
-  /* ---- Footer: blok kobalt penuh, sama di kedua tema ---- */
-  --footer-bg: #1B3BC4;
-  --footer-accent: #C7D3FF;
+  /* ---- Footer: blok biru azure penuh, sama di kedua tema ---- */
+  --footer-bg: #0059B3;
+  --footer-accent: #CFE3F7;
 
   /* ---- Garis & tekstur (gaya "Field Notes") ---- */
   --color-rule: rgba(230, 233, 238, 0.2);
@@ -35,7 +35,7 @@
   --navbar-bg-scrolled: rgba(21, 23, 26, 0.92);
   --navbar-dropdown-bg: rgba(21, 23, 26, 0.98);
   --navbar-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.45);
-  --navbar-hover-bg: rgba(74, 117, 255, 0.12);
+  --navbar-hover-bg: rgba(31, 127, 224, 0.12);
   --navbar-toggle-bg: rgba(255, 255, 255, 0.12);
   --navbar-toggle-bg-hover: rgba(255, 255, 255, 0.22);
 
@@ -75,9 +75,9 @@
   --color-text: #111214;
   --color-text-soft: #5B6068;
 
-  --color-primary: #2448E0;
-  --color-primary-dark: #1A37B8;
-  --color-primary-soft: rgba(36, 72, 224, 0.1);
+  --color-primary: #0059B3;
+  --color-primary-dark: #004C99;
+  --color-primary-soft: rgba(0, 89, 179, 0.1);
 
   --color-accent: #0F7A4B;
   --color-accent-soft: rgba(15, 122, 75, 0.12);
@@ -90,7 +90,7 @@
   --navbar-bg-scrolled: rgba(255, 255, 255, 0.94);
   --navbar-dropdown-bg: rgba(255, 255, 255, 0.98);
   --navbar-shadow: 0 12px 30px -14px rgba(15, 17, 20, 0.22);
-  --navbar-hover-bg: rgba(36, 72, 224, 0.08);
+  --navbar-hover-bg: rgba(0, 89, 179, 0.08);
   --navbar-toggle-bg: rgba(15, 17, 20, 0.07);
   --navbar-toggle-bg-hover: rgba(15, 17, 20, 0.14);
 

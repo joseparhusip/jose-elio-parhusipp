@@ -164,7 +164,7 @@ img {
   text-wrap: balance;
 }
 
-/* Kata aksen di judul: serif italic, warna kobalt */
+/* Kata aksen di judul: serif italic, warna biru */
 .serif-accent {
   font-family: var(--font-serif);
   font-style: italic;

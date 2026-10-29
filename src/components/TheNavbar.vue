@@ -245,7 +245,7 @@ onUnmounted(() => {
 <style scoped>
 /* =========================================================
    Navbar "Field Notes": bar datar, garis tipis di bawah saat
-   discroll, menu teks biasa dengan garis bawah kobalt yang
+   discroll, menu teks biasa dengan garis bawah biru yang
    meluncur ke menu aktif / yang disorot.
    ========================================================= */
 .navbar {
@@ -315,7 +315,7 @@ onUnmounted(() => {
   padding: 0;
 }
 
-/* Penanda menu aktif: garis tipis kobalt di bawah teks */
+/* Penanda menu aktif: garis tipis biru di bawah teks */
 .navbar__pill {
   position: absolute;
   bottom: 0.15rem;

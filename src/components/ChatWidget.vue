@@ -1223,7 +1223,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   top: 26px;
   bottom: 0;
   width: 2px;
-  background: linear-gradient(to bottom, rgba(74, 117, 255, 0.45), rgba(74, 117, 255, 0.1));
+  background: linear-gradient(to bottom, rgba(31, 127, 224, 0.45), rgba(31, 127, 224, 0.1));
 }
 
 .chat-widget__exp-content {
@@ -1283,9 +1283,9 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
 
 .chat-widget__exp-tag {
   font-size: 0.68rem;
-  color: var(--color-primary-dark, #1a37b8);
+  color: var(--color-primary-dark, #004c99);
   background: var(--color-bg);
-  border: 1px solid rgba(74, 117, 255, 0.25);
+  border: 1px solid rgba(31, 127, 224, 0.25);
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
 }
@@ -1397,9 +1397,9 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   align-items: center;
   gap: 0.3rem;
   font-size: 0.68rem;
-  color: var(--color-primary-dark, #1a37b8);
+  color: var(--color-primary-dark, #004c99);
   background: var(--color-bg);
-  border: 1px solid rgba(74, 117, 255, 0.25);
+  border: 1px solid rgba(31, 127, 224, 0.25);
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
 }
@@ -1473,7 +1473,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   font-weight: 600;
   color: var(--color-primary);
   background: var(--color-primary-soft);
-  border: 1px solid rgba(74, 117, 255, 0.35);
+  border: 1px solid rgba(31, 127, 224, 0.35);
   border-radius: 999px;
   padding: 0.5rem 1rem;
   cursor: pointer;
@@ -1481,7 +1481,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
 }
 
 .chat-widget__action-btn:hover {
-  background: rgba(74, 117, 255, 0.24);
+  background: rgba(31, 127, 224, 0.24);
 }
 
 .chat-widget__footer {

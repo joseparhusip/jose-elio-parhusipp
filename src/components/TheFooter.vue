@@ -171,7 +171,7 @@ function preventImageAction(event) {
 
 <style scoped>
 /* =========================================================
-   Footer "Field Notes": blok kobalt penuh (sama di kedua tema),
+   Footer "Field Notes": blok biru penuh (sama di kedua tema),
    kolom dipisah garis tipis, dan nama
    besar sebagai tanda tangan di bagian bawah.
    ========================================================= */

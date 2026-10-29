@@ -511,7 +511,7 @@ const logoStyle = (item) =>
   transition: color 0.25s ease, background-color 0.25s ease;
 }
 
-/* Penanda baris aktif: garis kobalt di kiri */
+/* Penanda baris aktif: garis biru di kiri */
 .experience__tab::before {
   content: '';
   position: absolute;

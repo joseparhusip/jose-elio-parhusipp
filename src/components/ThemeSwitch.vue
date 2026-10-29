@@ -90,7 +90,7 @@ const isLight = computed(() => theme.value === 'light')
 }
 
 .sw:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-primary-soft, rgba(74, 117, 255, 0.4));
+  box-shadow: 0 0 0 3px var(--color-primary-soft, rgba(31, 127, 224, 0.4));
 }
 
 /* ===== warna LIGHT ===== */

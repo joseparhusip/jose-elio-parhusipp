@@ -8,17 +8,17 @@ hex langsung di komponen.
 
 ## Arah estetika
 
-**Swiss editorial: grafit & kobalt.** Seperti poster gaya International
+**Swiss editorial: grafit & biru azure.** Seperti poster gaya International
 Typographic Style atau majalah arsitektur: latar abu grafit netral, tipografi
-yang berkarakter, dan **satu** warna aksen biru kobalt yang tegas dan dipakai
+yang berkarakter, dan **satu** warna aksen biru azure yang tegas dan dipakai
 seperlunya. Bukan dashboard SaaS dan bukan landing page startup.
 
 Referensi rasa:
 
 1. **Poster Swiss / International Typographic Style**: grid tegas, satu warna
    aksen yang berani, banyak ruang kosong.
-2. **Biru Klein (International Klein Blue)**: biru kobalt pekat sebagai warna
-   tanda tangan.
+2. **Biru rambu jalan / biru LinkedIn**: biru azure yang jujur (hue 210°),
+   tanpa sedikit pun nuansa ungu.
 3. **Jurnal arsitek**: garis struktur tipis, metadata mono, koordinat.
 
 Kepribadian: percaya diri, tegas, rapi, tidak berisik.
@@ -44,11 +44,11 @@ Aturan 60–30–10: **60% netral** (bg/surface), **30% teks**, **≤10% warna**
 | `--color-rule`         | `rgba(230,233,238,.20)` | Garis struktur (section, tabel) |
 | `--color-text`         | `#ECEEF1` | Teks utama                                   |
 | `--color-text-soft`    | `#9AA0A8` | Teks sekunder, label                         |
-| `--color-primary`      | `#4A75FF` | **Kobalt.** CTA utama, link aktif, highlight |
-| `--color-primary-dark` | `#3360F0` | Hover/pressed tombol primary                 |
+| `--color-primary`      | `#1F7FE0` | **Biru azure.** CTA utama, link aktif, highlight |
+| `--color-primary-dark` | `#1769BF` | Hover/pressed tombol primary                 |
 | `--color-accent`       | `#3FCB8A` | **Hijau sinyal.** Status "tersedia", grafik GitHub |
-| `--footer-bg`          | `#1B3BC4` | Footer: blok kobalt penuh, sama di kedua tema |
-| `--footer-accent`      | `#C7D3FF` | Label kecil di atas footer kobalt            |
+| `--footer-bg`          | `#0059B3` | Footer: blok biru penuh, sama di kedua tema |
+| `--footer-accent`      | `#CFE3F7` | Label kecil di atas footer biru              |
 
 ### Mode terang
 
@@ -60,13 +60,17 @@ Aturan 60–30–10: **60% netral** (bg/surface), **30% teks**, **≤10% warna**
 | `--color-rule`         | `rgba(15,17,20,.24)` |
 | `--color-text`         | `#111214` |
 | `--color-text-soft`    | `#5B6068` |
-| `--color-primary`      | `#2448E0` |
-| `--color-primary-dark` | `#1A37B8` |
+| `--color-primary`      | `#0059B3` |
+| `--color-primary-dark` | `#004C99` |
 | `--color-accent`       | `#0F7A4B` |
 
-Kontras sudah dicek: teks primary di atas bg ≥ 5:1 di kedua tema; teks putih
-di atas tombol primary ≥ 4.4:1 (gelap) dan ≥ 6.5:1 (terang); teks putih di
-atas footer kobalt 8.5:1.
+Kontras sudah dicek: teks primary di atas bg ≥ 4.7:1 (gelap) dan 6.2:1 (terang);
+teks putih di atas tombol primary ≥ 4:1 (gelap) dan 6.8:1 (terang); teks putih
+di atas footer biru 6.8:1.
+
+**Aturan hue biru:** primary harus di hue **200–215°** dengan kanal merah
+hampir nol. Biru di atas ~220° (ultramarine, kobalt, indigo) terlihat
+keunguan di layar, jangan dipakai.
 
 ## Tipografi
 
@@ -120,6 +124,8 @@ ukuran "tengah-tengah" yang saling mirip.
 ## Jangan dipakai ❌
 
 - Ungu/indigo/violet dalam bentuk apa pun (`#7C6FF0`, `#6366F1`, dll.).
+- Biru ultramarine/kobalt (hue > 220°, mis. `#2448E0`, `#4A75FF`): di layar
+  terbaca keunguan.
 - Cokelat, terakota, krem hangat, atau oranye sebagai warna brand (sudah
   dicoba, terasa terlalu mirip brand lain).
 - Gradien ungu→biru atau ungu→pink, terutama di hero.
@@ -138,6 +144,8 @@ ukuran "tengah-tengah" yang saling mirip.
 
 ## Changelog
 
+- **2026-10-29**: Biru kobalt (hue 229°, terbaca keunguan) diganti **biru
+  azure hue 210°** (`#1F7FE0` gelap / `#0059B3` terang, footer `#0059B3`).
 - **2026-10-29**: Garis kontur topografi di latar dihapus. Foto hero jadi
   kartu 3D (miring mengikuti kursor, kepala keluar dari bingkai).
 - **2026-10-29**: Palet cokelat/terakota diganti **grafit + biru kobalt +
