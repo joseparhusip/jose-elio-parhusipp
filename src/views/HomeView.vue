@@ -626,7 +626,7 @@ onUnmounted(() => {
   width: 2px;
   height: 0.9em;
   margin-left: 3px;
-  background: var(--color-primary);
+  background: var(--color-text);
   vertical-align: -0.08em;
   animation: hero-cursor-blink 0.85s steps(1) infinite;
 }
@@ -905,7 +905,7 @@ onUnmounted(() => {
   z-index: 1;
   width: 14px;
   height: 14px;
-  border-color: var(--color-primary);
+  border-color: var(--color-text-soft);
   border-style: solid;
   pointer-events: none;
 }
@@ -931,7 +931,7 @@ onUnmounted(() => {
 }
 
 .hero__caption span:first-child {
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .hero__specs {
@@ -1020,7 +1020,7 @@ onUnmounted(() => {
 }
 
 .hero__stat-num {
-  color: var(--color-primary);
+  color: var(--color-text-soft);
 }
 
 .hero__stat-value {
@@ -1048,7 +1048,7 @@ onUnmounted(() => {
 }
 
 .hero__scroll:hover {
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .hero__scroll-line {
@@ -1063,7 +1063,7 @@ onUnmounted(() => {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--color-primary);
+  background: var(--color-text);
   animation: hero-scroll 2.2s var(--ease-out) infinite;
 }
 

@@ -491,7 +491,7 @@ onBeforeUnmount(() => {
 }
 
 .contact__place-num {
-  color: var(--color-primary);
+  color: var(--color-text-soft);
 }
 
 .contact__place:hover {

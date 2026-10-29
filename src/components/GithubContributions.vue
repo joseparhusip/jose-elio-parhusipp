@@ -265,7 +265,7 @@ function hideTooltip() {
 }
 
 .gh__heading-num {
-  color: var(--color-primary);
+  color: var(--color-text-soft);
 }
 
 .gh__heading-num::before {
@@ -313,7 +313,7 @@ function hideTooltip() {
   right: 0;
   bottom: 0;
   height: 2px;
-  background: var(--color-primary);
+  background: var(--color-text);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s var(--ease-out);

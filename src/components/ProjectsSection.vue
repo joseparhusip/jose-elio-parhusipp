@@ -836,7 +836,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .gallery__dot--active::before {
-  background: var(--color-primary);
+  background: var(--color-text);
 }
 
 .gallery__arrows {
@@ -899,7 +899,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 .gallery__category {
   margin-top: 0.6rem;
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .gallery__host {
@@ -1070,7 +1070,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   top: 0.95rem;
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  color: var(--color-primary);
+  color: var(--color-text-soft);
 }
 
 .gallery__detail--open .gallery__detail-point {

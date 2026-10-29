@@ -142,7 +142,7 @@ img {
 }
 
 .section-label__num {
-  color: var(--color-primary);
+  color: var(--color-text-soft);
 }
 
 .section-label__num::before {
@@ -261,7 +261,7 @@ body::after {
   z-index: 1000;
   height: 2px;
   pointer-events: none;
-  background: var(--color-primary);
+  background: var(--color-text);
   transform: scaleX(var(--scroll-progress, 0));
   transform-origin: left;
   will-change: transform;

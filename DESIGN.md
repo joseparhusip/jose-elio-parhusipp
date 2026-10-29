@@ -112,14 +112,40 @@ ukuran "tengah-tengah" yang saling mirip.
 
 ## Pemakaian warna di komponen
 
-- **Tombol primary**: latar `--color-primary`, teks putih. Tombol sekunder:
-  outline `--color-border`, teks `--color-text`.
-- **Tab/filter aktif**: netral (latar `--color-text`, teks `--color-bg`), bukan
-  primary. Primary disimpan untuk aksi utama.
-- **Grafik/data** (misalnya kontribusi GitHub): skala `--color-accent` yang
+**Batas aksen: maksimal 2 pemakaian biru yang terlihat per layar.** Biru
+(`--color-primary`) hanya untuk:
+
+1. Satu kata aksen di judul (`.serif-accent`, "Parhusip" di hero).
+2. Tombol aksi utama (`.btn--primary`: Lihat Proyek, Mulai Chat, Lihat demo).
+3. State interaktif: hover, fokus, loading.
+
+Semua yang lain netral (`--color-text` / `--color-text-soft`): nomor section,
+indeks, caption, tanda sudut, garis menu aktif, tab aktif, bullet, kursor
+ketik, bar progres scroll. Tombol navbar "Hubungi Saya" dan tombol chat
+mengambang memakai **tinta solid** (latar `--color-text`, teks `--color-bg`)
+dan baru jadi biru saat hover.
+
+Pengecualian yang disengaja ("satu langkah berani"): footer berupa blok biru
+penuh.
+
+- **Grafik/data** (kontribusi GitHub): skala `--color-accent` (hijau) yang
   dicampur ke `--color-surface-soft` lewat `color-mix()`.
-- **Peta (Leaflet)**: tile dibuat hitam-putih (`grayscale(1)`), penanda
-  bawaan Leaflet yang biru dibiarkan.
+- **Peta (Leaflet)**: tile hitam-putih (`grayscale(1)`), penanda bawaan biru.
+
+## Cek anti-AI-slop
+
+Mengacu ke [anti-ai-slop.md](https://github.com/nexu-io/open-design/blob/main/craft/anti-ai-slop.md).
+Sebelum merge, pastikan:
+
+- [ ] Tidak ada indigo Tailwind (`#6366f1`, `#4f46e5`, `#8b5cf6`, `#7c3aed`, …).
+- [ ] Tidak ada gradien dua warna di hero (ungu→biru, biru→cyan, dll.).
+- [ ] Tidak ada emoji sebagai ikon. Ikon = SVG garis 1.6–1.8px, `currentColor`.
+- [ ] Judul memakai font display (Bricolage / Instrument Serif), bukan Inter/system.
+- [ ] Tidak ada kartu membulat dengan garis kiri berwarna.
+- [ ] Tidak ada angka yang dikarang ("10× lebih cepat"). Semua angka nyata.
+- [ ] Tidak ada teks pengisi (lorem ipsum, "fitur satu/dua/tiga").
+- [ ] Biru maksimal 2× per layar; hex mentah di luar `:root` seminimal mungkin.
+- [ ] Tidak ada blob/gelombang/pola garis dekoratif di latar.
 
 ## Jangan dipakai ❌
 
@@ -144,6 +170,9 @@ ukuran "tengah-tengah" yang saling mirip.
 
 ## Changelog
 
+- **2026-10-29**: Audit terhadap anti-ai-slop.md. Biru dibatasi ke kata aksen
+  + tombol utama; ~25 pemakaian dekoratif dinetralkan. Tombol navbar & chat
+  jadi tinta solid. Garis kiri kutipan jadi warna teks.
 - **2026-10-29**: Biru kobalt (hue 229°, terbaca keunguan) diganti **biru
   azure hue 210°** (`#1F7FE0` gelap / `#0059B3` terang, footer `#0059B3`).
 - **2026-10-29**: Garis kontur topografi di latar dihapus. Foto hero jadi

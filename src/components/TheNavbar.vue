@@ -245,7 +245,7 @@ onUnmounted(() => {
 <style scoped>
 /* =========================================================
    Navbar "Field Notes": bar datar, garis tipis di bawah saat
-   discroll, menu teks biasa dengan garis bawah biru yang
+   discroll, menu teks biasa dengan garis bawah warna teks yang
    meluncur ke menu aktif / yang disorot.
    ========================================================= */
 .navbar {
@@ -315,7 +315,7 @@ onUnmounted(() => {
   padding: 0;
 }
 
-/* Penanda menu aktif: garis tipis biru di bawah teks */
+/* Penanda menu aktif: garis tipis warna teks di bawah teks */
 .navbar__pill {
   position: absolute;
   bottom: 0.15rem;
@@ -323,7 +323,7 @@ onUnmounted(() => {
   height: 2px;
   width: var(--pill-w);
   translate: var(--pill-x) 0;
-  background: var(--color-primary);
+  background: var(--color-text);
   transform: scaleX(0.55);
   opacity: 0;
   pointer-events: none;
@@ -376,8 +376,8 @@ onUnmounted(() => {
   font-family: var(--font-body);
   font-size: 0.86rem;
   font-weight: 600;
-  color: #fff;
-  background: var(--color-primary);
+  color: var(--color-bg);
+  background: var(--color-text);
   padding: 0.6rem 1rem;
   border-radius: var(--radius-sm);
   text-decoration: none;
@@ -390,7 +390,8 @@ onUnmounted(() => {
 }
 
 .navbar__cta:hover {
-  background: var(--color-primary-dark);
+  background: var(--color-primary);
+  color: #fff;
 }
 
 .navbar__cta:hover svg {
@@ -510,13 +511,13 @@ onUnmounted(() => {
 
 .navbar__sheet-link:hover .navbar__sheet-arrow,
 .navbar__sheet-link--active .navbar__sheet-arrow {
-  color: var(--color-primary);
+  color: var(--color-text);
   transform: rotate(45deg);
 }
 
 .navbar__sheet-link--active .navbar__sheet-num,
 .navbar__sheet-link--active .navbar__sheet-text {
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .navbar__cta--sheet {

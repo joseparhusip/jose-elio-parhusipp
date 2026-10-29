@@ -964,8 +964,8 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  background: var(--color-primary);
+  color: var(--color-bg);
+  background: var(--color-text);
   box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55);
   transition:
     transform 0.2s ease,
@@ -974,7 +974,8 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
 
 .chat-widget__fab:hover {
   transform: translateY(-3px);
-  background: var(--color-primary-dark);
+  background: var(--color-primary);
+  color: #fff;
   box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.6);
 }
 

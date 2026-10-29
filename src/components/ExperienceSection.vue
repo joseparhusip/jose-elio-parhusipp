@@ -511,7 +511,7 @@ const logoStyle = (item) =>
   transition: color 0.25s ease, background-color 0.25s ease;
 }
 
-/* Penanda baris aktif: garis biru di kiri */
+/* Penanda baris aktif: garis warna teks di kiri *
 .experience__tab::before {
   content: '';
   position: absolute;
@@ -519,7 +519,7 @@ const logoStyle = (item) =>
   top: 0.85rem;
   bottom: 0.85rem;
   width: 2px;
-  background: var(--color-primary);
+  background: var(--color-text);
   transform: scaleY(0);
   transform-origin: top;
   transition: transform 0.35s var(--ease-out);
@@ -551,7 +551,7 @@ const logoStyle = (item) =>
 }
 
 .experience__tab--active .experience__tab-num {
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .experience__tab-text {
@@ -609,7 +609,7 @@ const logoStyle = (item) =>
 }
 
 .experience__tab--active .experience__tenure-fill {
-  background: var(--color-primary);
+  background: var(--color-text);
   opacity: 1;
 }
 
@@ -630,7 +630,7 @@ const logoStyle = (item) =>
   font-family: var(--font-mono);
   font-size: 0.68rem;
   font-weight: 600;
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .experience__logo img {
@@ -682,7 +682,7 @@ const logoStyle = (item) =>
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-primary);
+  color: var(--color-text-soft);
 }
 
 .experience__head {
@@ -792,7 +792,7 @@ const logoStyle = (item) =>
   top: 1.1rem;
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  color: var(--color-primary);
+  color: var(--color-text-soft);
 }
 
 @keyframes exp-point-in {
@@ -846,7 +846,7 @@ const logoStyle = (item) =>
   font-size: 0.74rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-primary);
+  color: var(--color-text);
   cursor: pointer;
 }
 

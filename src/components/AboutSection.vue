@@ -285,7 +285,7 @@ function preventImageAction(event) {
 .about__tag {
   display: block;
   margin-bottom: 1.25rem;
-  color: var(--color-primary);
+  color: var(--color-text-soft);
 }
 
 .about__desc p {
@@ -346,7 +346,7 @@ function preventImageAction(event) {
 .about__quote {
   margin: 0;
   padding: 0.25rem 0 0.25rem 1.4rem;
-  border-left: 2px solid var(--color-primary);
+  border-left: 2px solid var(--color-text);
 }
 
 .about__quote blockquote {
@@ -449,7 +449,7 @@ function preventImageAction(event) {
 .about__cap-num {
   font-family: var(--font-mono);
   font-size: 0.78rem;
-  color: var(--color-primary);
+  color: var(--color-text-soft);
   padding-left: 0.25rem;
 }
 
@@ -576,7 +576,7 @@ function preventImageAction(event) {
 }
 
 .about__filter--active .about__filter-count {
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 /* Grid bergaris: garis dibagi bersama antar sel */
