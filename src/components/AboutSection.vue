@@ -104,23 +104,29 @@ function preventImageAction(event) {
 <template>
   <section id="tentang" class="about">
     <div class="container">
-      <header class="about__header">
-        <span class="section-label" v-reveal
-          ><span class="section-label__num">01</span>Tentang Saya</span
-        >
-
-        <h2 class="section-title" v-reveal.clip="80">
-          Menghubungkan <span class="serif-accent">data</span>, desain, dan kode jadi satu solusi
-        </h2>
+      <header class="section-head">
+        <div class="section-head__meta">
+          <span class="section-label" v-reveal
+            ><span class="section-label__num">01</span>Tentang Saya</span
+          >
+          <span class="section-head__note" v-reveal="60">
+            Profil singkat<br />Bandung, Jawa Barat
+          </span>
+        </div>
+        <div class="section-head__main">
+          <h2 class="section-title" v-reveal.clip="80">
+            Menghubungkan <span class="serif-accent">data</span>, desain, dan kode jadi satu solusi
+          </h2>
+        </div>
       </header>
 
-      <!-- Bento: perkenalan besar di kiri, kutipan + fakta di kanan -->
-      <div class="about__bento">
-        <article class="about__card about__card--intro" v-reveal.left="160">
-          <span class="about__card-tag">Halo, saya Jose</span>
+      <!-- Perkenalan: teks panjang di kiri, kutipan + fakta di kanan -->
+      <div class="about__intro">
+        <article class="about__story" v-reveal.left="160">
+          <span class="mono-meta about__tag">Halo, saya Jose</span>
 
           <div class="about__desc">
-            <p>
+            <p class="about__lead">
               Saya Jose, Fresh Graduate S1 Bisnis Digital (IPK 3,75/4,00) dari Universitas Logistik
               dan Bisnis Internasional (ULBI) Bandung, dengan minat besar di web, mobile, data, dan
               AI.
@@ -135,33 +141,37 @@ function preventImageAction(event) {
           </div>
 
           <div class="about__interests">
-            <span class="about__interests-label">Minat</span>
+            <span class="mono-meta">Minat</span>
             <ul v-reveal.stagger.scale="{ delay: 520, step: 70 }">
               <li v-for="item in interests" :key="item">{{ item }}</li>
             </ul>
           </div>
         </article>
 
-        <figure class="about__card about__card--quote" v-reveal.right="200">
-          <span class="about__quote-mark" aria-hidden="true">&ldquo;</span>
-          <blockquote>Solusi terbaik lahir dari data yang dipahami dan desain yang dirasakan.</blockquote>
-          <figcaption>Prinsip kerja saya</figcaption>
-        </figure>
+        <aside class="about__side">
+          <figure class="about__quote" v-reveal.right="200">
+            <blockquote>Solusi terbaik lahir dari data yang dipahami dan desain yang dirasakan.</blockquote>
+            <figcaption class="mono-meta">Prinsip kerja saya</figcaption>
+          </figure>
 
-        <dl class="about__card about__card--facts" v-reveal.right="280">
-          <div v-for="fact in facts" :key="fact.label" class="about__fact">
-            <dt>{{ fact.label }}</dt>
-            <dd>
-              <strong>{{ fact.value }}</strong>
-              <span>{{ fact.sub }}</span>
-            </dd>
-          </div>
-        </dl>
+          <dl class="about__facts" v-reveal.right="280">
+            <div v-for="fact in facts" :key="fact.label" class="about__fact">
+              <dt>{{ fact.label }}</dt>
+              <dd>
+                <strong>{{ fact.value }}</strong>
+                <span>{{ fact.sub }}</span>
+              </dd>
+            </div>
+          </dl>
+        </aside>
       </div>
 
-      <!-- Keunggulan: baris memanjang, bukan kartu -->
+      <!-- Keunggulan: baris bergaris seperti tabel -->
       <div class="about__caps">
-        <span class="about__block-label" v-reveal.left>Yang saya bawa ke tim</span>
+        <div class="about__block-head" v-reveal.left>
+          <span class="about__block-label">Yang saya bawa ke tim</span>
+          <span class="mono-meta">{{ String(highlights.length).padStart(2, '0') }} poin</span>
+        </div>
 
         <ol class="about__caps-list">
           <li
@@ -174,14 +184,14 @@ function preventImageAction(event) {
 
             <div class="about__cap-head">
               <span class="about__cap-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="20" height="20">
+                <svg viewBox="0 0 24 24" width="18" height="18">
                   <path
-                    :d="highlightIcons[item.icon]"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="1.7"
+                    stroke-width="1.6"
                     stroke-linecap="round"
                     stroke-linejoin="round"
+                    :d="highlightIcons[item.icon]"
                   />
                 </svg>
               </span>
@@ -197,13 +207,13 @@ function preventImageAction(event) {
         </ol>
       </div>
 
-      <!-- Tools: grid ubin dengan filter kategori -->
+      <!-- Tools: grid spesimen bergaris dengan filter kategori -->
       <div class="about__stack">
-        <div class="about__stack-head" v-reveal>
+        <div class="about__block-head about__block-head--stack" v-reveal>
           <div>
             <span class="about__block-label">Tools &amp; teknologi yang saya kuasai</span>
-            <p class="about__stack-count" aria-live="polite">
-              <strong>{{ matchCount }}</strong> dari {{ tools.length }} tools
+            <p class="about__stack-count mono-meta" aria-live="polite">
+              <strong>{{ String(matchCount).padStart(2, '0') }}</strong> / {{ tools.length }} tools
             </p>
           </div>
 
@@ -233,6 +243,7 @@ function preventImageAction(event) {
             oncontextmenu="return false"
             @contextmenu.prevent="preventImageAction"
           >
+            <span class="about__tool-index" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
             <span class="about__tool-icon">
               <img
                 :src="tool.icon"
@@ -259,111 +270,51 @@ function preventImageAction(event) {
 
 <style scoped>
 .about {
-  position: relative;
   padding: var(--section-y) 0;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.about__header {
-  max-width: 46rem;
-}
-
-/* ---- Bento grid ---- */
-.about__bento {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-template-rows: auto auto;
-  gap: 1rem;
-  margin-top: clamp(2rem, 4vw, 3rem);
-}
-
-.about__card {
-  position: relative;
-  margin: 0;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
   background: var(--color-bg);
-  overflow: hidden;
 }
 
-.about__card--intro {
-  grid-column: 1 / span 7;
-  grid-row: 1 / span 2;
-  display: flex;
-  flex-direction: column;
-  padding: clamp(1.5rem, 3vw, 2.4rem);
-  background:
-    radial-gradient(
-        circle,
-        color-mix(in srgb, var(--color-text-soft) 22%, transparent) 1px,
-        transparent 1.3px
-      )
-      0 0 / 18px 18px,
-    var(--color-bg);
+/* ---- Perkenalan ---- */
+.about__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
 }
 
-/* Pola titik hanya terlihat di pojok kanan atas */
-.about__card--intro::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(200deg, transparent 0%, var(--color-bg) 40%);
-  pointer-events: none;
-}
-
-.about__card--intro > * {
-  position: relative;
-}
-
-.about__card-tag {
-  align-self: flex-start;
-  padding: 0.3rem 0.7rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
-  background: var(--color-accent-soft);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-}
-
-.about__desc {
-  margin-top: 1.4rem;
+.about__tag {
+  display: block;
+  margin-bottom: 1.25rem;
+  color: var(--color-primary);
 }
 
 .about__desc p {
-  margin: 0 0 1rem;
-  font-size: clamp(1rem, 1.3vw, 1.06rem);
+  margin: 0 0 1.1rem;
+  font-size: 1rem;
   line-height: 1.8;
   color: var(--color-text-soft);
   text-wrap: pretty;
+  max-width: 40rem;
 }
 
-.about__desc p:first-child {
-  font-size: clamp(1.08rem, 1.6vw, 1.22rem);
-  line-height: 1.65;
+.about__desc .about__lead {
+  font-family: var(--font-heading);
+  font-size: clamp(1.3rem, 2.3vw, 1.6rem);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
   color: var(--color-text);
+  margin-bottom: 1.5rem;
 }
 
 .about__interests {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 1.4rem;
-  border-top: 1px dashed var(--color-border);
-}
-
-.about__interests-label {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-soft);
+  gap: 0.75rem 1rem;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .about__interests ul {
@@ -376,80 +327,56 @@ function preventImageAction(event) {
 }
 
 .about__interests li {
-  padding: 0.3rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  font-size: 0.85rem;
-  font-weight: 500;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
   color: var(--color-text);
 }
 
-/* Kutipan */
-.about__card--quote {
-  grid-column: 8 / span 5;
+/* Kolom kanan: kutipan + fakta */
+.about__side {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 2rem 1.8rem 1.6rem;
-  background:
-    radial-gradient(120% 90% at 100% 0%, var(--color-primary-soft), transparent 60%),
-    var(--color-bg);
+  gap: 2.25rem;
 }
 
-.about__quote-mark {
-  position: absolute;
-  top: -1.4rem;
-  right: 1.2rem;
-  font-family: var(--font-serif);
-  font-size: 9rem;
-  line-height: 1;
-  color: var(--color-primary);
-  opacity: 0.35;
+.about__quote {
+  margin: 0;
+  padding: 0.25rem 0 0.25rem 1.4rem;
+  border-left: 2px solid var(--color-primary);
 }
 
-.about__card--quote blockquote {
-  position: relative;
-  margin: 2.2rem 0 0;
+.about__quote blockquote {
+  margin: 0 0 1rem;
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: clamp(1.45rem, 2.3vw, 1.85rem);
-  line-height: 1.25;
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   color: var(--color-text);
   text-wrap: balance;
 }
 
-.about__card--quote figcaption {
-  margin-top: 1.2rem;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-}
-
-/* Fakta: baris label kiri, nilai kanan */
-.about__card--facts {
-  grid-column: 8 / span 5;
-  display: grid;
-  padding: 0.4rem 1.4rem;
+.about__facts {
+  margin: 0;
+  border-top: 1px solid var(--color-rule);
 }
 
 .about__fact {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  align-items: baseline;
   gap: 1rem;
-  padding: 1rem 0;
-}
-
-.about__fact + .about__fact {
-  border-top: 1px solid var(--color-border);
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .about__fact dt {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-soft);
@@ -458,109 +385,91 @@ function preventImageAction(event) {
 .about__fact dd {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.6rem;
   margin: 0;
-  text-align: right;
 }
 
 .about__fact strong {
   font-family: var(--font-heading);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 600;
+  letter-spacing: -0.02em;
   color: var(--color-text);
 }
 
 .about__fact span {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--color-text-soft);
 }
 
-/* ---- Label kecil untuk tiap blok ---- */
+/* ---- Kepala blok (keunggulan & tools) ---- */
+.about__block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--color-rule);
+}
+
 .about__block-label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-soft);
+  font-family: var(--font-heading);
+  font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
 }
 
-/* ---- Keunggulan: baris memanjang ---- */
+/* ---- Keunggulan ---- */
 .about__caps {
-  margin-top: clamp(3rem, 6vw, 4.5rem);
+  margin-top: clamp(4rem, 8vw, 6rem);
 }
 
 .about__caps-list {
-  margin: 1rem 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--color-border);
 }
 
 .about__cap {
   display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.4rem 1rem;
+  grid-template-columns: 3.5rem minmax(0, 3.2fr) minmax(0, 5fr) minmax(0, 3fr);
+  align-items: baseline;
+  gap: 1rem 1.75rem;
+  padding: 1.5rem 0;
   border-bottom: 1px solid var(--color-border);
-  border-radius: 0;
-  transition:
-    background 0.35s ease,
-    border-radius 0.35s ease;
+  transition: background-color 0.25s ease;
 }
 
 .about__cap:hover {
-  background: var(--color-bg);
-  border-radius: var(--radius-lg);
+  background: var(--color-surface);
 }
 
 .about__cap-num {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--color-text-soft);
-  transition: color 0.3s ease;
-}
-
-.about__cap:hover .about__cap-num {
+  font-size: 0.78rem;
   color: var(--color-primary);
+  padding-left: 0.25rem;
 }
 
 .about__cap-head {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 0.65rem;
 }
 
 .about__cap-icon {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  transition:
-    color 0.3s ease,
-    background 0.3s ease,
-    border-color 0.3s ease,
-    transform 0.4s var(--ease-out);
-}
-
-.about__cap:hover .about__cap-icon {
-  color: var(--color-accent);
-  background: var(--color-accent-soft);
-  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
-  transform: rotate(-6deg);
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-text-soft);
+  transform: translateY(2px);
 }
 
 .about__cap-title {
   margin: 0;
   font-family: var(--font-heading);
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--color-text);
@@ -578,149 +487,147 @@ function preventImageAction(event) {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 0.4rem;
+  gap: 0.35rem 1rem;
   margin: 0;
-  padding: 0;
+  padding: 0 0.25rem 0 0;
   list-style: none;
 }
 
 .about__cap-keys li {
-  padding: 0.25rem 0.6rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
   color: var(--color-text-soft);
 }
 
-/* ---- Tools: grid ubin + filter ---- */
+
+/* ---- Tools ---- */
 .about__stack {
-  margin-top: clamp(3.5rem, 7vw, 5rem);
+  margin-top: clamp(4rem, 8vw, 6rem);
 }
 
-.about__stack-head {
-  display: flex;
+.about__block-head--stack {
   align-items: flex-end;
-  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem 2rem;
+  border-bottom: 0;
+  padding-bottom: 1.25rem;
 }
 
 .about__stack-count {
-  margin: 0.4rem 0 0;
-  font-size: 0.9rem;
-  color: var(--color-text-soft);
+  margin: 0.45rem 0 0;
 }
 
 .about__stack-count strong {
-  font-family: var(--font-heading);
-  font-size: 1.6rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text);
 }
 
 .about__filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.25rem 1.4rem;
 }
 
 .about__filter {
+  position: relative;
   display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.6rem 0.45rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.35rem 0;
+  border: 0;
+  background: none;
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--color-text-soft);
   cursor: pointer;
-  transition:
-    color 0.25s ease,
-    border-color 0.25s ease,
-    background 0.25s ease;
+  transition: color 0.2s ease;
+}
+
+.about__filter::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease-out);
 }
 
 .about__filter:hover {
   color: var(--color-text);
 }
 
-.about__filter:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
 .about__filter--active {
   color: var(--color-text);
-  border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
-  background: var(--color-primary-soft);
+}
+
+.about__filter--active::after {
+  transform: scaleX(1);
 }
 
 .about__filter-count {
-  min-width: 1.4rem;
-  padding: 0.1rem 0.35rem;
-  border-radius: 999px;
-  background: var(--color-surface);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  text-align: center;
+  font-size: 0.66rem;
   color: var(--color-text-soft);
 }
 
 .about__filter--active .about__filter-count {
-  background: var(--color-primary);
-  color: #fff;
+  color: var(--color-primary);
 }
 
+/* Grid bergaris: garis dibagi bersama antar sel */
 .about__tools {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 0.6rem;
-  margin: 1.4rem 0 0;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  margin: 0;
   padding: 0;
   list-style: none;
+  border-top: 1px solid var(--color-rule);
+  border-left: 1px solid var(--color-border);
 }
 
 .about__tool {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.8rem 0.6rem 0.6rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  transition:
-    opacity 0.35s ease,
-    filter 0.35s ease,
-    transform 0.4s var(--ease-out),
-    border-color 0.3s ease;
-  transition-delay: calc(var(--i) * 18ms);
+  gap: 0.85rem;
+  min-height: 84px;
+  padding: 1.1rem 1rem;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  transition: opacity 0.3s ease, background-color 0.25s ease;
 }
 
-.about__tool:not(.about__tool--dim):hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+.about__tool:hover {
+  background: var(--color-surface);
 }
 
 .about__tool--dim {
-  opacity: 0.28;
-  filter: grayscale(1);
-  transform: scale(0.97);
+  opacity: 0.25;
+}
+
+.about__tool-index {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--color-text-soft);
+  opacity: 0.7;
 }
 
 .about__tool-icon {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   width: 40px;
   height: 40px;
-  border-radius: 10px;
-  background: #fff; /* logo asli (warna-warni) paling jelas di atas putih */
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-soft);
 }
 
 .about__tool-icon img {
@@ -729,61 +636,48 @@ function preventImageAction(event) {
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
-  pointer-events: none;
 }
 
 .about__tool-text {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
 
 .about__tool-name {
-  overflow: hidden;
-  font-size: 0.92rem;
-  font-weight: 500;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  font-size: 0.95rem;
+  font-weight: 600;
   color: var(--color-text);
 }
 
 .about__tool-cat {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   font-family: var(--font-mono);
   font-size: 0.66rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-text-soft);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .about__tool,
-  .about__cap,
-  .about__cap-icon {
-    transition: none;
-  }
-}
-
-/* ---- Tablet ---- */
+/* ---- Responsif ---- */
 @media (max-width: 960px) {
-  .about__card--intro {
-    grid-column: 1 / -1;
-    grid-row: auto;
-  }
-
-  .about__card--quote,
-  .about__card--facts {
-    grid-column: span 6;
+  .about__intro {
+    grid-template-columns: 1fr;
   }
 
   .about__cap {
-    grid-template-columns: 2.5rem minmax(0, 1fr);
-    gap: 0.9rem 1rem;
-    align-items: start;
+    grid-template-columns: 3rem minmax(0, 1fr) minmax(0, 1.6fr);
   }
 
-  .about__cap-num {
-    padding-top: 0.8rem;
+  .about__cap-keys {
+    grid-column: 2 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .about__cap {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 0.6rem 0.75rem;
   }
 
   .about__cap-desc,
@@ -791,65 +685,18 @@ function preventImageAction(event) {
     grid-column: 2;
   }
 
-  .about__cap-keys {
-    justify-content: flex-start;
-  }
-}
-
-/* ---- HP ---- */
-@media (max-width: 640px) {
-  .about__card--quote,
-  .about__card--facts {
-    grid-column: 1 / -1;
-  }
-
-  .about__card--quote {
-    padding: 1.6rem 1.4rem 1.4rem;
-  }
-
-  .about__fact dd {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.1rem;
-  }
-
-  .about__cap {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 1.2rem 0.25rem;
-  }
-
-  .about__cap:hover {
-    background: none;
-  }
-
-  .about__cap-num {
-    padding-top: 0;
-  }
-
-  .about__cap-desc,
-  .about__cap-keys {
-    grid-column: 1;
-  }
-
-  /* Filter jadi satu baris yang bisa digeser */
-  .about__filters {
-    flex-wrap: nowrap;
-    width: 100%;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding-bottom: 0.2rem;
-  }
-
-  .about__filters::-webkit-scrollbar {
-    display: none;
-  }
-
-  .about__filter {
-    flex-shrink: 0;
+  .about__fact {
+    grid-template-columns: 6rem minmax(0, 1fr);
   }
 
   .about__tools {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about__tool {
+    gap: 0.6rem;
+    min-height: 72px;
+    padding: 0.9rem 0.7rem;
   }
 
   .about__tool-icon {
@@ -860,6 +707,18 @@ function preventImageAction(event) {
   .about__tool-icon img {
     width: 22px;
     height: 22px;
+  }
+
+  .about__tool-name {
+    font-size: 0.86rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about__filter::after,
+  .about__tool,
+  .about__cap {
+    transition: none;
   }
 }
 </style>

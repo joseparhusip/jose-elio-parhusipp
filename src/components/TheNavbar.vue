@@ -94,6 +94,8 @@ const headerEl = ref(null)
 
 watch(isMenuOpen, (open) => {
   document.documentElement.style.overflow = open ? 'hidden' : ''
+  // Tombol melayang (chat, ke atas) disembunyikan selama menu terbuka, lihat main.css
+  document.documentElement.classList.toggle('nav-menu-open', open)
   // Panel menu dimulai tepat di bawah navbar
   if (open && headerEl.value) {
     headerEl.value.style.setProperty('--nav-h', `${headerEl.value.offsetHeight}px`)
@@ -126,6 +128,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', onResize)
   window.removeEventListener('keydown', onKeydown)
   document.documentElement.style.overflow = ''
+  document.documentElement.classList.remove('nav-menu-open')
 })
 </script>
 
@@ -240,69 +243,46 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* =========================================================
+   Navbar "Field Notes": bar datar, garis tipis di bawah saat
+   discroll, menu teks biasa dengan garis bawah kobalt yang
+   meluncur ke menu aktif / yang disorot.
+   ========================================================= */
 .navbar {
   position: sticky;
   top: 0;
   z-index: 100;
   width: 100%;
-  background: var(--navbar-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: var(--color-bg);
   border-bottom: 1px solid transparent;
   transition:
-    top 0.35s var(--ease-out),
     background 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+    border-color 0.3s ease;
+}
+
+.navbar--scrolled {
+  background: var(--navbar-bg-scrolled);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: var(--color-rule);
 }
 
 .navbar__inner {
   position: relative;
-  max-width: 1160px;
+  max-width: var(--container);
   margin: 0 auto;
-  padding: 0.85rem 1.5rem;
+  padding: 0.95rem var(--gutter);
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 1rem;
-  border: 1px solid transparent;
-  transition:
-    max-width 0.45s var(--ease-out),
-    margin 0.45s var(--ease-out),
-    padding 0.45s var(--ease-out),
-    background 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: padding 0.35s var(--ease-out);
 }
 
-/* Discroll (desktop): navbar "melayang" jadi pulau kapsul yang lebih ramping */
-@media (min-width: 901px) {
-  .navbar--scrolled {
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  .navbar--scrolled .navbar__inner {
-    max-width: 1040px;
-    margin-top: 0.75rem;
-    padding: 0.45rem 0.55rem 0.45rem 1.2rem;
-    border-radius: 999px;
-    border: 1px solid var(--color-border);
-    background: var(--navbar-bg-scrolled);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    box-shadow: var(--navbar-shadow);
-  }
-}
-
-/* Discroll (HP & tablet): tetap full lebar, diberi garis + bayangan halus */
-@media (max-width: 900px) {
-  .navbar--scrolled {
-    background: var(--navbar-bg-scrolled);
-    border-bottom-color: var(--color-border);
-    box-shadow: var(--navbar-shadow);
-  }
+.navbar--scrolled .navbar__inner {
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
 }
 
 /* ---- Logo ---- */
@@ -311,15 +291,10 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  transition: transform 0.3s var(--ease-out);
-}
-
-.navbar__logo:hover {
-  transform: rotate(-4deg) scale(1.04);
 }
 
 .navbar__logo-img {
-  height: 38px;
+  height: 36px;
   width: auto;
   display: block;
   object-fit: contain;
@@ -329,30 +304,27 @@ onUnmounted(() => {
   -webkit-touch-callout: none;
 }
 
-/* ---- Menu desktop: kapsul di tengah ---- */
+/* ---- Menu desktop: teks biasa + garis bawah ---- */
 .navbar__links {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0.25rem;
   list-style: none;
   margin: 0;
-  padding: 0.3rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--navbar-toggle-bg);
+  padding: 0;
 }
 
+/* Penanda menu aktif: garis tipis kobalt di bawah teks */
 .navbar__pill {
   position: absolute;
-  top: 0.3rem;
-  bottom: 0.3rem;
+  bottom: 0.15rem;
   left: 0;
+  height: 2px;
   width: var(--pill-w);
   translate: var(--pill-x) 0;
-  border-radius: 999px;
   background: var(--color-primary);
-  box-shadow: 0 8px 18px -10px var(--color-primary);
+  transform: scaleX(0.55);
   opacity: 0;
   pointer-events: none;
 }
@@ -369,24 +341,18 @@ onUnmounted(() => {
   z-index: 1;
   display: inline-block;
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 500;
-  color: var(--color-text-soft, #655d52);
+  color: var(--color-text-soft);
   text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
   white-space: nowrap;
-  transition: color 0.25s ease;
+  transition: color 0.2s ease;
 }
 
-.navbar__link:hover {
-  color: var(--color-text);
-}
-
-/* Teks di atas pill: putih supaya terbaca di warna utama */
 .navbar__links:not(:hover) .navbar__link--active,
 .navbar__link:hover {
-  color: #fff;
+  color: var(--color-text);
 }
 
 .navbar__link:focus-visible {
@@ -399,27 +365,24 @@ onUnmounted(() => {
   justify-self: end;
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.9rem;
 }
 
 .navbar__cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 600;
   color: #fff;
-  background: var(--color-primary, #b8471e);
-  padding: 0.6rem 1.15rem 0.6rem 1.3rem;
-  border-radius: 999px;
+  background: var(--color-primary);
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   white-space: nowrap;
-  box-shadow: 0 10px 22px -12px var(--color-primary);
-  transition:
-    background 0.2s ease,
-    transform 0.25s var(--ease-out);
+  transition: background 0.2s ease;
 }
 
 .navbar__cta svg {
@@ -427,8 +390,7 @@ onUnmounted(() => {
 }
 
 .navbar__cta:hover {
-  background: var(--color-primary-dark, #963817);
-  transform: translateY(-1px);
+  background: var(--color-primary-dark);
 }
 
 .navbar__cta:hover svg {
@@ -444,24 +406,23 @@ onUnmounted(() => {
   gap: 6px;
   width: 42px;
   height: 42px;
-  border-radius: 50%;
-  background: var(--navbar-toggle-bg);
-  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--color-rule);
   cursor: pointer;
   padding: 0;
-  transition: background-color 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .navbar__toggle:hover {
-  background: var(--navbar-toggle-bg-hover);
+  border-color: var(--color-text);
 }
 
 .navbar__toggle span {
   display: block;
-  height: 2px;
+  height: 1.5px;
   width: 18px;
-  background: var(--color-text, #1f1b16);
-  border-radius: 2px;
+  background: var(--color-text);
   transition: transform 0.35s var(--ease-out), width 0.35s var(--ease-out);
 }
 
@@ -491,7 +452,7 @@ onUnmounted(() => {
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding: calc(var(--nav-h, 72px) + 1.5rem) 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+  padding: calc(var(--nav-h, 72px) + 1.5rem) var(--gutter) calc(1.5rem + env(safe-area-inset-bottom));
   box-sizing: border-box;
   background: var(--color-bg);
   overflow-y: auto;
@@ -509,19 +470,21 @@ onUnmounted(() => {
   margin: 0.75rem 0 0;
   padding: 0;
   list-style: none;
+  border-top: 1px solid var(--color-rule);
 }
 
 .navbar__sheet-link {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 1rem;
-  padding: 1.05rem 0.25rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--color-rule);
   color: var(--color-text);
   text-decoration: none;
 }
 
 .navbar__sheet-num {
+  min-width: 2rem;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--color-text-soft);
@@ -530,12 +493,14 @@ onUnmounted(() => {
 
 .navbar__sheet-text {
   font-family: var(--font-heading);
-  font-size: clamp(1.6rem, 7vw, 2.2rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
+  font-size: clamp(2rem, 9vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 
 .navbar__sheet-arrow {
+  align-self: center;
   margin-left: auto;
   color: var(--color-text-soft);
   transition:
@@ -549,7 +514,8 @@ onUnmounted(() => {
   transform: rotate(45deg);
 }
 
-.navbar__sheet-link--active .navbar__sheet-num {
+.navbar__sheet-link--active .navbar__sheet-num,
+.navbar__sheet-link--active .navbar__sheet-text {
   color: var(--color-primary);
 }
 
@@ -594,7 +560,7 @@ onUnmounted(() => {
 /* ---- Breakpoint ---- */
 @media (max-width: 1080px) {
   .navbar__link {
-    padding: 0.5rem 0.8rem;
+    padding: 0.5rem 0.7rem;
   }
 }
 
@@ -615,18 +581,15 @@ onUnmounted(() => {
 
   /* Menu terbuka: navbar jadi solid supaya menyatu dengan panel */
   .navbar--menu-open {
-    background: var(--navbar-dropdown-bg);
+    background: var(--color-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
 @media (max-width: 480px) {
   .navbar__logo-img {
     height: 32px;
-  }
-
-  .navbar__inner {
-    padding-left: 1.1rem;
-    padding-right: 1.1rem;
   }
 }
 </style>

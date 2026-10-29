@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import spkdLogo from './icons-experience/spkd.svg'
 import jecLogo from './icons-experience/jec.svg'
@@ -186,15 +186,6 @@ function onTabKeydown(event) {
   }
 }
 
-/* Indikator yang "meluncur" ke tab aktif (desktop: vertikal, HP: horizontal) */
-const indicator = ref({ x: 0, y: 0, w: 0, h: 0 })
-
-function updateIndicator() {
-  const tab = tabRefs.value[activeIndex.value]
-  if (!tab) return
-  indicator.value = { x: tab.offsetLeft, y: tab.offsetTop, w: tab.offsetWidth, h: tab.offsetHeight }
-}
-
 // Di HP tab berbentuk baris yang bisa digeser; tab aktif digeser ke tengah
 function scrollActiveTabIntoView() {
   const list = tablistEl.value
@@ -213,24 +204,7 @@ const visiblePoints = computed(() =>
 
 watch(activeIndex, () => {
   expanded.value = false
-  nextTick(() => {
-    updateIndicator()
-    scrollActiveTabIntoView()
-  })
-})
-
-let resizeObserver
-onMounted(() => {
-  nextTick(updateIndicator)
-  // Ukuran tab berubah saat font selesai dimuat / layar diubah
-  resizeObserver = new ResizeObserver(() => updateIndicator())
-  if (tablistEl.value) resizeObserver.observe(tablistEl.value)
-  window.addEventListener('resize', updateIndicator)
-})
-
-onUnmounted(() => {
-  resizeObserver?.disconnect()
-  window.removeEventListener('resize', updateIndicator)
+  nextTick(scrollActiveTabIntoView)
 })
 
 const logoStyle = (item) =>
@@ -240,107 +214,93 @@ const logoStyle = (item) =>
 <template>
   <section id="pengalaman" class="experience">
     <div class="container">
-      <header class="experience__header">
-        <div>
+      <header class="section-head">
+        <div class="section-head__meta">
           <span v-reveal class="section-label">
             <span class="section-label__num">02</span> Pengalaman
           </span>
+
+          <dl v-reveal.stagger="{ delay: 200, step: 90 }" class="experience__summary">
+            <div>
+              <dt>Peran</dt>
+              <dd>{{ String(experiences.length).padStart(2, '0') }}</dd>
+            </div>
+            <div>
+              <dt>Rentang</dt>
+              <dd>{{ firstYear }}–{{ new Date().getFullYear() }}</dd>
+            </div>
+            <div>
+              <dt>Total</dt>
+              <dd>{{ formatMonths(totalMonths) }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="section-head__main">
           <h2 v-reveal.clip="80" class="section-title">
             Perjalanan singkat <span class="serif-accent">sejauh</span> ini
           </h2>
-          <p v-reveal="160" class="section-lead experience__lead">
+          <p v-reveal="160" class="section-lead">
             Beberapa peran yang pernah saya jalani, dari pekerjaan profesional, proyek mandiri,
             sampai organisasi, yang membentuk cara saya bekerja.
           </p>
         </div>
-
-        <dl v-reveal.stagger="{ delay: 200, step: 90 }" class="experience__summary">
-          <div>
-            <dt>Peran</dt>
-            <dd>{{ experiences.length }}</dd>
-          </div>
-          <div>
-            <dt>Rentang</dt>
-            <dd>{{ firstYear }}<span>–</span>{{ new Date().getFullYear() }}</dd>
-          </div>
-          <div>
-            <dt>Total</dt>
-            <dd class="experience__summary-small">{{ formatMonths(totalMonths) }}</dd>
-          </div>
-        </dl>
       </header>
 
       <div class="experience__layout">
-        <!-- Daftar peran (tab) -->
-        <div
-          ref="tablistEl"
-          v-reveal.left="120"
-          class="experience__tabs"
-          role="tablist"
-          aria-label="Daftar pengalaman"
-          aria-orientation="vertical"
-          @keydown="onTabKeydown"
-        >
-          <span
-            class="experience__indicator"
-            aria-hidden="true"
-            :style="{
-              '--ix': `${indicator.x}px`,
-              '--iy': `${indicator.y}px`,
-              '--iw': `${indicator.w}px`,
-              '--ih': `${indicator.h}px`,
-            }"
-          ></span>
+        <!-- Daftar peran (tab), disusun seperti buku besar -->
+        <div v-reveal.left="120" class="experience__ledger">
+          <div class="experience__ledger-head mono-meta" aria-hidden="true">
+            <span>No.</span>
+            <span>Peran</span>
+            <span>Tahun</span>
+          </div>
 
-          <button
-            v-for="(item, index) in experiences"
-            :id="`exp-tab-${index}`"
-            :key="item.role + item.period"
-            :ref="(el) => setTabRef(el, index)"
-            type="button"
-            role="tab"
-            class="experience__tab"
-            :class="{ 'experience__tab--active': index === activeIndex }"
-            :aria-selected="index === activeIndex"
-            aria-controls="exp-panel"
-            :tabindex="index === activeIndex ? 0 : -1"
-            @click="select(index)"
+          <div
+            ref="tablistEl"
+            class="experience__tabs"
+            role="tablist"
+            aria-label="Daftar pengalaman"
+            aria-orientation="vertical"
+            @keydown="onTabKeydown"
           >
-            <span
-              class="experience__logo experience__logo--sm"
-              :style="logoStyle(item)"
-              oncontextmenu="return false"
+            <button
+              v-for="(item, index) in experiences"
+              :id="`exp-tab-${index}`"
+              :key="item.role + item.period"
+              :ref="(el) => setTabRef(el, index)"
+              type="button"
+              role="tab"
+              class="experience__tab"
+              :class="{ 'experience__tab--active': index === activeIndex }"
+              :aria-selected="index === activeIndex"
+              aria-controls="exp-panel"
+              :tabindex="index === activeIndex ? 0 : -1"
+              @click="select(index)"
             >
-              <img
-                v-if="item.logo"
-                :src="item.logo"
-                alt=""
-                width="40"
-                height="28"
-                loading="lazy"
-                draggable="false"
-              />
-              <span v-else aria-hidden="true">{{ item.short }}</span>
-            </span>
+              <span class="experience__tab-num" aria-hidden="true">
+                {{ String(index + 1).padStart(2, '0') }}
+              </span>
 
-            <span class="experience__tab-text">
-              <span class="experience__tab-role">{{ item.role }}</span>
-              <span class="experience__tab-company">{{ item.short }}</span>
-            </span>
+              <span class="experience__tab-text">
+                <span class="experience__tab-role">{{ item.role }}</span>
+                <span class="experience__tab-company">{{ item.short }}</span>
+              </span>
 
-            <span class="experience__tab-year">
-              <span v-if="item.current" class="experience__now" aria-hidden="true"></span>
-              {{ yearRange(item.period) }}
-            </span>
+              <span class="experience__tab-year">
+                <span v-if="item.current" class="experience__now" aria-hidden="true"></span>
+                {{ yearRange(item.period) }}
+              </span>
 
-            <!-- Bar durasi: makin panjang, makin lama perannya -->
-            <span class="experience__tenure" aria-hidden="true">
-              <span class="experience__tenure-fill" :style="{ '--ratio': tenureRatio(item) }"></span>
-            </span>
-          </button>
+              <!-- Garis durasi: makin panjang, makin lama perannya -->
+              <span class="experience__tenure" aria-hidden="true">
+                <span class="experience__tenure-fill" :style="{ '--ratio': tenureRatio(item) }"></span>
+              </span>
+            </button>
+          </div>
         </div>
 
-        <!-- Detail peran aktif -->
+        <!-- Detail peran aktif: lembar dokumen -->
         <div
           id="exp-panel"
           v-reveal.right="240"
@@ -350,11 +310,11 @@ const logoStyle = (item) =>
         >
           <Transition name="panel" mode="out-in">
             <article :key="active.role + active.period" class="experience__card">
-              <span class="experience__card-num" aria-hidden="true">
-                {{ String(activeIndex + 1).padStart(2, '0') }}
-              </span>
+              <div class="experience__card-top">
+                <span class="experience__card-num" aria-hidden="true">
+                  <span>No.</span>{{ String(activeIndex + 1).padStart(2, '0') }}
+                </span>
 
-              <div class="experience__head">
                 <span
                   class="experience__logo"
                   :style="logoStyle(active)"
@@ -370,12 +330,14 @@ const logoStyle = (item) =>
                   />
                   <span v-else aria-hidden="true">{{ active.short }}</span>
                 </span>
+              </div>
 
-                <div class="experience__head-text">
-                  <span v-if="activeCompany.type" class="experience__type">{{ activeCompany.type }}</span>
-                  <h3 class="experience__role">{{ active.role }}</h3>
-                  <span class="experience__company">{{ activeCompany.name }}</span>
-                </div>
+              <div class="experience__head">
+                <span v-if="activeCompany.type" class="experience__type mono-meta">
+                  {{ activeCompany.type }}
+                </span>
+                <h3 class="experience__role">{{ active.role }}</h3>
+                <span class="experience__company">{{ activeCompany.name }}</span>
               </div>
 
               <div class="experience__meta">
@@ -401,7 +363,7 @@ const logoStyle = (item) =>
               </ol>
 
               <div class="experience__card-bottom">
-                <ul class="experience__tags">
+                <ul class="experience__tags" aria-label="Teknologi">
                   <li v-for="tag in active.tags" :key="tag" class="experience__tag">{{ tag }}</li>
                 </ul>
 
@@ -443,7 +405,7 @@ const logoStyle = (item) =>
               Lebih baru
             </button>
             <span class="experience__pager-count">
-              {{ activeIndex + 1 }} / {{ experiences.length }}
+              {{ String(activeIndex + 1).padStart(2, '0') }} / {{ String(experiences.length).padStart(2, '0') }}
             </span>
             <button
               type="button"
@@ -470,124 +432,126 @@ const logoStyle = (item) =>
   background: var(--color-bg);
 }
 
-/* ---- Header ---- */
-.experience__header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2rem 3rem;
-  margin-bottom: clamp(2rem, 4vw, 3rem);
-}
-
-.experience__lead {
-  max-width: 36rem;
-}
-
+/* ---- Ringkasan: baris stat bergaris ---- */
 .experience__summary {
-  flex-shrink: 0;
+  margin: 0.6rem 0 0;
+  max-width: 15rem;
+  border-top: 1px solid var(--color-rule);
+}
+
+.experience__summary > div {
   display: flex;
-  gap: clamp(1.5rem, 3vw, 2.5rem);
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.experience__summary dt,
+.experience__summary dd {
   margin: 0;
-  padding-left: clamp(1.5rem, 3vw, 2.5rem);
-  border-left: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .experience__summary dt {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--color-text-soft);
 }
 
 .experience__summary dd {
-  margin: 0.3rem 0 0;
-  font-family: var(--font-heading);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1;
   color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }
 
-.experience__summary dd span {
-  color: var(--color-primary);
-  margin: 0 0.1em;
-}
-
-.experience__summary .experience__summary-small {
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
-  line-height: 1.6;
-}
-
-/* ---- Layout tab + panel ---- */
+/* ---- Layout buku besar + lembar ---- */
 .experience__layout {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr);
-  gap: clamp(1.25rem, 3vw, 2rem);
+  grid-template-columns: minmax(0, 4.2fr) minmax(0, 7.8fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
   align-items: start;
 }
 
-/* ---- Tab ---- */
-.experience__tabs {
-  position: relative;
-  display: grid;
-  gap: 0.5rem;
+.experience__ledger {
   position: sticky;
   top: 110px;
 }
 
-/* Kotak sorot yang meluncur mengikuti tab aktif */
-.experience__indicator {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: var(--iw);
-  height: var(--ih);
-  transform: translate(var(--ix), var(--iy));
-  border-radius: var(--radius-lg);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-card);
-  pointer-events: none;
-  transition:
-    transform 0.45s cubic-bezier(0.32, 0.72, 0, 1),
-    width 0.45s cubic-bezier(0.32, 0.72, 0, 1),
-    height 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+.experience__ledger-head {
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  padding: 0 0 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--color-rule);
+  font-size: 0.66rem;
 }
 
-/* Garis aksen di sisi kiri kotak sorot */
+/* ---- Tab: baris buku besar ---- */
+.experience__tabs {
+  display: grid;
+}
+
 .experience__tab {
   position: relative;
-  z-index: 1;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.8rem;
+  grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.75rem;
   width: 100%;
-  padding: 0.85rem 1rem 1.05rem;
-  border: 1px solid transparent;
-  border-radius: var(--radius-lg);
+  padding: 1rem 0.25rem 1.05rem 0.9rem;
+  border: 0;
+  border-radius: 0;
   background: transparent;
   font-family: var(--font-body);
   text-align: left;
   color: var(--color-text-soft);
   cursor: pointer;
-  transition: color 0.3s ease, border-color 0.3s ease;
+  transition: color 0.25s ease, background-color 0.25s ease;
+}
+
+/* Penanda baris aktif: garis kobalt di kiri */
+.experience__tab::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.85rem;
+  bottom: 0.85rem;
+  width: 2px;
+  background: var(--color-primary);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.35s var(--ease-out);
 }
 
 .experience__tab:hover:not(.experience__tab--active) {
-  border-color: var(--color-border);
   color: var(--color-text);
+  background: var(--color-surface);
 }
 
 .experience__tab:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
 }
 
 .experience__tab--active {
   color: var(--color-text);
+}
+
+.experience__tab--active::before {
+  transform: scaleY(1);
+}
+
+.experience__tab-num {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-soft);
+}
+
+.experience__tab--active .experience__tab-num {
+  color: var(--color-primary);
 }
 
 .experience__tab-text {
@@ -597,26 +561,20 @@ const logoStyle = (item) =>
 
 .experience__tab-role {
   font-family: var(--font-heading);
-  font-size: 0.98rem;
+  font-size: 1rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-wrap: balance;
 }
 
 .experience__tab-company {
-  margin-top: 0.1rem;
+  margin-top: 0.2rem;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-soft);
-}
-
-.experience__tab--active .experience__tab-company {
-  color: var(--color-accent);
 }
 
 .experience__tab-year {
@@ -625,62 +583,54 @@ const logoStyle = (item) =>
   gap: 0.4rem;
   font-family: var(--font-mono);
   font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
   color: var(--color-text-soft);
   white-space: nowrap;
 }
 
-/* Bar durasi tipis di bawah tiap tab */
+/* Garis bawah baris sekaligus bar durasi */
 .experience__tenure {
   position: absolute;
-  left: 1rem;
-  right: 1rem;
-  bottom: 0.45rem;
-  height: 2px;
-  border-radius: 2px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
   background: var(--color-border);
-  overflow: hidden;
 }
 
 .experience__tenure-fill {
   position: absolute;
   inset: 0;
-  border-radius: inherit;
   background: var(--color-text-soft);
-  opacity: 0.45;
+  opacity: 0.5;
   transform: scaleX(var(--ratio));
   transform-origin: left;
-  transition: background 0.3s ease, opacity 0.3s ease;
+  transition: background-color 0.3s ease, opacity 0.3s ease;
 }
 
 .experience__tab--active .experience__tenure-fill {
-  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  background: var(--color-primary);
   opacity: 1;
 }
 
 /* ---- Logo ---- */
+/* Pelat putih: logo instansi dibuat untuk latar putih */
 .experience__logo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   width: 64px;
-  height: 48px;
-  padding: 6px 7px;
-  border-radius: 12px;
+  height: 46px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
-  background: #fff;
+  background: white;
   box-sizing: border-box;
   font-family: var(--font-mono);
   font-size: 0.68rem;
   font-weight: 600;
   color: var(--color-primary);
-}
-
-.experience__logo--sm {
-  width: 46px;
-  height: 34px;
-  padding: 4px 5px;
-  border-radius: 9px;
 }
 
 .experience__logo img {
@@ -693,149 +643,112 @@ const logoStyle = (item) =>
   pointer-events: none;
 }
 
-/* ---- Panel detail ---- */
+/* ---- Panel: lembar dokumen ---- */
 .experience__panel {
   min-width: 0;
 }
 
 .experience__card {
-  position: relative;
-  padding: clamp(1.4rem, 3vw, 2rem);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  background:
-    radial-gradient(
-        circle,
-        color-mix(in srgb, var(--color-text-soft) 22%, transparent) 1px,
-        transparent 1.3px
-      )
-      0 0 / 18px 18px,
-    var(--color-surface);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
+  padding: clamp(1.4rem, 3vw, 2.25rem);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-rule);
+  background: var(--color-surface);
 }
 
-/* Pola titik hanya terlihat di pojok kanan atas */
-.experience__card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(200deg, transparent 0%, var(--color-surface) 40%);
-  pointer-events: none;
+.experience__card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
-/* Garis aksen di atas kartu */
-.experience__card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 1.75rem;
-  right: 1.75rem;
-  height: 2px;
-  border-radius: 0 0 2px 2px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-}
-
-.experience__card > * {
-  position: relative;
-}
-
-/* Nomor besar transparan di pojok kartu */
 .experience__card-num {
-  position: absolute;
-  top: 0.4rem;
-  right: 1.2rem;
-  font-family: var(--font-heading);
-  font-size: clamp(3.5rem, 7vw, 5rem);
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  line-height: 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(3rem, 6vw, 4.25rem);
+  line-height: 0.85;
+  letter-spacing: -0.02em;
   color: var(--color-text);
-  opacity: 0.06;
-  pointer-events: none;
+}
+
+.experience__card-num span {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
 }
 
 .experience__head {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding-right: 3rem;
-}
-
-.experience__head-text {
-  min-width: 0;
+  margin-top: 1.4rem;
 }
 
 .experience__type {
-  display: inline-block;
-  margin-bottom: 0.45rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  background: var(--color-primary-soft);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  line-height: 1.4;
-  color: var(--color-primary);
+  display: block;
+  margin-bottom: 0.55rem;
+  font-size: 0.66rem;
 }
 
 .experience__role {
   font-family: var(--font-heading);
-  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  font-size: clamp(1.45rem, 2.6vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
   color: var(--color-text);
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.4rem;
 }
 
 .experience__company {
   display: block;
-  font-size: 0.92rem;
-  font-weight: 500;
+  font-size: 0.95rem;
   color: var(--color-text-soft);
 }
 
+/* Baris meta mono: periode · durasi · status */
 .experience__meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 0.75rem;
-  margin-top: 1.2rem;
-}
-
-.experience__period {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem 0;
+  margin-top: 1.1rem;
   font-family: var(--font-mono);
-  font-size: 0.76rem;
-  letter-spacing: 0.02em;
-  color: var(--color-accent);
-}
-
-.experience__duration,
-.experience__current {
-  padding: 0.15rem 0.5rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--color-text-soft);
 }
 
+.experience__meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.experience__meta > span + span::before {
+  content: '·';
+  margin: 0 0.6rem;
+  color: var(--color-text-soft);
+}
+
+.experience__period {
+  color: var(--color-text);
+}
+
 .experience__current {
-  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
-  background: var(--color-accent-soft);
   color: var(--color-accent);
 }
 
 /* Titik berdenyut untuk pekerjaan yang masih berjalan */
 .experience__now {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--color-accent);
   animation: experience-now 2s ease-out infinite;
@@ -846,24 +759,23 @@ const logoStyle = (item) =>
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 60%, transparent);
   }
   100% {
-    box-shadow: 0 0 0 7px transparent;
+    box-shadow: 0 0 0 6px transparent;
   }
 }
 
-/* Poin bernomor 01, 02, ... */
+/* Poin bernomor, dipisah garis tipis */
 .experience__points {
   list-style: none;
   counter-reset: exp-point;
-  display: grid;
-  gap: 0.8rem;
-  margin: 1.3rem 0 0;
-  padding: 1.3rem 0 0;
-  border-top: 1px dashed var(--color-border);
+  margin: 1.5rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--color-rule);
 }
 
 .experience__point {
   position: relative;
-  padding-left: 2.1rem;
+  padding: 0.85rem 0 0.85rem 2.6rem;
+  border-bottom: 1px solid var(--color-border);
   counter-increment: exp-point;
   font-size: 0.94rem;
   line-height: 1.7;
@@ -877,16 +789,16 @@ const logoStyle = (item) =>
   content: counter(exp-point, decimal-leading-zero);
   position: absolute;
   left: 0;
-  top: 0.15em;
+  top: 1.1rem;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--color-primary);
 }
 
 @keyframes exp-point-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -899,46 +811,48 @@ const logoStyle = (item) =>
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.8rem;
+  gap: 0.9rem;
   margin-top: 1.4rem;
 }
 
 .experience__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.4rem;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .experience__tag {
+  padding: 0.28rem 0.6rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--color-text);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  padding: 0.25rem 0.6rem;
-  border-radius: 6px;
 }
 
 .experience__more {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.4rem 0.2rem;
+  padding: 0.4rem 0;
   border: 0;
   background: none;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-primary);
   cursor: pointer;
 }
 
 .experience__more:hover {
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
 }
 
 .experience__more svg {
@@ -955,30 +869,28 @@ const logoStyle = (item) =>
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-top: 0.9rem;
-  padding: 0 0.25rem;
+  margin-top: 1rem;
 }
 
 .experience__pager-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.85rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
+  gap: 0.4rem;
+  min-height: 40px;
+  padding: 0 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-rule);
   background: transparent;
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--color-text);
   cursor: pointer;
-  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease, opacity 0.25s ease;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .experience__pager-btn:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
+  border-color: var(--color-text);
 }
 
 .experience__pager-btn:disabled {
@@ -989,6 +901,7 @@ const logoStyle = (item) =>
 .experience__pager-count {
   font-family: var(--font-mono);
   font-size: 0.72rem;
+  letter-spacing: 0.06em;
   color: var(--color-text-soft);
 }
 
@@ -1000,12 +913,12 @@ const logoStyle = (item) =>
 
 .panel-enter-from {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(10px);
 }
 
 .panel-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-6px);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1014,39 +927,42 @@ const logoStyle = (item) =>
     animation: none;
   }
 
-  .experience__indicator {
+  .experience__tab::before {
     transition: none;
   }
 }
 
-/* ---- Tablet & HP: tab jadi baris horizontal yang bisa digeser ---- */
-@media (max-width: 960px) {
-  .experience__header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
+/* ---- Tablet & HP: buku besar jadi baris horizontal yang bisa digeser ---- */
+@media (max-width: 760px) {
   .experience__summary {
-    padding: 1.4rem 0 0;
-    border-left: 0;
-    border-top: 1px solid var(--color-border);
-    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .experience__layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .experience__layout {
-    grid-template-columns: 1fr;
+  .experience__ledger {
+    position: relative;
+    top: auto;
+    min-width: 0;
+  }
+
+  .experience__ledger-head {
+    display: none;
   }
 
   .experience__tabs {
-    position: relative;
-    top: auto;
     display: flex;
-    gap: 0.5rem;
     margin: 0 calc(var(--gutter, 1.25rem) * -1);
-    padding: 0.25rem var(--gutter, 1.25rem) 0.5rem;
+    padding: 0 var(--gutter, 1.25rem);
     overflow-x: auto;
     scroll-snap-type: x proximity;
     scrollbar-width: none;
+    border-top: 1px solid var(--color-rule);
+    border-bottom: 1px solid var(--color-rule);
   }
 
   .experience__tabs::-webkit-scrollbar {
@@ -1057,16 +973,37 @@ const logoStyle = (item) =>
     flex: 0 0 auto;
     grid-template-columns: auto auto;
     grid-template-rows: auto auto;
-    gap: 0.2rem 0.65rem;
+    gap: 0.3rem 1rem;
     width: auto;
-    min-width: 9.5rem;
-    padding: 0.7rem 0.9rem 0.95rem;
-    border-color: var(--color-border);
-    scroll-snap-align: center;
+    min-width: 8.5rem;
+    padding: 0.85rem 1rem 0.95rem;
+    border-right: 1px solid var(--color-border);
+    scroll-snap-align: start;
   }
 
-  .experience__tab .experience__logo--sm {
-    grid-row: 1 / 3;
+  .experience__tab:first-child {
+    border-left: 1px solid var(--color-border);
+  }
+
+  .experience__tab::before {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+    z-index: 1;
+  }
+
+  .experience__tab--active::before {
+    transform: scaleX(1);
+  }
+
+  .experience__tab-text {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 
   .experience__tab-role {
@@ -1075,38 +1012,48 @@ const logoStyle = (item) =>
 
   .experience__tab-company {
     margin: 0;
-    font-size: 0.72rem;
-    color: var(--color-text);
+    font-size: 0.74rem;
+    color: inherit;
+  }
+
+  .experience__tab-num {
+    grid-column: 1;
+    grid-row: 1;
   }
 
   .experience__tab-year {
-    font-size: 0.66rem;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    font-size: 0.64rem;
+  }
+
+  /* Bar durasi tidak relevan di baris horizontal */
+  .experience__tenure {
+    display: none;
   }
 }
 
 @media (max-width: 480px) {
-  .experience__summary {
-    gap: 1.25rem;
-  }
-
-  .experience__head {
-    align-items: flex-start;
-    padding-right: 2rem;
-  }
-
   .experience__logo {
     width: 56px;
-    height: 42px;
+    height: 40px;
   }
 
   .experience__point {
+    padding-left: 2.2rem;
     font-size: 0.9rem;
     line-height: 1.65;
   }
 
+  .experience__meta > span + span::before {
+    margin: 0 0.45rem;
+  }
+
   .experience__pager-btn {
-    padding: 0.45rem 0.7rem;
+    padding: 0 0.7rem;
     font-size: 0.76rem;
   }
 }
 </style>
+

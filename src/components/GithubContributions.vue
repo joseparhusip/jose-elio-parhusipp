@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
 
 /* ---------------------------------------------------------
@@ -112,6 +112,13 @@ function formatDay(day) {
 /* ---- Tooltip saat kotak disorot ---- */
 const tooltip = ref(null)
 const graphEl = ref(null)
+const scrollEl = ref(null)
+
+// Di layar sempit grafik digeser ke ujung kanan supaya bulan terbaru langsung terlihat
+watch(data, async () => {
+  await nextTick()
+  if (scrollEl.value) scrollEl.value.scrollLeft = scrollEl.value.scrollWidth
+})
 
 function showTooltip(event, day) {
   if (!day || !graphEl.value) return
@@ -133,19 +140,12 @@ function hideTooltip() {
   <div v-reveal="120" class="gh">
     <div class="gh__head">
       <div class="gh__title">
-        <span class="gh__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path fill="currentColor" d="M12 .5C5.73.5.75 5.48.75 11.75c0 5.02 3.26 9.27 7.78 10.77.57.1.78-.25.78-.55 0-.27-.01-1-.02-1.96-3.16.69-3.83-1.52-3.83-1.52-.52-1.31-1.26-1.66-1.26-1.66-1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94.1-.73.4-1.23.72-1.51-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.16a10.9 10.9 0 0 1 5.74 0c2.19-1.47 3.15-1.16 3.15-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04 0 4.35-2.66 5.31-5.19 5.59.41.35.77 1.04.77 2.1 0 1.51-.01 2.73-.01 3.1 0 .3.2.66.79.55A11.26 11.26 0 0 0 23.25 11.75C23.25 5.48 18.27.5 12 .5Z" />
-          </svg>
-        </span>
-        <div>
-          <h3 class="gh__heading">Aktivitas GitHub</h3>
-          <p class="gh__sub" aria-live="polite">
-            <template v-if="status === 'ready'">{{ heading }}</template>
-            <template v-else-if="status === 'loading'">Memuat kontribusi...</template>
-            <template v-else>Kontribusi belum bisa dimuat.</template>
-          </p>
-        </div>
+        <h3 class="gh__heading"><span class="gh__heading-num">03.1</span> Aktivitas GitHub</h3>
+        <p class="gh__sub" aria-live="polite">
+          <template v-if="status === 'ready'">{{ heading }}</template>
+          <template v-else-if="status === 'loading'">Memuat kontribusi...</template>
+          <template v-else>Kontribusi belum bisa dimuat.</template>
+        </p>
       </div>
 
       <div class="gh__tabs" role="tablist" aria-label="Pilih rentang waktu">
@@ -170,7 +170,7 @@ function hideTooltip() {
         <button type="button" class="gh__retry" @click="load(activeRange)">Coba lagi</button>
       </div>
 
-      <div v-else class="gh__scroll">
+      <div v-else ref="scrollEl" class="gh__scroll">
         <div class="gh__calendar" :style="{ '--weeks': weeks.length || 53 }">
           <div class="gh__months" aria-hidden="true">
             <span
@@ -240,87 +240,95 @@ function hideTooltip() {
 .gh {
   --cell: 11px;
   --gap: 3px;
-  margin-top: clamp(2.5rem, 5vw, 3.5rem);
-  padding: clamp(1.1rem, 2.5vw, 1.6rem);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  box-shadow: var(--shadow-card);
+  margin-top: clamp(3.5rem, 7vw, 5rem);
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--color-rule);
 }
 
 .gh__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem 1.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.gh__title {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.gh__icon {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  flex-shrink: 0;
-  border-radius: 12px;
-  background: var(--color-surface-soft);
-  color: var(--color-text);
-}
-
-.gh__icon svg {
-  width: 22px;
-  height: 22px;
+  gap: 1rem 2rem;
+  margin-bottom: 1.75rem;
 }
 
 .gh__heading {
   margin: 0;
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--color-text);
 }
 
-.gh__sub {
-  margin: 0.15rem 0 0;
-  font-size: 0.86rem;
-  color: var(--color-text-soft);
+.gh__heading-num {
+  color: var(--color-primary);
 }
 
+.gh__heading-num::before {
+  content: '(';
+}
+
+.gh__heading-num::after {
+  content: ')';
+}
+
+.gh__sub {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-heading);
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: var(--color-text);
+}
+
+/* Tab rentang: teks bergaris bawah */
 .gh__tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.25rem 1.25rem;
 }
 
 .gh__tab {
-  padding: 0.4rem 0.85rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: transparent;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 600;
+  position: relative;
+  padding: 0.35rem 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
   color: var(--color-text-soft);
   cursor: pointer;
-  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+  transition: color 0.2s ease;
+}
+
+.gh__tab::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease-out);
 }
 
 .gh__tab:hover {
-  border-color: var(--color-text-soft);
   color: var(--color-text);
 }
 
 .gh__tab.is-active {
-  border-color: var(--color-text);
-  background: var(--color-text);
-  color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.gh__tab.is-active::after {
+  transform: scaleX(1);
 }
 
 .gh__tab:focus-visible,
@@ -345,8 +353,8 @@ function hideTooltip() {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: auto auto;
-  column-gap: 0.5rem;
-  row-gap: 0.4rem;
+  column-gap: 0.6rem;
+  row-gap: 0.45rem;
   width: max-content;
   margin-inline: auto;
 }
@@ -356,7 +364,8 @@ function hideTooltip() {
   display: grid;
   grid-template-columns: repeat(var(--weeks), var(--cell));
   column-gap: var(--gap);
-  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
   color: var(--color-text-soft);
 }
 
@@ -370,7 +379,8 @@ function hideTooltip() {
   display: grid;
   grid-template-rows: repeat(7, var(--cell));
   row-gap: var(--gap);
-  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
   line-height: var(--cell);
   color: var(--color-text-soft);
 }
@@ -391,16 +401,14 @@ function hideTooltip() {
 .gh__cell {
   width: var(--cell);
   height: var(--cell);
-  border-radius: 3px;
-  outline: 1px solid rgba(127, 127, 127, 0.08);
-  outline-offset: -1px;
+  border-radius: 2px;
 }
 
 .gh__cell.is-empty {
   visibility: hidden;
 }
 
-/* Skala warna memakai warna aksen (toska), mirip nuansa hijau GitHub */
+/* Skala warna memakai warna aksen (hijau sinyal), mirip nuansa hijau GitHub */
 .lv-0 { background: var(--color-surface-soft); }
 .lv-1 { background: color-mix(in srgb, var(--color-accent) 30%, var(--color-surface-soft)); }
 .lv-2 { background: color-mix(in srgb, var(--color-accent) 55%, var(--color-surface-soft)); }
@@ -419,11 +427,11 @@ function hideTooltip() {
   position: absolute;
   z-index: 5;
   padding: 0.35rem 0.6rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--color-text);
   color: var(--color-bg);
-  font-size: 0.74rem;
-  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
   white-space: nowrap;
   pointer-events: none;
   transform: translate(-50%, calc(-100% - 6px));
@@ -445,10 +453,11 @@ function hideTooltip() {
 }
 
 .gh__retry {
-  padding: 0.45rem 1rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  min-height: 38px;
+  padding: 0 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-rule);
+  background: transparent;
   font-family: var(--font-body);
   font-size: 0.82rem;
   font-weight: 600;
@@ -457,8 +466,7 @@ function hideTooltip() {
 }
 
 .gh__retry:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  border-color: var(--color-text);
 }
 
 .gh__foot {
@@ -467,48 +475,46 @@ function hideTooltip() {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
 }
 
 .gh__link {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text);
   text-decoration: none;
 }
 
 .gh__link:hover {
-  text-decoration: underline;
+  color: var(--color-primary);
 }
 
 .gh__legend {
   display: flex;
   align-items: center;
   gap: var(--gap);
-  font-size: 0.72rem;
   color: var(--color-text-soft);
 }
 
 .gh__legend span:first-child {
-  margin-right: 0.3rem;
+  margin-right: 0.35rem;
 }
 
 .gh__legend span:last-child {
-  margin-left: 0.3rem;
+  margin-left: 0.35rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .gh__graph.is-loading .gh__cell {
     animation: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .gh__tabs {
-    width: 100%;
   }
 }
 </style>

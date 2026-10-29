@@ -1,8 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
-import linkedinIcon from '@/components/icons/icons-about/linkedin-svgrepo-com.svg'
-import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-svgrepo-com.svg'
 import { navLinks, useSectionNav } from '@/composables/useSectionNav'
 
 const { onNavClick } = useSectionNav()
@@ -10,13 +8,13 @@ const { onNavClick } = useSectionNav()
 const year = new Date().getFullYear()
 
 const socials = [
-  { name: 'GitHub', handle: '@joseparhusip', href: 'https://github.com/joseparhusip', icon: null },
-  { name: 'LinkedIn', handle: 'in/joseparhusip', href: 'https://www.linkedin.com/in/joseparhusip/', icon: linkedinIcon },
-  { name: 'Instagram', handle: '@joseparhusip_', href: 'https://www.instagram.com/joseparhusip_/', icon: instagramIcon },
+  { name: 'GitHub', handle: '@joseparhusip', href: 'https://github.com/joseparhusip' },
+  { name: 'LinkedIn', handle: 'in/joseparhusip', href: 'https://www.linkedin.com/in/joseparhusip/' },
+  { name: 'Instagram', handle: '@joseparhusip_', href: 'https://www.instagram.com/joseparhusip_/' },
 ]
 
-// Pita teks berjalan: bidang yang dikerjakan (sama dengan "Fokus" di beranda)
-const marqueeItems = ['Web Landing Page', 'Web E-commerce', 'Mobile App', 'Data', 'Dashboard BI', 'AI']
+// Bidang yang dikerjakan (sama dengan 'Fokus' di beranda)
+const focusItems = ['Web Landing Page', 'Web E-commerce', 'Mobile App', 'Data', 'Dashboard BI', 'AI']
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -67,39 +65,33 @@ function preventImageAction(event) {
 
 <template>
   <footer class="footer">
-    <span class="footer__grid-bg" aria-hidden="true"></span>
-    <span class="footer__glow" aria-hidden="true"></span>
-
-    <!-- Pita teks berjalan -->
-    <div class="footer__marquee" aria-hidden="true">
-      <div v-for="copy in 2" :key="copy" class="footer__marquee-track">
-        <span v-for="item in marqueeItems" :key="item" class="footer__marquee-item">
-          {{ item }}<span class="footer__marquee-star">✦</span>
-        </span>
-      </div>
-    </div>
+    <span class="topo topo--alt footer__topo" aria-hidden="true"></span>
 
     <div class="footer__inner">
+      <!-- Baris bidang kerja: satu garis tenang, bukan pita berjalan -->
+      <p v-reveal class="footer__focus">
+        <span class="footer__focus-label">Fokus</span>
+        <span class="footer__focus-list">{{ focusItems.join(' / ') }}</span>
+      </p>
+
       <!-- Kolom informasi -->
       <div v-reveal.stagger="{ delay: 60, step: 90 }" class="footer__grid">
         <div class="footer__brand">
           <a :href="navLinks[0].path" class="footer__logo" aria-label="Kembali ke beranda" @click="onNavClick($event, navLinks[0])">
             <img src="/logo-navbar-footer.png" alt="Jose Elio Parhusip" class="footer__logo-img" draggable="false" />
           </a>
-          <p class="footer__name">Jose Elio Parhusip</p>
-          <p class="footer__role">Full Stack · Flutter · Data</p>
-          <span class="footer__clock">
-            <span class="footer__clock-dot" aria-hidden="true"></span>
-            Bandung · {{ localTime }} WIB
-          </span>
+          <p class="footer__statement">
+            Membangun web, mobile, dan dashboard data yang
+            <span class="footer__serif">benar-benar dipakai.</span>
+          </p>
         </div>
 
         <nav class="footer__col" aria-label="Navigasi footer">
           <h3 class="footer__heading">Navigasi</h3>
           <ul class="footer__list">
-            <li v-for="link in navLinks" :key="link.path">
+            <li v-for="(link, index) in navLinks" :key="link.path">
               <a :href="link.path" class="footer__link" @click="onNavClick($event, link)">
-                <span class="footer__link-dash" aria-hidden="true"></span>
+                <span class="footer__link-num" aria-hidden="true">0{{ index + 1 }}</span>
                 {{ link.label }}
               </a>
             </li>
@@ -108,7 +100,7 @@ function preventImageAction(event) {
 
         <div class="footer__col">
           <h3 class="footer__heading">Sosial Media</h3>
-          <ul class="footer__list footer__list--social">
+          <ul class="footer__list">
             <li v-for="item in socials" :key="item.name">
               <a
                 :href="item.href"
@@ -118,31 +110,6 @@ function preventImageAction(event) {
                 oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
               >
-                <span class="footer__social-icon" aria-hidden="true">
-                  <svg v-if="!item.icon" viewBox="0 0 24 24" class="footer__social-svg">
-                    <path
-                fill="currentColor"
-                d="M12 .5C5.73.5.75 5.48.75 11.75c0 5.02 3.26 9.27 7.78 10.77.57.1.78-.25.78-.55
-                   0-.27-.01-1-.02-1.96-3.16.69-3.83-1.52-3.83-1.52-.52-1.31-1.26-1.66-1.26-1.66
-                   -1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94
-                   .1-.73.4-1.23.72-1.51-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04
-                   -.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.16a10.9 10.9 0 0 1 5.74 0
-                   c2.19-1.47 3.15-1.16 3.15-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04
-                   0 4.35-2.66 5.31-5.19 5.59.41.35.77 1.04.77 2.1 0 1.51-.01 2.73-.01 3.1
-                   0 .3.2.66.79.55A11.26 11.26 0 0 0 23.25 11.75C23.25 5.48 18.27.5 12 .5Z"
-              />
-                  </svg>
-                  <img
-                    v-else
-                    :src="item.icon"
-                    alt=""
-                    class="footer__social-img"
-                    draggable="false"
-                    oncontextmenu="return false"
-                    @contextmenu.prevent="preventImageAction"
-                    @dragstart.prevent="preventImageAction"
-                  />
-                </span>
                 <span class="footer__social-text">
                   <span class="footer__social-name">{{ item.name }}</span>
                   <span class="footer__social-handle">{{ item.handle }}</span>
@@ -155,20 +122,25 @@ function preventImageAction(event) {
             </li>
           </ul>
         </div>
-
       </div>
 
+      <!-- Tanda tangan editorial: nama besar, terpotong di bawah -->
+      <p class="footer__wordmark" aria-hidden="true">Jose Elio Parhusip</p>
+
       <!-- Baris bawah -->
-      <div v-reveal="100" class="footer__bottom">
-        <p class="footer__copyright">&copy; {{ year }} Jose Elio Parhusip. Semua hak dilindungi.</p>
+      <div class="footer__bottom">
+        <p class="footer__copyright">&copy; {{ year }} Jose Elio Parhusip</p>
+        <p class="footer__coords">6°55′S 107°37′E</p>
+        <p class="footer__clock">
+          <span class="footer__clock-dot" aria-hidden="true"></span>
+          Bandung · {{ localTime }} WIB
+        </p>
         <button type="button" class="footer__back" @click="scrollToTop">
           Kembali ke atas
-          <span class="footer__back-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="15" height="15">
-              <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7" />
-            </svg>
-          </span>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+              stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7" />
+          </svg>
         </button>
       </div>
     </div>
@@ -188,7 +160,7 @@ function preventImageAction(event) {
         <path
           fill="none"
           stroke="currentColor"
-          stroke-width="2.2"
+          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
           d="M12 19V5M5 12l7-7 7 7"
@@ -199,357 +171,278 @@ function preventImageAction(event) {
 </template>
 
 <style scoped>
+/* =========================================================
+   Footer "Field Notes": blok kobalt penuh (sama di kedua tema),
+   kontur topografi samar, kolom dipisah garis tipis, dan nama
+   besar sebagai tanda tangan di bagian bawah.
+   ========================================================= */
 .footer {
-  --line: rgba(241, 235, 224, 0.16);
-  --soft: rgba(241, 235, 224, 0.72);
-  --muted: rgba(241, 235, 224, 0.52);
+  --ink: #ffffff;
+  --line: rgba(255, 255, 255, 0.16);
+  --soft: rgba(255, 255, 255, 0.72);
+  --muted: rgba(255, 255, 255, 0.5);
   position: relative;
   overflow: hidden;
   isolation: isolate;
   background: var(--footer-bg);
-  color: #f1ebe0;
-  padding: clamp(1.5rem, 4vw, 2.5rem) 0 0;
+  color: var(--ink);
+  padding: clamp(3rem, 7vw, 5rem) 0 0;
 }
 
-/* Pola grid tipis + cahaya, senada dengan hero */
-.footer__grid-bg {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px) 0 0 / 56px 56px,
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px) 0 0 / 56px 56px;
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
-}
-
-.footer__glow {
-  position: absolute;
-  z-index: -1;
-  top: -30%;
-  right: -10%;
-  width: 60%;
-  height: 90%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(212, 87, 42, 0.22), transparent);
-  filter: blur(20px);
-  pointer-events: none;
+/* Kontur di latar gelap: pakai warna teks footer, sangat samar */
+.footer__topo {
+  background: var(--ink);
+  opacity: 0.07;
 }
 
 .footer__inner {
-  max-width: calc(var(--container) - 2 * var(--gutter));
+  max-width: var(--container);
   margin: 0 auto;
   padding: 0 var(--gutter);
-  box-sizing: content-box;
+  box-sizing: border-box;
 }
 
-/* ---- Pita teks berjalan ---- */
-.footer__marquee {
+/* ---- Baris fokus ---- */
+.footer__focus {
   display: flex;
-  overflow: hidden;
-  margin: 0 0 clamp(2.5rem, 6vw, 3.5rem);
-  padding: 1rem 0;
-  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1.5rem;
+  margin: 0;
+  padding-bottom: 1.1rem;
   border-bottom: 1px solid var(--line);
-  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.footer__marquee-track {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  animation: footer-marquee 32s linear infinite;
-}
-
-.footer__marquee:hover .footer__marquee-track {
-  animation-play-state: paused;
-}
-
-.footer__marquee-item {
-  display: inline-flex;
-  align-items: center;
-  gap: clamp(1rem, 2.5vw, 2rem);
-  padding-right: clamp(1rem, 2.5vw, 2rem);
-  font-family: var(--font-heading);
-  font-size: clamp(1.6rem, 3.6vw, 2.8rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  white-space: nowrap;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(241, 235, 224, 0.45);
-  transition: color 0.3s ease;
-}
-
-.footer__marquee-item:nth-child(even) {
-  color: #fff;
-  -webkit-text-stroke: 0;
-}
-
-.footer__marquee-star {
-  font-size: 0.55em;
+.footer__focus-label {
   color: var(--footer-accent);
-  -webkit-text-stroke: 0;
 }
 
-@keyframes footer-marquee {
-  to { transform: translateX(-100%); }
+.footer__focus-list {
+  color: var(--soft);
 }
 
-/* ---- Kolom informasi ---- */
+/* ---- Kolom ---- */
 .footer__grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1.1fr;
-  gap: 2.5rem;
-  padding-bottom: clamp(2.25rem, 5vw, 3rem);
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.footer__grid > * {
+  padding: 2rem 2rem 2.25rem;
+  border-left: 1px solid var(--line);
+}
+
+.footer__grid > :first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.footer__grid > :last-child {
+  padding-right: 0;
 }
 
 .footer__logo {
-  display: inline-flex;
-  text-decoration: none;
+  display: inline-block;
 }
 
 .footer__logo-img {
+  display: block;
   height: 44px;
   width: auto;
-  display: block;
   object-fit: contain;
-  /* Logo aslinya berwarna; dijadikan putih agar senada dengan footer */
-  filter: brightness(0) invert(1);
   -webkit-user-select: none;
   user-select: none;
   -webkit-user-drag: none;
-  -webkit-touch-callout: none;
 }
 
-.footer__name {
-  margin: 1.1rem 0 0;
+.footer__statement {
+  margin: 1.4rem 0 0;
+  max-width: 24ch;
   font-family: var(--font-heading);
-  font-size: 1.15rem;
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: #fff;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  text-wrap: balance;
 }
 
-.footer__role {
-  margin: 0.25rem 0 0;
+.footer__serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--footer-accent);
+}
+
+.footer__heading {
+  margin: 0 0 1rem;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--muted);
+}
+
+.footer__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.footer__link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.3rem 0;
+  font-size: 0.98rem;
+  color: var(--soft);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer__link-num {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.footer__link:hover {
+  color: var(--ink);
+}
+
+.footer__link:hover .footer__link-num {
+  color: var(--footer-accent);
+}
+
+.footer__social {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.footer__social-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.footer__social-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.footer__social-handle {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.footer__social-arrow {
+  color: var(--muted);
+  transition: color 0.2s ease, transform 0.3s var(--ease-out);
+}
+
+.footer__social:hover .footer__social-arrow {
+  color: var(--footer-accent);
+  transform: translate(2px, -2px);
+}
+
+.footer__link:focus-visible,
+.footer__social:focus-visible,
+.footer__back:focus-visible,
+.footer__logo:focus-visible {
+  outline: 2px solid var(--footer-accent);
+  outline-offset: 3px;
+}
+
+/* ---- Nama besar ---- */
+.footer__wordmark {
+  margin: clamp(1rem, 3vw, 2rem) 0 0;
+  font-family: var(--font-heading);
+  font-size: clamp(2.6rem, 10.6vw, 9.8rem);
+  font-weight: 800;
+  line-height: 0.8;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+  color: var(--ink);
+  opacity: 0.94;
+  user-select: none;
+  /* Bagian bawah huruf sedikit terpotong oleh garis bawah */
+  height: 0.68em;
+  overflow: hidden;
+}
+
+/* ---- Baris bawah ---- */
+.footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 2rem;
+  padding: 1rem 0 1.25rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.footer__bottom p {
+  margin: 0;
 }
 
 .footer__clock {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 1.1rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--soft);
 }
 
 .footer__clock-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--footer-accent);
-  box-shadow: 0 0 0 4px rgba(169, 200, 147, 0.18);
-}
-
-.footer__heading {
-  margin: 0 0 1.1rem;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-}
-
-.footer__list {
-  display: grid;
-  gap: 0.65rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.footer__link {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.95rem;
-  color: rgba(241, 235, 224, 0.88);
-  text-decoration: none;
-  transition: color 0.25s ease;
-}
-
-/* Garis kecil yang memanjang dari kiri saat hover */
-.footer__link-dash {
-  display: inline-block;
-  width: 0;
-  height: 1px;
-  margin-right: 0;
-  background: var(--footer-accent);
-  transition:
-    width 0.3s var(--ease-out),
-    margin-right 0.3s var(--ease-out);
-}
-
-.footer__link:hover {
-  color: var(--footer-accent);
-}
-
-.footer__link:hover .footer__link-dash {
-  width: 14px;
-  margin-right: 0.5rem;
-}
-
-.footer__list--social {
-  gap: 0.5rem;
-}
-
-.footer__social {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem 0.5rem 0.5rem;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.04);
-  color: #f1ebe0;
-  text-decoration: none;
-  transition:
-    background 0.25s ease,
-    border-color 0.25s ease,
-    transform 0.3s var(--ease-out);
-}
-
-.footer__social:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(241, 235, 224, 0.4);
-  transform: translateX(4px);
-}
-
-.footer__social-icon {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.footer__social-svg {
-  width: 17px;
-  height: 17px;
-}
-
-.footer__social-img {
-  width: 17px;
-  height: 17px;
-  object-fit: contain;
-  display: block;
-  filter: brightness(0) invert(1);
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-user-drag: none;
-  -webkit-touch-callout: none;
-  pointer-events: none;
-}
-
-.footer__social-text {
-  display: grid;
-  min-width: 0;
-  line-height: 1.25;
-}
-
-.footer__social-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.footer__social-handle {
-  overflow: hidden;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: var(--muted);
-}
-
-.footer__social-arrow {
-  flex-shrink: 0;
-  margin-left: auto;
-  color: var(--muted);
-  transition:
-    color 0.25s ease,
-    transform 0.3s var(--ease-out);
-}
-
-.footer__social:hover .footer__social-arrow {
-  color: var(--footer-accent);
-  transform: rotate(45deg);
-}
-
-/* ---- Baris bawah ---- */
-.footer__bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.8rem 1rem;
-  padding: 1.4rem 0 1.6rem;
-  border-top: 1px solid var(--line);
-}
-
-.footer__copyright {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--muted);
 }
 
 .footer__back {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.45rem;
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
   color: var(--soft);
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
-.footer__back-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  transition:
-    background 0.25s ease,
-    color 0.25s ease,
-    transform 0.3s var(--ease-out);
+.footer__back svg {
+  transition: transform 0.3s var(--ease-out);
 }
 
 .footer__back:hover {
-  color: #fff;
+  color: var(--ink);
 }
 
-.footer__back:hover .footer__back-icon {
-  background: #fff;
-  color: var(--footer-bg);
-  transform: translateY(-3px);
+.footer__back:hover svg {
+  transform: translateY(-2px);
 }
 
 /* ---- Tombol melayang kembali ke atas ---- */
@@ -563,24 +456,23 @@ function preventImageAction(event) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: none;
-  background: var(--color-primary);
-  color: #fff;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-rule);
+  background: var(--color-surface);
+  color: var(--color-text);
   cursor: pointer;
-  box-shadow: 0 14px 28px -12px rgba(0, 0, 0, 0.5);
   transition:
-    background 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .top-btn:hover {
-  background: var(--color-primary-dark);
-  transform: translateY(-3px);
-  box-shadow: 0 18px 32px -12px rgba(0, 0, 0, 0.55);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
 .top-btn__icon {
@@ -601,52 +493,56 @@ function preventImageAction(event) {
   transform: translateY(10px);
 }
 
-/* Pita teks tetap bergerak walaupun "Animation effects" di Windows/HP dimatikan.
-   main.css punya aturan global yang mematikan semua animasi di mode itu,
-   jadi di sini sengaja ditimpa (selector lebih spesifik + !important). */
-@media (prefers-reduced-motion: reduce) {
-  .footer__marquee .footer__marquee-track {
-    animation-duration: 32s !important;
-    animation-iteration-count: infinite !important;
-  }
-}
-
 /* ---- Tablet ---- */
 @media (max-width: 960px) {
   .footer__grid {
     grid-template-columns: 1fr 1fr;
-    gap: 2.25rem 2rem;
   }
 
-  .footer__brand {
+  .footer__grid > .footer__brand {
     grid-column: 1 / -1;
+    padding-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .footer__grid > :nth-child(2) {
+    padding-left: 0;
+    border-left: 0;
   }
 }
 
 /* ---- HP ---- */
 @media (max-width: 560px) {
   .footer__grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
-  .footer__brand,
-  .footer__grid > .footer__col:nth-child(3) {
-    grid-column: 1 / -1;
+  .footer__grid > * {
+    padding: 1.75rem 0;
+    border-left: 0;
+  }
+
+  .footer__grid > :nth-child(2) {
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* Menu navigasi jadi 2 kolom supaya tidak terlalu panjang */
+  .footer__grid > :nth-child(2) .footer__list {
+    grid-template-columns: 1fr 1fr;
   }
 
   .footer__logo-img {
     height: 40px;
   }
 
-  .footer__grid > .footer__col:nth-child(2) {
-    grid-column: 1 / -1;
+  /* Nama besar dipecah dua baris supaya tetap muat di layar sempit */
+  .footer__wordmark {
+    font-size: 17vw;
+    line-height: 0.86;
+    white-space: normal;
+    height: auto;
+    padding-bottom: 0.4rem;
   }
-
-  /* Menu navigasi jadi 2 kolom supaya tidak terlalu panjang */
-  .footer__grid > .footer__col:nth-child(2) .footer__list {
-    grid-template-columns: 1fr 1fr;
-  }
-
 
   /* Ruang di kanan supaya teks tidak tertutup tombol chat & ke atas */
   .footer__bottom {

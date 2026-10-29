@@ -5,7 +5,6 @@ import 'leaflet/dist/leaflet.css'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
-import gmailIcon from './icons/icons-about/gmail.svg'
 import { useChatWidgetStore } from '../stores/chatWidget'
 import { vReveal } from '@/directives/reveal'
 import { loaderDone } from '@/composables/useLoaderState'
@@ -82,11 +81,10 @@ const contactInfo = [
   {
     label: 'Email',
     value: 'joseparhusip7@gmail.com',
-    icon: gmailIcon,
-    iconAlt: 'Gmail',
     // Klik item ini membuka widget chat (lihat openChat), bukan mailto.
     action: openChat,
   },
+  { label: 'Basis', value: 'Bandung & Bekasi, Jawa Barat' },
 ]
 
 const mapLocations = [
@@ -150,35 +148,42 @@ onBeforeUnmount(() => {
 
 <template>
   <section id="kontak" class="contact">
+    <span class="topo topo--alt" aria-hidden="true"></span>
+
     <div class="container">
-      <header class="contact__header">
-        <span v-reveal class="section-label">
-          <span class="section-label__num">04</span> Kontak
-        </span>
-        <h2 v-reveal.clip="80" class="section-title contact__title">
-          Punya ide atau proyek? Yuk, <span class="serif-accent">ngobrol</span>.
-        </h2>
+      <header class="section-head">
+        <div class="section-head__meta">
+          <span v-reveal class="section-label">
+            <span class="section-label__num">04</span> Kontak
+          </span>
+          <span v-reveal="80" class="section-head__note">Bandung, Jawa Barat<br />UTC+7 · WIB</span>
+        </div>
+        <div class="section-head__main">
+          <h2 v-reveal.clip="80" class="section-title contact__title">
+            Punya ide atau proyek? Yuk, <span class="serif-accent">ngobrol</span>.
+          </h2>
+        </div>
       </header>
 
       <div class="contact__grid">
-        <!-- Kiri: ajakan chat + email -->
+        <!-- Kiri: ajakan chat + daftar kontak -->
         <div ref="formWrap" class="contact__col" :class="{ 'is-in': formIn }">
           <div class="contact__cta">
-            <span class="contact__cta-glow" aria-hidden="true"></span>
-
-            <span class="contact__status">
+            <span class="contact__status mono-meta">
               <span class="contact__status-dot" aria-hidden="true"></span>
-              Terbuka untuk kerja & kolaborasi
+              Terbuka untuk kerja &amp; kolaborasi
             </span>
 
-            <h3 class="contact__cta-title">Ngobrol langsung, tanpa isi form panjang.</h3>
+            <h3 class="contact__cta-title">
+              Ngobrol langsung, <span class="serif-accent">tanpa</span> isi form panjang.
+            </h3>
             <p class="contact__cta-desc">
               Klik tombol di bawah, nanti muncul chat kecil di pojok kanan bawah layar.
               Jawab beberapa pertanyaan singkat dan pesan kamu langsung terkirim ke email saya.
             </p>
 
             <div class="contact__cta-actions">
-              <button type="button" class="contact__chat-btn" @click="openChat">
+              <button type="button" class="btn btn--primary contact__chat-btn" @click="openChat">
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                   <path
                     fill="none"
@@ -194,36 +199,30 @@ onBeforeUnmount(() => {
             </div>
 
             <ul class="contact__list" v-reveal.stagger="{ delay: 450, step: 90 }">
-              <li v-for="item in contactInfo" :key="item.label" class="contact__item">
-                <span
-                  class="contact__item-icon"
-                  aria-hidden="true"
-                  oncontextmenu="return false"
-                  @contextmenu.prevent="preventImageAction"
+              <li
+                v-for="item in contactInfo"
+                :key="item.label"
+                class="contact__item"
+                :class="{ 'contact__item--action': item.action }"
+              >
+                <span class="contact__item-label">{{ item.label }}</span>
+                <button
+                  v-if="item.action"
+                  type="button"
+                  class="contact__item-value contact__item-value--btn"
+                  @click="item.action"
                 >
-                  <img
-                    :src="item.icon"
-                    :alt="item.iconAlt"
-                    class="contact__item-icon-img"
-                    draggable="false"
-                    oncontextmenu="return false"
-                    @contextmenu.prevent="preventImageAction"
-                    @dragstart.prevent="preventImageAction"
-                  />
-                </span>
-                <span class="contact__item-text">
-                  <span class="contact__item-label">{{ item.label }}</span>
-                  <button
-                    v-if="item.action"
-                    type="button"
-                    class="contact__item-value contact__item-value--btn"
-                    @click="item.action"
-                  >
-                    {{ item.value }}
-                  </button>
-                  <span v-else class="contact__item-value">{{ item.value }}</span>
-                </span>
-                <svg class="contact__item-arrow" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  {{ item.value }}
+                </button>
+                <span v-else class="contact__item-value">{{ item.value }}</span>
+                <svg
+                  v-if="item.action"
+                  class="contact__item-arrow"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  aria-hidden="true"
+                >
                   <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
                 </svg>
@@ -234,11 +233,11 @@ onBeforeUnmount(() => {
 
         <!-- Kanan: peta lokasi -->
         <div ref="infoWrap" class="contact__col" :class="{ 'is-in': infoIn }">
-          <div class="contact__map-card">
-            <div class="contact__map-head">
+          <figure class="contact__map-card">
+            <figcaption class="contact__map-head mono-meta">
               <span class="contact__map-label">Lokasi</span>
-              <span class="contact__map-zone">Jawa Barat, Indonesia · WIB</span>
-            </div>
+              <span>Jawa Barat, ID · WIB · 6°55′S 107°37′E</span>
+            </figcaption>
 
             <div
               ref="mapContainer"
@@ -255,15 +254,11 @@ onBeforeUnmount(() => {
                 class="contact__place"
                 @click="focusLocation(index)"
               >
-                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-                  <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"
-                    d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" />
-                  <circle cx="12" cy="9.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8" />
-                </svg>
+                <span class="contact__place-num">0{{ index + 1 }}</span>
                 {{ loc.name }}
               </button>
             </div>
-          </div>
+          </figure>
         </div>
       </div>
     </div>
@@ -272,22 +267,23 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .contact {
+  position: relative;
+  isolation: isolate;
   padding: var(--section-y) 0;
   background: var(--color-bg);
-  /* Kartu masuk dari luar layar: potong overflow di batas section */
+  /* Kolom masuk dari samping: potong overflow di batas section */
   overflow-x: hidden;
   overflow-x: clip;
 }
 
-.contact__header {
-  max-width: 46rem;
-  margin-bottom: clamp(2.2rem, 5vw, 3.5rem);
+.contact__title {
+  max-width: 16ch;
 }
 
 .contact__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: clamp(1rem, 2vw, 1.5rem);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
   align-items: stretch;
 }
 
@@ -300,178 +296,95 @@ onBeforeUnmount(() => {
   flex: 1;
 }
 
-/* ---- Panel ajakan chat ---- */
+/* ---- Kolom ajakan chat ---- */
 .contact__cta {
-  position: relative;
   display: flex;
   flex-direction: column;
-  padding: clamp(1.6rem, 4vw, 2.75rem);
-  border-radius: var(--radius-lg);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
-  background:
-    radial-gradient(90% 70% at 100% 0%, var(--color-primary-soft), transparent 70%),
-    radial-gradient(70% 60% at 0% 100%, var(--color-accent-soft), transparent 70%),
-    var(--color-surface);
-  overflow: hidden;
-  isolation: isolate;
-}
-
-.contact__cta-glow {
-  position: absolute;
-  z-index: -1;
-  right: -80px;
-  top: -80px;
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  border: 1px dashed color-mix(in srgb, var(--color-primary) 45%, transparent);
-  opacity: 0.6;
 }
 
 .contact__status {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  width: fit-content;
-  padding: 0.4rem 0.85rem 0.4rem 0.7rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
-  color: var(--color-text-soft);
+  gap: 0.6rem;
+  color: var(--color-text);
 }
 
 .contact__status-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--color-accent);
-  box-shadow: 0 0 0 0 var(--color-accent);
-  animation: contact-pulse 2.2s ease-out infinite;
+  animation: contact-blink 2.4s ease-in-out infinite;
 }
 
-@keyframes contact-pulse {
-  0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 60%, transparent);
-  }
-  100% {
-    box-shadow: 0 0 0 9px transparent;
+@keyframes contact-blink {
+  50% {
+    opacity: 0.35;
   }
 }
 
 .contact__cta-title {
   font-family: var(--font-heading);
-  font-size: clamp(1.45rem, 2.6vw, 2rem);
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
+  font-size: clamp(1.7rem, 3.2vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
   color: var(--color-text);
-  margin: 1.4rem 0 0.8rem;
-  max-width: 22ch;
+  margin: 1.4rem 0 1rem;
+  max-width: 18ch;
   text-wrap: balance;
 }
 
 .contact__cta-desc {
   margin: 0;
   max-width: 34rem;
-  font-size: 0.98rem;
+  font-size: 1rem;
   line-height: 1.75;
   color: var(--color-text-soft);
   text-wrap: pretty;
 }
 
 .contact__cta-actions {
-  margin-top: 1.7rem;
-}
-
-.contact__chat-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.95rem 1.7rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--color-primary);
-  font-family: var(--font-body);
-  font-size: 0.98rem;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 16px 32px -16px var(--color-primary);
-  transition: background 0.25s ease, transform 0.3s var(--ease-out);
+  margin-top: 1.8rem;
 }
 
 .contact__chat-btn:hover {
-  background: var(--color-primary-dark);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
+/* Daftar kontak: baris bergaris, label mono | nilai | panah */
 .contact__list {
   list-style: none;
   margin: auto 0 0;
-  padding: 2rem 0 0;
+  padding: 2.5rem 0 0;
 }
 
 .contact__item {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  padding: 0.85rem 1rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  transition: border-color 0.25s ease;
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-rule);
 }
 
-.contact__item:hover {
-  border-color: var(--color-primary);
-}
-
-.contact__item-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.contact__item-icon-img {
-  display: block;
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-user-drag: none;
-  -webkit-touch-callout: none;
-  pointer-events: none;
-}
-
-.contact__item-text {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
+.contact__item:last-child {
+  border-bottom: 1px solid var(--color-rule);
 }
 
 .contact__item-label {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-text-soft);
 }
 
 .contact__item-value {
   font-family: var(--font-body);
-  font-size: 0.98rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 500;
   color: var(--color-text);
   overflow-wrap: break-word;
 }
@@ -482,7 +395,9 @@ onBeforeUnmount(() => {
   border: 0;
   background: none;
   text-align: left;
+  font-weight: 600;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 /* Seluruh baris email bisa diklik (area sentuh lebih besar di HP) */
@@ -490,29 +405,32 @@ onBeforeUnmount(() => {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: inherit;
+}
+
+.contact__item--action:hover .contact__item-value--btn {
+  color: var(--color-primary);
 }
 
 .contact__item-arrow {
-  flex-shrink: 0;
+  align-self: center;
   color: var(--color-text-soft);
-  transition: color 0.25s ease, transform 0.3s var(--ease-out);
+  transition: color 0.2s ease, transform 0.3s var(--ease-out);
 }
 
-.contact__item:hover .contact__item-arrow {
+.contact__item--action:hover .contact__item-arrow {
   color: var(--color-primary);
   transform: translate(2px, -2px);
 }
 
-/* ---- Kartu peta ---- */
+/* ---- Peta ---- */
 .contact__map-card {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  padding: 0.9rem;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+  margin: 0;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-sm);
   background: var(--color-surface);
+  overflow: hidden;
 }
 
 .contact__map-head {
@@ -521,31 +439,24 @@ onBeforeUnmount(() => {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.3rem 1rem;
-  padding: 0.4rem 0.5rem 0;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--color-rule);
 }
 
 .contact__map-label {
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
-  font-weight: 600;
   color: var(--color-text);
-}
-
-.contact__map-zone {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  color: var(--color-text-soft);
 }
 
 .contact__map {
   flex: 1;
   width: 100%;
-  min-height: 300px;
-  border-radius: calc(var(--radius-lg) - 0.6rem);
-  border: 1px solid var(--color-border);
-  overflow: hidden;
+  min-height: 320px;
   z-index: 0;
+}
+
+/* Peta dibuat hitam-putih supaya menyatu dengan palet; penanda bawaan Leaflet sudah biru */
+.contact__map :deep(.leaflet-tile-pane) {
+  filter: grayscale(1) contrast(0.95);
 }
 
 .contact__map :deep(img) {
@@ -559,26 +470,29 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid var(--color-rule);
 }
 
 .contact__place {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 500;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-rule);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-text);
   cursor: pointer;
-  transition: border-color 0.25s ease, color 0.25s ease;
+  transition: border-color 0.2s ease, color 0.2s ease;
 }
 
-.contact__place svg {
-  color: var(--color-accent);
+.contact__place-num {
+  color: var(--color-primary);
 }
 
 .contact__place:hover {
@@ -587,49 +501,33 @@ onBeforeUnmount(() => {
 }
 
 /* ---------------------------------------------------------
-   Animasi geser kartu Kontak: panel chat masuk dari KIRI,
-   peta dari KANAN. Pakai `translate` (bukan transform) supaya
-   tidak bentrok dengan efek hover di dalam kartu.
+   Animasi masuk kolom Kontak: kiri dari kiri, peta dari kanan.
+   Jarak geser pendek supaya tenang. Pakai `translate` (bukan
+   transform) supaya tidak bentrok dengan efek hover.
 --------------------------------------------------------- */
 .contact__col:not(.is-in) > * {
   opacity: 0;
 }
 
-.contact__col:not(.is-in) .contact__cta {
-  translate: -100vw 0;
-}
-
-.contact__col:not(.is-in) .contact__map-card {
-  translate: 100vw 0;
-}
-
 .contact__col.is-in .contact__cta {
-  animation: contact-slide-in-left 1.2s var(--ease-out) backwards;
+  animation: contact-in-left 0.9s var(--ease-out) backwards;
 }
 
 .contact__col.is-in .contact__map-card {
-  animation: contact-slide-in-right 1.2s var(--ease-out) 0.1s backwards;
+  animation: contact-in-right 0.9s var(--ease-out) 0.1s backwards;
 }
 
-@keyframes contact-slide-in-left {
+@keyframes contact-in-left {
   from {
     opacity: 0;
-    translate: -100vw 0;
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
+    translate: -48px 0;
   }
 }
 
-@keyframes contact-slide-in-right {
+@keyframes contact-in-right {
   from {
     opacity: 0;
-    translate: 100vw 0;
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
+    translate: 48px 0;
   }
 }
 
@@ -640,12 +538,6 @@ onBeforeUnmount(() => {
 }
 
 /* ---- Tablet & HP ---- */
-@media (max-width: 360px) {
-  .contact__item-value {
-    overflow-wrap: anywhere;
-  }
-}
-
 @media (max-width: 900px) {
   .contact__grid {
     grid-template-columns: minmax(0, 1fr);
@@ -659,21 +551,16 @@ onBeforeUnmount(() => {
 @media (max-width: 480px) {
   .contact__chat-btn {
     width: 100%;
-    justify-content: center;
-  }
-
-  .contact__item-value {
-    font-size: 0.86rem;
   }
 
   .contact__item {
-    padding: 0.75rem 0.8rem;
-    gap: 0.7rem;
+    grid-template-columns: 5rem minmax(0, 1fr) auto;
+    gap: 0.75rem;
   }
 
-  .contact__item-icon {
-    width: 38px;
-    height: 38px;
+  .contact__item-value {
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
   }
 
   .contact__map {
