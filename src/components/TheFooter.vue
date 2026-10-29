@@ -8,13 +8,10 @@ const { onNavClick } = useSectionNav()
 const year = new Date().getFullYear()
 
 const socials = [
-  { name: 'GitHub', handle: '@joseparhusip', href: 'https://github.com/joseparhusip' },
-  { name: 'LinkedIn', handle: 'in/joseparhusip', href: 'https://www.linkedin.com/in/joseparhusip/' },
-  { name: 'Instagram', handle: '@joseparhusip_', href: 'https://www.instagram.com/joseparhusip_/' },
+  { name: 'GitHub', href: 'https://github.com/joseparhusip' },
+  { name: 'LinkedIn', href: 'https://www.linkedin.com/in/joseparhusip/' },
+  { name: 'Instagram', href: 'https://www.instagram.com/joseparhusip_/' },
 ]
-
-// Bidang yang dikerjakan (sama dengan 'Fokus' di beranda)
-const focusItems = ['Web Landing Page', 'Web E-commerce', 'Mobile App', 'Data', 'Dashboard BI', 'AI']
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -67,12 +64,6 @@ function preventImageAction(event) {
   <footer class="footer">
 
     <div class="footer__inner">
-      <!-- Baris bidang kerja: satu garis tenang, bukan pita berjalan -->
-      <p v-reveal class="footer__focus">
-        <span class="footer__focus-label">Fokus</span>
-        <span class="footer__focus-list">{{ focusItems.join(' / ') }}</span>
-      </p>
-
       <!-- Kolom informasi -->
       <div v-reveal.stagger="{ delay: 60, step: 90 }" class="footer__grid">
         <div class="footer__brand">
@@ -86,19 +77,16 @@ function preventImageAction(event) {
         </div>
 
         <nav class="footer__col" aria-label="Navigasi footer">
-          <h3 class="footer__heading">Navigasi</h3>
           <ul class="footer__list">
-            <li v-for="(link, index) in navLinks" :key="link.path">
+            <li v-for="link in navLinks" :key="link.path">
               <a :href="link.path" class="footer__link" @click="onNavClick($event, link)">
-                <span class="footer__link-num" aria-hidden="true">0{{ index + 1 }}</span>
                 {{ link.label }}
               </a>
             </li>
           </ul>
         </nav>
 
-        <div class="footer__col">
-          <h3 class="footer__heading">Sosial Media</h3>
+        <div class="footer__col" aria-label="Sosial media">
           <ul class="footer__list">
             <li v-for="item in socials" :key="item.name">
               <a
@@ -109,10 +97,7 @@ function preventImageAction(event) {
                 oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
               >
-                <span class="footer__social-text">
-                  <span class="footer__social-name">{{ item.name }}</span>
-                  <span class="footer__social-handle">{{ item.handle }}</span>
-                </span>
+                <span class="footer__social-name">{{ item.name }}</span>
                 <svg class="footer__social-arrow" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                   <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
@@ -129,7 +114,6 @@ function preventImageAction(event) {
       <!-- Baris bawah -->
       <div class="footer__bottom">
         <p class="footer__copyright">&copy; {{ year }} Jose Elio Parhusip</p>
-        <p class="footer__coords">6°55′S 107°37′E</p>
         <p class="footer__clock">
           <span class="footer__clock-dot" aria-hidden="true"></span>
           Bandung · {{ localTime }} WIB
@@ -196,27 +180,8 @@ function preventImageAction(event) {
 }
 
 /* ---- Baris fokus ---- */
-.footer__focus {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.4rem 1.5rem;
-  margin: 0;
-  padding-bottom: 1.1rem;
-  border-bottom: 1px solid var(--line);
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 
-.footer__focus-label {
-  color: var(--footer-accent);
-}
 
-.footer__focus-list {
-  color: var(--soft);
-}
 
 /* ---- Kolom ---- */
 .footer__grid {
@@ -271,15 +236,6 @@ function preventImageAction(event) {
   color: var(--footer-accent);
 }
 
-.footer__heading {
-  margin: 0 0 1rem;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
 
 .footer__list {
   list-style: none;
@@ -300,20 +256,11 @@ function preventImageAction(event) {
   transition: color 0.2s ease;
 }
 
-.footer__link-num {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--muted);
-  transition: color 0.2s ease;
-}
 
 .footer__link:hover {
   color: var(--ink);
 }
 
-.footer__link:hover .footer__link-num {
-  color: var(--footer-accent);
-}
 
 .footer__social {
   display: flex;
@@ -326,22 +273,12 @@ function preventImageAction(event) {
   text-decoration: none;
 }
 
-.footer__social-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.3;
-}
 
 .footer__social-name {
   font-size: 0.95rem;
   font-weight: 600;
 }
 
-.footer__social-handle {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--muted);
-}
 
 .footer__social-arrow {
   color: var(--muted);
