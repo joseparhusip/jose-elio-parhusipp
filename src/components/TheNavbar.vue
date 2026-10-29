@@ -371,7 +371,7 @@ onUnmounted(() => {
   font-family: var(--font-body);
   font-size: 0.92rem;
   font-weight: 500;
-  color: var(--color-text-soft, #5c6f69);
+  color: var(--color-text-soft, #655d52);
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: 999px;
@@ -411,7 +411,7 @@ onUnmounted(() => {
   font-size: 0.9rem;
   font-weight: 600;
   color: #fff;
-  background: var(--color-primary, #6b9080);
+  background: var(--color-primary, #b8471e);
   padding: 0.6rem 1.15rem 0.6rem 1.3rem;
   border-radius: 999px;
   text-decoration: none;
@@ -427,7 +427,7 @@ onUnmounted(() => {
 }
 
 .navbar__cta:hover {
-  background: var(--color-primary-dark, #4f7566);
+  background: var(--color-primary-dark, #963817);
   transform: translateY(-1px);
 }
 
@@ -460,7 +460,7 @@ onUnmounted(() => {
   display: block;
   height: 2px;
   width: 18px;
-  background: var(--color-text, #253632);
+  background: var(--color-text, #1f1b16);
   border-radius: 2px;
   transition: transform 0.35s var(--ease-out), width 0.35s var(--ease-out);
 }

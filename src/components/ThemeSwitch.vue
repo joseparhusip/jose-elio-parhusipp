@@ -58,11 +58,11 @@ const isLight = computed(() => theme.value === 'light')
   --knob: calc(var(--h) - var(--pad) * 2);
 
   /* ===== warna DARK ===== */
-  --track-a: #0a0d1a;
-  --track-b: #1d2450;
-  --track-edge: rgba(124, 111, 240, 0.55);
+  --track-a: #0f0d0b;
+  --track-b: #2e2822;
+  --track-edge: rgba(237, 231, 220, 0.35);
   --track-shadow: rgba(0, 0, 0, 0.75);
-  --glow: rgba(124, 111, 240, 0.45);
+  --glow: rgba(237, 231, 220, 0.3);
 
   position: relative;
   flex: none;
@@ -90,7 +90,7 @@ const isLight = computed(() => theme.value === 'light')
 }
 
 .sw:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-primary-soft, rgba(124, 111, 240, 0.4));
+  box-shadow: 0 0 0 3px var(--color-primary-soft, rgba(212, 87, 42, 0.4));
 }
 
 /* ===== warna LIGHT ===== */

@@ -200,14 +200,14 @@ function preventImageAction(event) {
 
 <style scoped>
 .footer {
-  --line: rgba(238, 243, 239, 0.16);
-  --soft: rgba(238, 243, 239, 0.72);
-  --muted: rgba(238, 243, 239, 0.52);
+  --line: rgba(241, 235, 224, 0.16);
+  --soft: rgba(241, 235, 224, 0.72);
+  --muted: rgba(241, 235, 224, 0.52);
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: var(--color-primary-dark);
-  color: #eef3ef;
+  background: var(--footer-bg);
+  color: #f1ebe0;
   padding: clamp(1.5rem, 4vw, 2.5rem) 0 0;
 }
 
@@ -231,7 +231,7 @@ function preventImageAction(event) {
   width: 60%;
   height: 90%;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(79, 214, 192, 0.24), transparent);
+  background: radial-gradient(closest-side, rgba(212, 87, 42, 0.22), transparent);
   filter: blur(20px);
   pointer-events: none;
 }
@@ -277,7 +277,7 @@ function preventImageAction(event) {
   letter-spacing: -0.03em;
   white-space: nowrap;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(238, 243, 239, 0.45);
+  -webkit-text-stroke: 1px rgba(241, 235, 224, 0.45);
   transition: color 0.3s ease;
 }
 
@@ -288,7 +288,7 @@ function preventImageAction(event) {
 
 .footer__marquee-star {
   font-size: 0.55em;
-  color: #4fd6c0;
+  color: var(--footer-accent);
   -webkit-text-stroke: 0;
 }
 
@@ -355,8 +355,8 @@ function preventImageAction(event) {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #4fd6c0;
-  box-shadow: 0 0 0 4px rgba(79, 214, 192, 0.18);
+  background: var(--footer-accent);
+  box-shadow: 0 0 0 4px rgba(169, 200, 147, 0.18);
 }
 
 .footer__heading {
@@ -381,7 +381,7 @@ function preventImageAction(event) {
   display: inline-flex;
   align-items: center;
   font-size: 0.95rem;
-  color: rgba(238, 243, 239, 0.88);
+  color: rgba(241, 235, 224, 0.88);
   text-decoration: none;
   transition: color 0.25s ease;
 }
@@ -392,14 +392,14 @@ function preventImageAction(event) {
   width: 0;
   height: 1px;
   margin-right: 0;
-  background: #4fd6c0;
+  background: var(--footer-accent);
   transition:
     width 0.3s var(--ease-out),
     margin-right 0.3s var(--ease-out);
 }
 
 .footer__link:hover {
-  color: #4fd6c0;
+  color: var(--footer-accent);
 }
 
 .footer__link:hover .footer__link-dash {
@@ -419,7 +419,7 @@ function preventImageAction(event) {
   border-radius: 14px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.04);
-  color: #eef3ef;
+  color: #f1ebe0;
   text-decoration: none;
   transition:
     background 0.25s ease,
@@ -429,7 +429,7 @@ function preventImageAction(event) {
 
 .footer__social:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(238, 243, 239, 0.4);
+  border-color: rgba(241, 235, 224, 0.4);
   transform: translateX(4px);
 }
 
@@ -492,7 +492,7 @@ function preventImageAction(event) {
 }
 
 .footer__social:hover .footer__social-arrow {
-  color: #4fd6c0;
+  color: var(--footer-accent);
   transform: rotate(45deg);
 }
 
@@ -548,7 +548,7 @@ function preventImageAction(event) {
 
 .footer__back:hover .footer__back-icon {
   background: #fff;
-  color: #2b2470;
+  color: var(--footer-bg);
   transform: translateY(-3px);
 }
 

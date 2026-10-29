@@ -58,7 +58,7 @@ onMounted(() => {
   position: absolute;
   left: 0;
   right: 0;
-  background: var(--color-bg, #0b0e17);
+  background: var(--color-bg, #12110f);
   transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
 }
 

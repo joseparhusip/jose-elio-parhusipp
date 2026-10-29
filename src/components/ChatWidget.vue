@@ -966,7 +966,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   justify-content: center;
   color: #fff;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-  box-shadow: 0 18px 40px -14px rgba(94, 82, 214, 0.55);
+  box-shadow: 0 18px 40px -14px rgba(179, 68, 32, 0.45);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -974,7 +974,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
 
 .chat-widget__fab:hover {
   transform: translateY(-3px);
-  box-shadow: 0 22px 44px -12px rgba(94, 82, 214, 0.6);
+  box-shadow: 0 22px 44px -12px rgba(179, 68, 32, 0.5);
 }
 
 .chat-widget__fab-icon {
@@ -1078,7 +1078,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--color-accent, #4fd6c0);
+  background: var(--color-accent, #8fb27a);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
 }
 
@@ -1211,7 +1211,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
-  box-shadow: 0 0 0 3px rgba(124, 111, 240, 0.18);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 /* Garis vertikal penghubung antar nomor, kecuali di item terakhir */
@@ -1222,7 +1222,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   top: 26px;
   bottom: 0;
   width: 2px;
-  background: linear-gradient(to bottom, rgba(124, 111, 240, 0.45), rgba(124, 111, 240, 0.1));
+  background: linear-gradient(to bottom, rgba(212, 87, 42, 0.45), rgba(212, 87, 42, 0.1));
 }
 
 .chat-widget__exp-content {
@@ -1282,9 +1282,9 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
 
 .chat-widget__exp-tag {
   font-size: 0.68rem;
-  color: var(--color-primary-dark, #4f7566);
+  color: var(--color-primary-dark, #963817);
   background: var(--color-bg);
-  border: 1px solid rgba(124, 111, 240, 0.25);
+  border: 1px solid rgba(212, 87, 42, 0.25);
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
 }
@@ -1396,9 +1396,9 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   align-items: center;
   gap: 0.3rem;
   font-size: 0.68rem;
-  color: var(--color-primary-dark, #4f7566);
+  color: var(--color-primary-dark, #963817);
   background: var(--color-bg);
-  border: 1px solid rgba(124, 111, 240, 0.25);
+  border: 1px solid rgba(212, 87, 42, 0.25);
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
 }
@@ -1472,7 +1472,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
   font-weight: 600;
   color: var(--color-primary);
   background: var(--color-primary-soft);
-  border: 1px solid rgba(124, 111, 240, 0.35);
+  border: 1px solid rgba(212, 87, 42, 0.35);
   border-radius: 999px;
   padding: 0.5rem 1rem;
   cursor: pointer;
@@ -1480,7 +1480,7 @@ watch([messages, step, form, pendingLinkOffer, pendingClarify], saveChatState, {
 }
 
 .chat-widget__action-btn:hover {
-  background: rgba(124, 111, 240, 0.24);
+  background: rgba(212, 87, 42, 0.24);
 }
 
 .chat-widget__footer {

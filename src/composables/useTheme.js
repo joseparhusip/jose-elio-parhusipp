@@ -19,7 +19,7 @@ const theme = ref(getInitialTheme())
 function applyTheme(value) {
   document.documentElement.setAttribute('data-theme', value)
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', value === 'light' ? '#F4F6FB' : '#0B0E17')
+  if (meta) meta.setAttribute('content', value === 'light' ? '#F5F1E8' : '#12110F')
 }
 
 if (typeof document !== 'undefined') {

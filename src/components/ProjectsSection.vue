@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
+import GithubContributions from './GithubContributions.vue'
 
 // Tech stack icons
 import pythonIcon from './icons/icons-about/Python-logo-notext.svg'
@@ -509,6 +510,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           </div>
         </Transition>
       </div>
+
+      <!-- Grafik kontribusi GitHub -->
+      <GithubContributions />
     </div>
 
     <!-- Lightbox: menampilkan gambar proyek secara penuh -->
@@ -1101,7 +1105,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   font-weight: 400;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #4fd6c0;
+  color: #a9c893;
 }
 
 .project-lightbox__close {
