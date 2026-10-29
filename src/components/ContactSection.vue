@@ -84,7 +84,6 @@ const contactInfo = [
     // Klik item ini membuka widget chat (lihat openChat), bukan mailto.
     action: openChat,
   },
-  { label: 'Basis', value: 'Bandung & Bekasi, Jawa Barat' },
 ]
 
 const mapLocations = [
@@ -155,7 +154,6 @@ onBeforeUnmount(() => {
           <span v-reveal class="section-label">
             <span class="section-label__num">04</span> Kontak
           </span>
-          <span v-reveal="80" class="section-head__note">Bandung, Jawa Barat<br />UTC+7 · WIB</span>
         </div>
         <div class="section-head__main">
           <h2 v-reveal.clip="80" class="section-title contact__title">
@@ -172,14 +170,6 @@ onBeforeUnmount(() => {
               <span class="contact__status-dot" aria-hidden="true"></span>
               Terbuka untuk kerja &amp; kolaborasi
             </span>
-
-            <h3 class="contact__cta-title">
-              Ngobrol langsung, <span class="serif-accent">tanpa</span> isi form panjang.
-            </h3>
-            <p class="contact__cta-desc">
-              Klik tombol di bawah, nanti muncul chat kecil di pojok kanan bawah layar.
-              Jawab beberapa pertanyaan singkat dan pesan kamu langsung terkirim ke email saya.
-            </p>
 
             <div class="contact__cta-actions">
               <button type="button" class="btn btn--primary contact__chat-btn" @click="openChat">
@@ -235,7 +225,7 @@ onBeforeUnmount(() => {
           <figure class="contact__map-card">
             <figcaption class="contact__map-head mono-meta">
               <span class="contact__map-label">Lokasi</span>
-              <span>Jawa Barat, ID · WIB · 6°55′S 107°37′E</span>
+              <span>Bandung · Bekasi</span>
             </figcaption>
 
             <div
@@ -320,27 +310,6 @@ onBeforeUnmount(() => {
   50% {
     opacity: 0.35;
   }
-}
-
-.contact__cta-title {
-  font-family: var(--font-heading);
-  font-size: clamp(1.7rem, 3.2vw, 2.6rem);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1.05;
-  color: var(--color-text);
-  margin: 1.4rem 0 1rem;
-  max-width: 18ch;
-  text-wrap: balance;
-}
-
-.contact__cta-desc {
-  margin: 0;
-  max-width: 34rem;
-  font-size: 1rem;
-  line-height: 1.75;
-  color: var(--color-text-soft);
-  text-wrap: pretty;
 }
 
 .contact__cta-actions {

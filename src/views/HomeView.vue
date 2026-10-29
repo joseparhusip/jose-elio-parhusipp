@@ -10,15 +10,6 @@ import myPhoto from '@/components/icons/icons-about/img-me.png'
 import linkedinIcon from '@/components/icons/icons-about/linkedin-svgrepo-com.svg'
 import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-svgrepo-com.svg'
 
-const stack = ['Web Landing Page', 'Web E-commerce', 'Mobile App', 'Data']
-
-// Spesifikasi singkat di samping foto
-const specs = [
-  { label: 'Web & Mobile', value: 'Vue · React · Flutter' },
-  { label: 'Data & BI', value: 'Python · Streamlit' },
-  { label: 'Sertifikasi', value: 'SAP Certified' },
-]
-
 const edition = new Date().getFullYear()
 
 const stats = [
@@ -285,7 +276,6 @@ onUnmounted(() => {
         <!-- Strip metadata ala sampul jurnal -->
         <div class="hero__strip mono-meta" v-reveal.down>
           <span>Portofolio · Edisi {{ edition }}</span>
-          <span class="hero__strip-coord">Bandung, ID — 6°55′S 107°37′E</span>
           <span class="hero__strip-status">
             <span class="hero__status-dot" aria-hidden="true"></span>
             Terbuka untuk kerja
@@ -294,8 +284,6 @@ onUnmounted(() => {
 
         <div class="hero__inner">
           <div class="hero__content">
-            <span class="hero__kicker mono-meta" v-reveal="40">Fresh Graduate · S1 Bisnis Digital</span>
-
             <!-- Nama tersibak per baris, baris kedua menyusul -->
             <h1 class="hero__title">
               <span v-reveal.clip="90" class="hero__title-line">Jose Elio</span>
@@ -314,8 +302,7 @@ onUnmounted(() => {
             </p>
 
             <p class="hero__lead" v-reveal="380">
-              Lulusan S1 Bisnis Digital ULBI yang senang mengubah data, desain, dan kode menjadi produk yang
-              benar-benar dipakai, dari web, mobile, sampai dashboard data dan AI.
+              Mengubah data, desain, dan kode jadi produk yang benar-benar dipakai.
             </p>
 
             <div class="hero__actions" v-reveal.stagger="{ delay: 460, step: 90 }">
@@ -404,12 +391,6 @@ onUnmounted(() => {
                 </a>
               </div>
 
-              <div class="hero__focus">
-                <span class="hero__focus-label mono-meta">Fokus</span>
-                <ul class="hero__stack" aria-label="Fokus pengerjaan">
-                  <li v-for="tech in stack" :key="tech" class="hero__stack-item">{{ tech }}</li>
-                </ul>
-              </div>
             </div>
           </div>
 
@@ -437,17 +418,6 @@ onUnmounted(() => {
                 />
               </div>
             </div>
-            <figcaption class="hero__caption mono-meta">
-              <span>Gbr. 01</span>
-              <span>Jose Elio Parhusip, Bandung</span>
-            </figcaption>
-
-            <dl class="hero__specs">
-              <div v-for="spec in specs" :key="spec.label" class="hero__spec">
-                <dt class="mono-meta">{{ spec.label }}</dt>
-                <dd>{{ spec.value }}</dd>
-              </div>
-            </dl>
           </figure>
         </div>
 
@@ -554,11 +524,6 @@ onUnmounted(() => {
 
 .hero__content {
   min-width: 0;
-}
-
-.hero__kicker {
-  display: block;
-  margin-bottom: 1.25rem;
 }
 
 .hero__title {
@@ -800,34 +765,6 @@ onUnmounted(() => {
   -webkit-user-drag: none;
 }
 
-.hero__focus {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.9rem;
-  min-width: 0;
-}
-
-.hero__stack {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.hero__stack-item {
-  font-size: 0.86rem;
-  color: var(--color-text);
-}
-
-.hero__stack-item + .hero__stack-item::before {
-  content: '/';
-  margin: 0 0.55rem;
-  color: var(--color-text-soft);
-}
-
 /* ---- Pelat foto ---- */
 .hero__visual {
   --hero-slide-x: 72px;
@@ -922,38 +859,6 @@ onUnmounted(() => {
   border-width: 0 1px 1px 0;
 }
 
-.hero__caption {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.65rem 0;
-  border-bottom: 1px solid var(--color-rule);
-}
-
-.hero__caption span:first-child {
-  color: var(--color-text);
-}
-
-.hero__specs {
-  margin: 0;
-}
-
-.hero__spec {
-  display: grid;
-  grid-template-columns: 7.5rem 1fr;
-  gap: 1rem;
-  align-items: baseline;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--color-rule);
-}
-
-.hero__spec dd {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
 /* Foto masuk dari kanan setelah loader selesai (logika di script) */
 .hero__visual:not(.is-in) .hero__plate {
   opacity: 0;
@@ -964,28 +869,9 @@ onUnmounted(() => {
   animation: hero-plate-in 1.2s var(--ease-out) backwards;
 }
 
-.hero__visual:not(.is-in) .hero__caption,
-.hero__visual:not(.is-in) .hero__specs {
-  opacity: 0;
-}
-
-.hero__visual.is-in .hero__caption,
-.hero__visual.is-in .hero__specs {
-  animation: hero-fade-up 0.7s var(--ease-out) 0.6s backwards;
-}
-
-.hero__visual.is-in .hero__specs {
-  animation-delay: 0.75s;
-}
-
 @keyframes hero-plate-in {
   from { opacity: 0; transform: translateX(var(--hero-slide-x)); clip-path: inset(0 0 0 100%); }
   to { opacity: 1; transform: translateX(0); clip-path: inset(0 0 0 0); }
-}
-
-@keyframes hero-fade-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ---- Statistik: baris bergaris dengan angka besar ---- */
@@ -1080,16 +966,12 @@ onUnmounted(() => {
     animation: none;
   }
 
-  .hero__visual:not(.is-in) .hero__plate,
-  .hero__visual:not(.is-in) .hero__caption,
-  .hero__visual:not(.is-in) .hero__specs {
+  .hero__visual:not(.is-in) .hero__plate {
     opacity: 1;
     transform: none;
   }
 
-  .hero__visual.is-in .hero__plate,
-  .hero__visual.is-in .hero__caption,
-  .hero__visual.is-in .hero__specs {
+  .hero__visual.is-in .hero__plate {
     animation: none;
   }
 }
@@ -1103,23 +985,13 @@ onUnmounted(() => {
 
   .hero__visual {
     --hero-slide-x: 40px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    column-gap: 1.5rem;
-    align-items: end;
-  }
-
-  .hero__plate {
-    grid-row: span 2;
+    width: 100%;
+    max-width: 420px;
   }
 }
 
 /* ---- HP ---- */
 @media (max-width: 640px) {
-  .hero__strip-coord {
-    display: none;
-  }
-
   .hero__title {
     font-size: clamp(3.2rem, 18vw, 5rem);
   }
@@ -1128,7 +1000,7 @@ onUnmounted(() => {
     flex: 1 1 100%;
   }
 
-  /* Sosial + fokus di tengah, dipisah garis tipis dari tombol di atasnya */
+  /* Ikon sosial di tengah, dipisah garis tipis dari tombol di atasnya */
   .hero__meta {
     flex-direction: column;
     gap: 1.1rem;
@@ -1142,36 +1014,9 @@ onUnmounted(() => {
     height: 48px;
   }
 
-  .hero__focus {
-    flex-direction: column;
-    gap: 0.5rem;
-    text-align: center;
-  }
-
-  /* Di HP daftar fokus jadi chip, supaya tanda "/" tidak jatuh di awal baris */
-  .hero__stack {
-    justify-content: center;
-    gap: 0.4rem;
-  }
-
-  .hero__stack-item {
-    padding: 0.3rem 0.65rem;
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius-sm);
-    font-size: 0.8rem;
-  }
-
-  .hero__stack-item + .hero__stack-item::before {
-    content: none;
-  }
-
   .hero__visual {
     --hero-slide-x: 24px;
     display: block;
-  }
-
-  .hero__spec {
-    grid-template-columns: 6.5rem 1fr;
   }
 
   /* Statistik jadi baris buku besar: label kiri, angka kanan */

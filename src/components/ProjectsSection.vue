@@ -358,6 +358,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             :tabindex="Math.abs(offsetOf(index)) > 1 ? -1 : 0"
             :aria-hidden="Math.abs(offsetOf(index)) > 2"
             :aria-current="offsetOf(index) === 0 ? 'true' : undefined"
+            :data-cursor="offsetOf(index) === 0 ? 'Lihat' : 'Pilih'"
             :aria-label="offsetOf(index) === 0
               ? `Perbesar gambar ${project.title}`
               : `Tampilkan proyek ${project.title}`"
@@ -443,21 +444,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               <h3 class="gallery__title">{{ activeProject.title }}</h3>
               <p class="gallery__summary">{{ activeProject.desc[0] }}</p>
 
-              <ul class="gallery__stack">
-                <li
-                  v-for="tech in activeProject.techStack"
-                  :key="tech.name"
-                  class="gallery__chip"
-                  oncontextmenu="return false"
-                  @contextmenu.prevent="preventImageAction"
-                >
-                  <img
-                    :src="tech.icon"
-                    alt=""
-                    class="gallery__chip-icon"
-                    draggable="false"
-                    @dragstart.prevent="preventImageAction"
-                  />
+              <!-- Teknologi: teks mono dipisah titik. Logo wordmark (Flutter,
+                   Node.js, MySQL) tidak terbaca kalau dikecilkan jadi ikon. -->
+              <ul class="gallery__stack" aria-label="Teknologi">
+                <li v-for="tech in activeProject.techStack" :key="tech.name" class="gallery__chip">
                   {{ tech.name }}
                 </li>
               </ul>
@@ -937,35 +927,26 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .gallery__stack {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.35rem 0;
   list-style: none;
-  margin: 1.25rem 0 0;
+  margin: 1rem 0 0;
   padding: 0;
 }
 
 .gallery__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.3rem 0.65rem 0.3rem 0.35rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-rule);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.02em;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-text);
+  white-space: nowrap;
 }
 
-.gallery__chip-icon {
-  width: 18px;
-  height: 18px;
-  padding: 2px;
-  border-radius: 3px;
-  background: #fff;
-  object-fit: contain;
-  box-sizing: border-box;
-  -webkit-user-drag: none;
-  pointer-events: none;
+.gallery__chip + .gallery__chip::before {
+  content: '·';
+  margin: 0 0.6rem;
+  color: var(--color-text-soft);
 }
 
 .gallery__actions {
