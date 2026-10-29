@@ -36,7 +36,7 @@ export const PROFILE = {
 // Jawaban siap pakai untuk intent "about" (siapa Jose / tentang Jose). HTML.
 export const ABOUT_HTML = [
   '<p>Kenalin, ini <strong>Jose Elio Parhusip, S.Bns.</strong>!</p>',
-  '<p>Lulusan S1 Bisnis Digital (IPK 3,75/4,00) dari Universitas Logistik dan Bisnis Internasional (ULBI), Bandung. Saat ini bekerja sebagai <em>Back End Developer</em> (kontrak) di PT Sistem Pelayanan Kesehatan dan Data (SPKD), membangun <em>backend</em> MedCredix dengan Go.</p>',
+  '<p>Lulusan S1 Bisnis Digital dari Universitas Logistik dan Bisnis Internasional (ULBI), Bandung. Saat ini bekerja sebagai <em>Back End Developer</em> (kontrak) di PT Sistem Pelayanan Kesehatan dan Data (SPKD), membangun <em>backend</em> MedCredix dengan Go.</p>',
   '<p>Punya minat besar di web, mobile, data, dan AI. Terbiasa membangun aplikasi <em>end-to-end</em> dengan React.js, Vue.js, Node.js, PHP, MySQL, dan PostgreSQL, mulai dari pemodelan sistem (UML, ERD, Flowchart), sistem <em>e-commerce</em> dengan integrasi Midtrans dan RajaOngkir, sampai visualisasi data dengan Python dan Streamlit. Di sisi mobile, mengembangkan aplikasi dengan Flutter dan Dart. Bersertifikasi SAP.</p>',
   '<ul class="chat-widget__highlight-list">',
   '<li><strong><em>Full-stack</em> dan mobile:</strong> terbiasa membangun aplikasi <em>end-to-end</em>, dari <em>frontend</em>, <em>backend</em>, sampai basis data, untuk web maupun mobile dengan Flutter.</li>',
@@ -48,7 +48,7 @@ export const ABOUT_HTML = [
 
 // Jawaban siap pakai untuk intent "education" (kuliah / pendidikan). HTML.
 export const EDUCATION_HTML = [
-  '<p><strong>Jose Elio Parhusip, S.Bns.</strong> adalah lulusan Program Studi S1 Bisnis Digital, Universitas Logistik dan Bisnis Internasional (ULBI), Bandung, dengan IPK 3,75 dari 4,00.</p>',
+  '<p><strong>Jose Elio Parhusip, S.Bns.</strong> adalah lulusan Program Studi S1 Bisnis Digital, Universitas Logistik dan Bisnis Internasional (ULBI), Bandung.</p>',
   '<p>Selama kuliah, Jose banyak belajar merancang sistem (UML, ERD, Flowchart) serta membangun aplikasi web maupun mobile, dan memegang sertifikasi SAP sebagai nilai tambah.</p>',
 ].join('')
 
@@ -593,7 +593,7 @@ export const NO_RX =
 // Ringkasan singkat Jose: dipakai dulu sebelum profil lengkap, supaya bot
 // tidak langsung "menumpahkan" teks panjang.
 export const ABOUT_SHORT_HTML =
-  '<p>Singkatnya, <strong>Jose Elio Parhusip</strong> itu lulusan S1 Bisnis Digital ULBI Bandung (IPK 3,75) yang sekarang kerja sebagai <em>Back End Developer</em> di PT SPKD. Dia senang bikin aplikasi web, mobile, sampai dasbor data.</p>'
+  '<p>Singkatnya, <strong>Jose Elio Parhusip</strong> itu lulusan S1 Bisnis Digital ULBI Bandung yang sekarang kerja sebagai <em>Back End Developer</em> di PT SPKD. Dia senang bikin aplikasi web, mobile, sampai dasbor data.</p>'
 
 // Daftar tools/teknologi yang Jose kuasai, dengan pola pengenal.
 const TECHS = [

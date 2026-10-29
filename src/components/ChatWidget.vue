@@ -431,7 +431,7 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'gpa') {
     await botSay(
-      'IPK Jose <strong>3,75 dari 4,00</strong>, lulusan S1 Bisnis Digital di Universitas Logistik dan Bisnis Internasional (ULBI), Bandung.',
+      'Soal nilai kuliah aku nggak tampilkan di sini ya. Yang pasti Jose lulusan S1 Bisnis Digital ULBI Bandung. Kalau perlu detailnya, tanya langsung ke Jose lewat pesan.',
       500,
     )
     return false
@@ -1046,7 +1046,7 @@ async function processMessage(text) {
   const greeted = hasGreetingPrefix(text)
   const body = greeted ? stripGreetingPrefix(text) || text : text
 
-  // 1) Maksud percakapan spesifik: ajakan kenalan, pujian, fakta (IPK, kerja
+  // 1) Maksud percakapan spesifik: ajakan kenalan, pujian, fakta (kuliah, kerja
   //    di mana), cek skill ("bisa Flutter?"), proyek tertentu, dst.
   if (canMatchConversation(body)) {
     const convo = matchConversation(body)

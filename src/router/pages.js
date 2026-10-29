@@ -25,7 +25,7 @@ export const pages = [
     label: 'Tentang',
     title: 'Tentang Saya — Jose Elio Parhusip',
     description:
-      'Kenali Jose Elio Parhusip: latar belakang pendidikan S1 Bisnis Digital ULBI (IPK 3,75), keahlian, dan perjalanan belajar teknologi.',
+      'Kenali Jose Elio Parhusip: latar belakang pendidikan S1 Bisnis Digital ULBI, keahlian, dan perjalanan belajar teknologi.',
   },
   {
     path: '/pengalaman',

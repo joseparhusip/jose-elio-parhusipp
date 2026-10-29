@@ -15,7 +15,7 @@ const edition = new Date().getFullYear()
 const stats = [
   { value: '4+', label: 'Tahun belajar teknologi' },
   { value: '6', label: 'Proyek selesai' },
-  { value: '3,75', label: 'IPK S1 Bisnis Digital' },
+  { value: '5', label: 'Peran kerja & organisasi' },
 ]
 
 const prefersReducedMotion =
@@ -204,7 +204,7 @@ onUnmounted(() => {
 
 /* ---------------------------------------------------------
    Angka statistik naik dari 0 saat terlihat di layar.
-   Format desimal pakai koma (3,75) dan akhiran (+) dipertahankan.
+   Format desimal pakai koma (mis. 2,5) dan akhiran (+) dipertahankan.
 --------------------------------------------------------- */
 function parseStat(value) {
   const [int, dec = ''] = value.replace(/[^\d,]/g, '').split(',')

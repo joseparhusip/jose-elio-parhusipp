@@ -2,31 +2,30 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 /* ---------------------------------------------------------
-   Kursor custom gaya "jendela bidik": tanda + tipis di posisi mouse
-   dikelilingi 4 siku sudut (seperti tanda potong cetak, sama dengan
-   tanda sudut di kartu foto hero).
-   - Diarahkan ke card / tombol / link: keempat siku meluncur dan
-     MEMBINGKAI elemen itu sesuai ukurannya, dengan sedikit tarikan
-     magnet ke arah mouse.
-   - Elemen dengan data-cursor="Teks": bingkai + label kecil di sudut.
-   - Mouse diam sebentar: keempat siku berputar pelan. Begitu mouse
-     bergerak lagi, putaran mendarat halus di kelipatan 90 derajat
-     terdekat (bingkainya simetris, jadi tidak terlihat melompat).
+   Kursor custom berbentuk segitiga garis tipis dengan segitiga kecil
+   terbalik di tengahnya (bukan kotak, bukan lingkaran), berpusat di
+   posisi mouse.
+   - Diarahkan ke card / tombol / link: segitiga jadi penuh, dan sebuah
+     garis tumbuh dari mouse lalu membentang selebar elemen itu di tepi
+     bawahnya (seperti garis bawah), dengan sedikit tarikan magnet.
+   - Elemen dengan data-cursor="Teks": garis + label kecil di atasnya.
+   - Segitiga berputar pelan terus-menerus: saat diam, saat digeser,
+     dan saat menyorot card.
    - Kolom ketik & peta Leaflet: kursor bawaan dipakai lagi.
    Hanya aktif di perangkat dengan mouse. Kalau "kurangi animasi" aktif,
-   bingkai langsung pindah tanpa meluncur. Semua posisi ditulis lewat
+   garis langsung pindah tanpa meluncur. Semua posisi ditulis lewat
    style di requestAnimationFrame, jadi tidak ada re-render Vue.
 --------------------------------------------------------- */
 const enabled = ref(false)
 const reduced = ref(false)
-const crossEl = ref(null)
+const markEl = ref(null)
 const frameEl = ref(null)
 const spinEl = ref(null)
 const label = ref('')
 const state = ref('hidden') // default | snap | native | hidden
 const pressed = ref(false)
 
-// Elemen yang dibingkai saat disorot
+// Elemen yang diberi garis bawah saat disorot
 const SNAP = [
   'a',
   'button',
@@ -43,23 +42,20 @@ const SNAP = [
 ].join(', ')
 const NATIVE = 'input, textarea, [contenteditable="true"], .leaflet-container'
 
-const IDLE_SIZE = 26 // ukuran bingkai saat tidak menyorot apa-apa
-const SNAP_PAD = 6 // jarak bingkai dari tepi elemen
-const MAX_SNAP_W = 760 // elemen yang lebih besar dari ini tidak dibingkai
+// Saat tidak menyorot apa-apa garisnya selebar 0 (tersembunyi di mouse)
+const SNAP_PAD = 6 // jarak garis dari tepi elemen
+const MAX_SNAP_W = 760 // elemen yang lebih besar dari ini diabaikan
 const MAX_SNAP_H = 640
-const MAGNET = 0.08 // seberapa jauh bingkai ikut tertarik ke mouse
-const IDLE_DELAY = 700 // ms mouse diam sebelum bingkai mulai berputar
+const MAGNET = 0.08 // seberapa jauh garis ikut tertarik ke mouse
 const SPIN_SPEED = 1.2 // derajat per frame (kira-kira 1 putaran per 5 detik)
 
 let mouseX = -100
 let mouseY = -100
-let target = null // elemen yang sedang dibingkai
-// Posisi & ukuran bingkai saat ini (dihaluskan menuju tujuan)
-const box = { x: -100, y: -100, w: IDLE_SIZE, h: IDLE_SIZE }
+let target = null // elemen yang sedang disorot
+// Posisi & ukuran area garis saat ini (dihaluskan menuju tujuan)
+const box = { x: -100, y: -100, w: 0, h: 0 }
 let ease = 0.22
 let frame = 0
-let idle = false
-let idleTimer = 0
 let angle = 0
 
 function goal() {
@@ -74,7 +70,7 @@ function goal() {
       h: r.height + SNAP_PAD * 2,
     }
   }
-  return { x: mouseX, y: mouseY, w: IDLE_SIZE, h: IDLE_SIZE }
+  return { x: mouseX, y: mouseY, w: 0, h: 0 }
 }
 
 function loop() {
@@ -84,7 +80,7 @@ function loop() {
   box.w += (g.w - box.w) * ease
   box.h += (g.h - box.h) * ease
 
-  if (crossEl.value) crossEl.value.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`
+  if (markEl.value) markEl.value.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`
   if (frameEl.value) {
     const s = frameEl.value.style
     s.transform = `translate3d(${box.x - box.w / 2}px, ${box.y - box.h / 2}px, 0)`
@@ -92,27 +88,13 @@ function loop() {
     s.height = `${box.h}px`
   }
 
-  // Berputar saat diam (bukan saat membingkai card); saat bergerak lagi,
-  // mendarat di kelipatan 90 derajat terdekat.
-  const spinning = idle && !target
-  if (spinning) {
-    angle = (angle + SPIN_SPEED) % 360
-  } else {
-    const rest = Math.round(angle / 90) * 90
-    angle += (rest - angle) * 0.2
-    if (Math.abs(rest - angle) < 0.05) angle = rest % 360
-  }
+  // Segitiga selalu berputar, jadi loop terus jalan selama kursor terlihat.
+  // Berhenti hanya kalau mouse keluar jendela; gerakan berikutnya
+  // menyalakannya lagi lewat kick().
+  angle = (angle + SPIN_SPEED) % 360
   if (spinEl.value) spinEl.value.style.transform = `rotate(${angle}deg)`
 
-  // Tetap jalan selama membingkai (elemen bisa bergeser karena scroll) atau
-  // berputar; berhenti kalau semuanya sudah diam.
-  const settled =
-    Math.abs(g.x - box.x) < 0.1 &&
-    Math.abs(g.y - box.y) < 0.1 &&
-    Math.abs(g.w - box.w) < 0.1 &&
-    Math.abs(g.h - box.h) < 0.1 &&
-    angle % 90 === 0
-  frame = target || spinning || !settled ? requestAnimationFrame(loop) : 0
+  frame = state.value === 'hidden' ? 0 : requestAnimationFrame(loop)
 }
 
 function kick() {
@@ -122,12 +104,6 @@ function kick() {
 function onMove(event) {
   mouseX = event.clientX
   mouseY = event.clientY
-  idle = false
-  clearTimeout(idleTimer)
-  idleTimer = setTimeout(() => {
-    idle = true
-    kick()
-  }, IDLE_DELAY)
   if (state.value === 'hidden') {
     // Masuk lagi ke jendela: lompat langsung, jangan "terbang" dari pojok
     box.x = mouseX
@@ -162,7 +138,7 @@ function onOver(event) {
 }
 
 // Scroll dengan roda mouse tanpa menggerakkan mouse tidak memicu mouseover,
-// jadi elemen di bawah kursor dicek ulang di sini. Tanpa ini bingkai tetap
+// jadi elemen di bawah kursor dicek ulang di sini. Tanpa ini garis tetap
 // menempel ke card lama yang sudah ikut bergeser.
 let scrollFrame = 0
 function onScroll() {
@@ -202,7 +178,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   cancelAnimationFrame(frame)
-  clearTimeout(idleTimer)
   document.documentElement.classList.remove('has-custom-cursor')
   window.removeEventListener('mousemove', onMove)
   document.removeEventListener('mouseover', onOver)
@@ -221,22 +196,25 @@ onUnmounted(() => {
     :class="[`cursor--${state}`, { 'cursor--pressed': pressed, 'cursor--reduced': reduced }]"
     aria-hidden="true"
   >
-    <!-- Bingkai 4 siku: posisi & ukuran diatur dari JS -->
+    <!-- Garis bawah elemen yang disorot: posisi & ukuran diatur dari JS -->
     <span ref="frameEl" class="cursor__frame">
-      <span ref="spinEl" class="cursor__spin">
-        <span class="cursor__corners">
-          <span class="cursor__corner cursor__corner--tl"></span>
-          <span class="cursor__corner cursor__corner--tr"></span>
-          <span class="cursor__corner cursor__corner--bl"></span>
-          <span class="cursor__corner cursor__corner--br"></span>
-        </span>
-      </span>
+      <span class="cursor__line"></span>
       <span v-if="label" class="cursor__label">{{ label }}</span>
     </span>
 
-    <!-- Tanda + di posisi mouse -->
-    <span ref="crossEl" class="cursor__cross">
-      <span class="cursor__cross-shape"></span>
+    <!-- Segitiga di posisi mouse -->
+    <span ref="markEl" class="cursor__mark">
+      <span ref="spinEl" class="cursor__spin">
+        <svg class="cursor__tri" viewBox="0 0 24 24">
+          <!-- Titik berat kedua segitiga tepat di tengah (12, 12).
+               Lapisan "halo" berwarna latar di belakang garis supaya
+               segitiga tetap terbaca di atas tombol biru / gambar terang. -->
+          <polygon class="cursor__halo" points="12,2.5 20.23,16.75 3.77,16.75" />
+          <polygon class="cursor__edge" points="12,2.5 20.23,16.75 3.77,16.75" />
+          <!-- Segitiga kecil terbalik di tengah, seperti tanda delta -->
+          <polygon class="cursor__core" points="12,14.9 9.49,10.55 14.51,10.55" />
+        </svg>
+      </span>
     </span>
   </div>
 </template>
@@ -262,113 +240,117 @@ html.has-custom-cursor .leaflet-container * {
 <style scoped>
 .cursor {
   --ink: var(--color-text);
-  --corner: 7px;
-  --stroke: 1.5px;
+  --halo: var(--color-bg);
   position: fixed;
   inset: 0;
   z-index: 10000; /* di atas grain (9999) */
   pointer-events: none;
 }
 
-/* ---- Tanda + ---- */
-.cursor__cross {
+/* ---- Segitiga ---- */
+.cursor__mark {
   position: fixed;
   top: 0;
   left: 0;
   will-change: transform;
 }
 
-.cursor__cross-shape {
+.cursor__spin {
   position: absolute;
-  left: -6px;
-  top: -6px;
-  width: 12px;
-  height: 12px;
-  background:
-    linear-gradient(var(--ink), var(--ink)) center / var(--stroke) 100% no-repeat,
-    linear-gradient(var(--ink), var(--ink)) center / 100% var(--stroke) no-repeat;
-  transition: transform 0.25s var(--ease-out), opacity 0.2s ease;
+  left: -13px;
+  top: -13px;
+  width: 26px;
+  height: 26px;
 }
 
-/* Saat membingkai, tanda + mengecil supaya card-nya yang menonjol */
-.cursor--snap .cursor__cross-shape {
-  transform: scale(0.6) rotate(45deg);
-  opacity: 0.7;
+.cursor__tri {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transition: transform 0.3s var(--ease-out);
 }
 
-/* ---- Bingkai ---- */
+.cursor__tri polygon {
+  stroke-linejoin: round;
+  transition: fill 0.2s ease, opacity 0.2s ease, transform 0.3s var(--ease-out);
+  transform-origin: 12px 12px;
+}
+
+.cursor__halo {
+  fill: none;
+  stroke: var(--halo);
+  stroke-width: 3.8;
+  opacity: 0.85;
+}
+
+.cursor__edge {
+  fill: transparent;
+  stroke: var(--ink);
+  stroke-width: 1.4;
+}
+
+.cursor__core {
+  fill: var(--ink);
+  stroke: var(--ink);
+  stroke-width: 0.8;
+}
+
+/* Saat menyorot: segitiga luar jadi penuh, delta kecilnya melebur ke dalam;
+   garis bawah elemen yang jadi fokus */
+.cursor--snap .cursor__tri {
+  transform: scale(0.72);
+}
+
+.cursor--snap .cursor__edge {
+  fill: var(--ink);
+}
+
+.cursor--snap .cursor__core {
+  opacity: 0;
+  transform: scale(0.2);
+}
+
+.cursor--pressed .cursor__tri {
+  transform: scale(0.82);
+}
+
+.cursor--snap.cursor--pressed .cursor__tri {
+  transform: scale(0.6);
+}
+
+/* ---- Garis bawah ---- */
 .cursor__frame {
   position: fixed;
   top: 0;
   left: 0;
-  width: 26px;
-  height: 26px;
+  width: 0;
+  height: 0;
   will-change: transform, width, height;
 }
 
-/* Pembungkus untuk rotasi (diatur dari JS), terpisah dari skala saat diklik */
-.cursor__spin {
+.cursor__line {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--halo) 55%, transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.cursor__corners {
-  position: absolute;
-  inset: 0;
-  opacity: 0.6;
-  transition: opacity 0.25s ease, transform 0.2s ease;
-}
-
-.cursor--snap .cursor__corners {
-  --corner: 12px;
+.cursor--snap .cursor__line {
   opacity: 1;
 }
 
-.cursor--pressed .cursor__corners {
-  transform: scale(0.96);
-}
-
-.cursor__corner {
-  position: absolute;
-  width: var(--corner);
-  height: var(--corner);
-  border: 0 solid var(--ink);
-  transition: width 0.3s var(--ease-out), height 0.3s var(--ease-out);
-}
-
-.cursor__corner--tl {
-  top: 0;
-  left: 0;
-  border-top-width: var(--stroke);
-  border-left-width: var(--stroke);
-}
-
-.cursor__corner--tr {
-  top: 0;
-  right: 0;
-  border-top-width: var(--stroke);
-  border-right-width: var(--stroke);
-}
-
-.cursor__corner--bl {
-  bottom: 0;
-  left: 0;
-  border-bottom-width: var(--stroke);
-  border-left-width: var(--stroke);
-}
-
-.cursor__corner--br {
-  right: 0;
-  bottom: 0;
-  border-bottom-width: var(--stroke);
-  border-right-width: var(--stroke);
-}
-
-/* Label kecil di atas sudut kiri bingkai ("LIHAT") */
+/* Label kecil di atas ujung kiri garis ("LIHAT") */
 .cursor__label {
   position: absolute;
   left: 0;
-  bottom: calc(100% + 6px);
+  bottom: 10px;
   padding: 3px 7px;
   border-radius: 3px;
   background: var(--ink);
@@ -383,17 +365,17 @@ html.has-custom-cursor .leaflet-container * {
 }
 
 /* Kurangi animasi: tanpa transisi */
-.cursor--reduced .cursor__cross-shape,
-.cursor--reduced .cursor__corners,
-.cursor--reduced .cursor__corner {
+.cursor--reduced .cursor__tri,
+.cursor--reduced .cursor__tri polygon,
+.cursor--reduced .cursor__line {
   transition: none;
 }
 
 /* Kolom ketik / peta / di luar jendela: kursor custom disembunyikan */
 .cursor--native .cursor__frame,
-.cursor--native .cursor__cross,
+.cursor--native .cursor__mark,
 .cursor--hidden .cursor__frame,
-.cursor--hidden .cursor__cross {
+.cursor--hidden .cursor__mark {
   opacity: 0;
 }
 </style>
