@@ -373,18 +373,11 @@ function preventImageAction(event) {
     height: 40px;
   }
 
-  /* HP: nama dipecah dua baris yang lebih besar, baris kedua terpotong */
+  /* HP: tetap satu baris selebar layar seperti desktop, dengan potongan
+     bawah yang sama. Jarak atas dikecilkan supaya tidak terlalu renggang. */
   .footer__wordmark {
-    font-size: 22vw;
-    line-height: 0.86;
-    white-space: normal;
-    text-align: left;
-    padding: 0.06em 4vw 0;
-    height: 1.58em;
-  }
-
-  .footer__wordmark span {
-    display: block;
+    margin-top: 1.25rem;
+    font-size: 12.9vw;
   }
 
   .top-btn {

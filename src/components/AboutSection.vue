@@ -325,9 +325,12 @@ function preventImageAction(event) {
 }
 
 /* Catatan kaki: nomor kecil + kata kunci mono */
+/* Lebar tiap catatan mengikuti isinya (tidak dibagi rata) supaya kata kunci
+   tetap satu baris; kalau layar sempit, catatan pindah utuh ke baris baru */
 .about__notes {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   gap: 0.75rem 1.5rem;
   margin: clamp(2rem, 4vw, 2.75rem) 0 0;
   padding: 1rem 0 0;
@@ -336,6 +339,7 @@ function preventImageAction(event) {
 }
 
 .about__note {
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   line-height: 1.7;
@@ -627,9 +631,17 @@ function preventImageAction(event) {
 }
 
 /* ---- Responsif ---- */
-@media (max-width: 640px) {
+/* Tablet: ketiga catatan tidak muat sejajar, jadi ditumpuk rapi */
+@media (max-width: 1100px) {
   .about__notes {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .about__note {
+    white-space: normal;
   }
 
   .about__tools {
