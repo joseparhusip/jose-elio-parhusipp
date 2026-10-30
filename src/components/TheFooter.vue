@@ -5,8 +5,6 @@ import { navLinks, useSectionNav } from '@/composables/useSectionNav'
 
 const { onNavClick } = useSectionNav()
 
-const year = new Date().getFullYear()
-
 const socials = [
   { name: 'GitHub', href: 'https://github.com/joseparhusip' },
   { name: 'LinkedIn', href: 'https://www.linkedin.com/in/joseparhusip/' },
@@ -30,27 +28,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
-})
-
-/* Jam lokal Bandung (WIB), diperbarui tiap 30 detik */
-const localTime = ref('')
-let clockId = null
-
-function updateClock() {
-  localTime.value = new Intl.DateTimeFormat('id-ID', {
-    timeZone: 'Asia/Jakarta',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date())
-}
-
-onMounted(() => {
-  updateClock()
-  clockId = setInterval(updateClock, 30000)
-})
-
-onUnmounted(() => {
-  clearInterval(clockId)
 })
 
 // Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
@@ -108,25 +85,13 @@ function preventImageAction(event) {
         </div>
       </div>
 
-      <!-- Tanda tangan editorial: nama besar, terpotong di bawah -->
-      <p class="footer__wordmark" aria-hidden="true">Jose Elio Parhusip</p>
-
-      <!-- Baris bawah -->
-      <div class="footer__bottom">
-        <p class="footer__copyright">&copy; {{ year }} Jose Elio Parhusip</p>
-        <p class="footer__clock">
-          <span class="footer__clock-dot" aria-hidden="true"></span>
-          Bandung · {{ localTime }} WIB
-        </p>
-        <button type="button" class="footer__back" @click="scrollToTop">
-          Kembali ke atas
-          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-            <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-              stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7" />
-          </svg>
-        </button>
-      </div>
     </div>
+
+    <!-- Tanda tangan editorial: nama raksasa selebar layar, bagian bawah
+         hurufnya terpotong rata oleh tepi bawah footer -->
+    <p class="footer__wordmark" aria-hidden="true">
+      <span>Jose Elio</span> <span>Parhusip</span>
+    </p>
   </footer>
 
   <!-- Tombol kembali ke atas: melayang di pojok kanan bawah layar -->
@@ -178,10 +143,6 @@ function preventImageAction(event) {
   padding: 0 var(--gutter);
   box-sizing: border-box;
 }
-
-/* ---- Baris fokus ---- */
-
-
 
 /* ---- Kolom ---- */
 .footer__grid {
@@ -292,87 +253,34 @@ function preventImageAction(event) {
 
 .footer__link:focus-visible,
 .footer__social:focus-visible,
-.footer__back:focus-visible,
 .footer__logo:focus-visible {
   outline: 2px solid var(--footer-accent);
   outline-offset: 3px;
 }
 
-/* ---- Nama besar ---- */
+/* ---- Nama raksasa ---- */
 .footer__wordmark {
-  margin: clamp(1rem, 3vw, 2rem) 0 0;
+  margin: clamp(1.5rem, 4vw, 3rem) 0 0;
+  padding: 0 1.2vw;
   font-family: var(--font-heading);
-  font-size: clamp(2.6rem, 10.6vw, 9.8rem);
+  /* Dihitung supaya "Jose Elio Parhusip" pas selebar layar */
+  font-size: 13.8vw;
   font-weight: 800;
-  line-height: 0.8;
-  letter-spacing: -0.045em;
+  line-height: 1;
+  letter-spacing: -0.05em;
   white-space: nowrap;
+  text-align: center;
   color: var(--ink);
-  opacity: 0.94;
   user-select: none;
-  /* Bagian bawah huruf sedikit terpotong oleh garis bawah */
-  height: 0.68em;
+  /* Hanya ± 3/4 tinggi huruf yang terlihat: kaki huruf terpotong rata */
+  height: 0.74em;
   overflow: hidden;
-}
-
-/* ---- Baris bawah ---- */
-.footer__bottom {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem 2rem;
-  padding: 1rem 0 1.25rem;
   border-top: 1px solid var(--line);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
+  padding-top: 0.04em;
 }
 
-.footer__bottom p {
-  margin: 0;
-}
-
-.footer__clock {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.footer__clock-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--footer-accent);
-}
-
-.footer__back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
-  color: var(--soft);
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.footer__back svg {
-  transition: transform 0.3s var(--ease-out);
-}
-
-.footer__back:hover {
-  color: var(--ink);
-}
-
-.footer__back:hover svg {
-  transform: translateY(-2px);
+.footer__wordmark span {
+  display: inline;
 }
 
 /* ---- Tombol melayang kembali ke atas ---- */
@@ -465,20 +373,18 @@ function preventImageAction(event) {
     height: 40px;
   }
 
-  /* Nama besar dipecah dua baris supaya tetap muat di layar sempit */
+  /* HP: nama dipecah dua baris yang lebih besar, baris kedua terpotong */
   .footer__wordmark {
-    font-size: 17vw;
+    font-size: 22vw;
     line-height: 0.86;
     white-space: normal;
-    height: auto;
-    padding-bottom: 0.4rem;
+    text-align: left;
+    padding: 0.06em 4vw 0;
+    height: 1.58em;
   }
 
-  /* Ruang di kanan supaya teks tidak tertutup tombol chat & ke atas */
-  .footer__bottom {
-    flex-direction: column;
-    align-items: flex-start;
-    padding-right: 3.5rem;
+  .footer__wordmark span {
+    display: block;
   }
 
   .top-btn {
