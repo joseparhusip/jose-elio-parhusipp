@@ -5,7 +5,8 @@ import { useTheme } from '@/composables/useTheme'
 
 /* ---------------------------------------------------------
    Layar pembuka:
-   1. Logo JP besar di tengah + garis progres (± 1,7 detik).
+   1. Tampilan bersih: hanya logo JP di tengah + garis progres pendek
+      di bawahnya (± 1,7 detik).
    2. Logo zoom in sangat besar (seperti kamera menembus logo) sampai
       hilang. Latar loader tetap menutup layar selama tahap ini.
    3. BARU SETELAH ITU latar loader memudar dan beranda (.app-stage di
@@ -18,7 +19,7 @@ import { useTheme } from '@/composables/useTheme'
 const COUNT_MS = 1700
 const LOGO_ZOOM_MS = 900 // logo zoom sampai habis
 const CARD_PAUSE_MS = 450 // kartu kecil terlihat sebentar, baru membesar
-const REVEAL_MS = 1100
+const REVEAL_MS = 1200
 
 const isVisible = ref(true)
 const isExiting = ref(false) // tahap 2: logo zoom
@@ -37,8 +38,18 @@ const timers = []
 
 function finish() {
   isVisible.value = false
+  // #app punya transisi warna latar (main.css). Tanpa ini, latar gelap
+  // di sekitar kartu memudar pelan ke warna asli dan terlihat "berkedip".
+  const app = document.getElementById('app')
+  if (app) app.style.transition = 'none'
   root.classList.remove('intro-hold', 'intro-reveal')
   document.body.style.overflow = ''
+  if (app) {
+    void app.offsetHeight // terapkan warna baru tanpa transisi
+    requestAnimationFrame(() => {
+      app.style.transition = ''
+    })
+  }
 }
 
 onMounted(() => {
@@ -60,11 +71,13 @@ onMounted(() => {
   timers.push(
     setTimeout(() => {
       isExiting.value = true
+      // Animasi masuk hero dijalankan di balik layar loader selama logo
+      // zoom, jadi sudah selesai saat kartu beranda zoom: browser tidak
+      // berebut tenaga dan zoom kartu tetap mulus.
+      loaderDone.value = true
     }, tZoom),
     setTimeout(() => {
       isHiding.value = true
-      // Animasi hero mulai saat kartu muncul, jadi isinya sudah bergerak
-      loaderDone.value = true
     }, tHide),
     setTimeout(() => {
       root.classList.add('intro-reveal')
@@ -80,27 +93,17 @@ onUnmounted(() => {
   finish()
 })
 
-const year = new Date().getFullYear()
 </script>
 
 <template>
   <div v-if="isVisible" class="loader" :class="{ 'loader--exit': isExiting, 'loader--hide': isHiding }" aria-hidden="true">
-    <div class="loader__top">
-      <span>Jose Elio Parhusip</span>
-      <span>Portofolio · {{ year }}</span>
-    </div>
-
     <div class="loader__center">
       <img :src="logoSrc" alt="" class="loader__logo" draggable="false" />
     </div>
 
-    <div class="loader__bottom">
-      <div class="loader__meta">
-        <span>{{ count < 100 ? 'Memuat' : 'Siap' }}</span>
-      </div>
-      <div class="loader__bar">
-        <span class="loader__bar-fill" :style="{ transform: `scaleX(${count / 100})` }"></span>
-      </div>
+    <!-- Garis progres pendek di bawah logo -->
+    <div class="loader__bar">
+      <span class="loader__bar-fill" :style="{ transform: `scaleX(${count / 100})` }"></span>
     </div>
   </div>
 </template>
@@ -114,24 +117,31 @@ html.intro-reveal #app {
   background: color-mix(in srgb, var(--color-bg) 82%, #000);
 }
 
+/* Supaya mulus: yang dianimasikan hanya transform (dikerjakan GPU, sama
+   seperti zoom logo). Panggung dipotong setinggi satu layar dengan
+   overflow, jadi lapisan yang di-zoom kecil, bukan seluruh halaman. */
 html.intro-hold .app-stage,
 html.intro-reveal .app-stage {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   background: var(--color-bg);
-  transform-origin: 50% 50vh;
-  will-change: transform, clip-path;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 html.intro-hold .app-stage {
   transform: scale(0.62);
-  clip-path: inset(0 0 calc(100% - 100vh) 0 round 28px);
+  border-radius: 28px;
 }
 
 html.intro-reveal .app-stage {
   transform: scale(1);
-  clip-path: inset(0 0 calc(100% - 100vh) 0 round 0);
+  border-radius: 0;
   transition:
-    transform 1.1s cubic-bezier(0.76, 0, 0.24, 1),
-    clip-path 1.1s cubic-bezier(0.76, 0, 0.24, 1);
+    transform 1.2s cubic-bezier(0.65, 0, 0.35, 1),
+    border-radius 0.4s ease 0.8s;
 }
 </style>
 
@@ -141,14 +151,8 @@ html.intro-reveal .app-stage {
   inset: 0;
   z-index: 9999;
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  padding: clamp(1.25rem, 3vw, 2.25rem);
+  place-items: center;
   background: var(--color-bg, #0e0f11);
-  color: var(--color-text, #eceef1);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 /* Setelah logo selesai zoom, latar loader memudar: yang terlihat adalah
@@ -160,24 +164,6 @@ html.intro-reveal .app-stage {
 .loader--hide {
   background-color: transparent;
   pointer-events: none;
-}
-
-.loader__top,
-.loader__meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  color: var(--color-text-soft, #9aa0a8);
-}
-
-.loader__top,
-.loader__bottom {
-  transition: opacity 0.3s ease;
-}
-
-.loader--exit .loader__top,
-.loader--exit .loader__bottom {
-  opacity: 0;
 }
 
 .loader__center {
@@ -211,15 +197,24 @@ html.intro-reveal .app-stage {
   opacity: 0;
 }
 
-.loader__bottom {
-  display: grid;
-  gap: 0.6rem;
-}
-
+/* Garis progres: pendek, tipis, tepat di bawah logo. Logo tetap persis di
+   tengah layar karena garis ini diposisikan absolut. */
 .loader__bar {
+  position: absolute;
+  top: calc(50% + clamp(70px, 9vw, 105px));
+  left: 50%;
+  width: clamp(88px, 9vw, 120px);
   height: 2px;
+  border-radius: 2px;
   background: var(--color-rule, rgba(230, 233, 238, 0.2));
   overflow: hidden;
+  transform: translateX(-50%);
+  transition: opacity 0.25s ease;
+}
+
+/* Garis hilang duluan sebelum logo zoom */
+.loader--exit .loader__bar {
+  opacity: 0;
 }
 
 .loader__bar-fill {
@@ -227,6 +222,7 @@ html.intro-reveal .app-stage {
   height: 100%;
   background: var(--color-text, #eceef1);
   transform-origin: left center;
+  transition: transform 0.12s linear;
 }
 
 @keyframes loader-in {
