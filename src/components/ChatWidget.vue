@@ -244,7 +244,8 @@ function projectCards(list, withLinks) {
     desc: item.summary,
     image: item.image,
     tags: item.tags,
-    links: withLinks
+    // Proyek internal tidak punya demo/repo publik
+    links: withLinks && !item.internal
       ? [
           { label: 'Lihat Demo', url: item.demoHref },
           { label: 'Lihat Code', url: item.codeHref },
@@ -816,7 +817,8 @@ async function answerPendingOffer(text) {
     await answerFaq({ type: 'projects', wantsLink: true })
     return true
   } else if (offer.type === 'projectLinks') {
-    await botSay('Nih link demo dan repo-nya:', 400, 'cards', projectCards(PROJECTS, true))
+    await botSay('Nih link demo dan repo-nya:', 400, 'cards', projectCards(PROJECTS.filter((p) => !p.internal), true))
+    await botSay('MedCredix dan SIMRS Dashboard itu proyek internal kantor, jadi demo dan kodenya nggak dipublikasikan.', 450)
   } else if (offer.type === 'techProjects') {
     await botSay('Nih proyeknya:', 400)
     await botSay(

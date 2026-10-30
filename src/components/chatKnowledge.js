@@ -24,6 +24,8 @@ import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.png'
 import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.png'
 import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.png'
 import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.png'
+import medcredixThumb from './img-proyek/img-medcredix/img-medcredix-risk-radar.png'
+import simrsThumb from './img-proyek/img-simrs/img-simrs-pasien.png'
 
 export const PROFILE = {
   fullName: 'Jose Elio Parhusip, S.Bns.',
@@ -149,7 +151,24 @@ export function buildExperienceListHtml() {
 }
 
 // title tetap nama proyek asli (nama diri, tidak diterjemahkan). summary berisi HTML.
+// internal: true = proyek kantor, tanpa link demo maupun repo.
 export const PROJECTS = [
+  {
+    title: 'MedCredix',
+    summary:
+      'Proyek internal di PT SPKD: <em>backend</em> platform kesiapan kredensial multi-rumah sakit (Go, Gin, PostgreSQL) dengan mesin skoring kesiapan RS, keamanan JWT dan RBAC, alur kredensial tenaga medis, serta integrasi SIMRS lewat FHIR.',
+    image: medcredixThumb,
+    tags: ['Go', 'PostgreSQL', 'Docker'],
+    internal: true,
+  },
+  {
+    title: 'SIMRS Dashboard',
+    summary:
+      'Proyek internal di PT SPKD: <em>frontend</em> sistem informasi rumah sakit (Next.js, React, TypeScript) mulai dari registrasi, rawat jalan, IGD, rawat inap dari SPRI dokter, sampai farmasi dan kasir.',
+    image: simrsThumb,
+    tags: ['Next.js', 'React', 'TypeScript'],
+    internal: true,
+  },
   {
     title: 'Dashboard KOL',
     summary:
@@ -616,6 +635,15 @@ const TECHS = [
   { name: 'MySQL', rx: /\bmysql/ },
   { name: 'Figma', rx: /\bfigma/ },
   { name: 'Tailwind CSS', rx: /\btailwind/ },
+  { name: 'Next.js', rx: /\bnext\s*\.?\s*js\b|\bnextjs\b/ },
+  { name: 'TypeScript', rx: /\btypescript\b/ },
+  { name: 'Docker', rx: /\bdocker/ },
+  { name: 'Git', rx: /\bgit\b/ },
+  { name: 'Postman', rx: /\bpostman/ },
+  { name: 'Swagger', rx: /\bswagger/ },
+  { name: 'Pandas', rx: /\bpandas\b/ },
+  { name: 'GORM', rx: /\bgorm\b/ },
+  { name: 'JWT', rx: /\bjwt\b/ },
   { name: 'Pinia', rx: /\bpinia/ },
   { name: 'Midtrans', rx: /\bmidtrans/ },
   { name: 'SAP', rx: /\bsap\b/ },
@@ -628,7 +656,7 @@ const TECHS = [
 // Teknologi populer yang TIDAK ada di data Jose. Bot jujur bilang belum
 // ada di daftar, bukan mengarang.
 const UNKNOWN_TECH_RX =
-  /\b(laravel|java|kotlin|swift|django|flask|angular|svelte|next\s*js|nextjs|nuxt|docker|kubernetes|aws|azure|gcp|mongodb|firebase|typescript|c\+\+|c#|ruby|rust|unity|wordpress)\b/
+  /\b(laravel|java|kotlin|swift|django|flask|angular|svelte|nuxt|kubernetes|aws|azure|gcp|mongodb|firebase|c\+\+|c#|ruby|rust|unity|wordpress)\b/
 
 const stripHtml = (html) => html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&')
 
@@ -647,6 +675,8 @@ export function findTechEvidence(tech) {
 
 // Proyek tertentu yang disebut namanya.
 const PROJECT_ALIASES = [
+  { title: 'MedCredix', rx: /\bmed\s*credix\b|\bkredensial\s+(?:rs|rumah\s+sakit)/ },
+  { title: 'SIMRS Dashboard', rx: /\bsimrs\b|\bsistem\s+informasi\s+rumah\s+sakit/ },
   { title: 'Dashboard KOL', rx: /\bdashboard\s*kol\b|\bkol\b|\bsavvy\b|tiktok/ },
   { title: 'Mobile JEC', rx: /\b(?:mobile|aplikasi|app|apk)\s*jec\b/ },
   { title: 'Dashboard JEC', rx: /\b(?:dashboard|admin|dasbor)\s*jec\b/ },
@@ -845,6 +875,6 @@ export function matchConversation(rawText) {
 }
 
 export const TOOLS_TEXT =
-  'Flutter, Dart, React, Vue.js, Node.js, Go, PHP, Python, Streamlit, Plotly, Power BI, Excel, Google Colab, PostgreSQL, MySQL, dan Figma'
+  'Vue.js, React, Next.js, TypeScript, Tailwind CSS, Go (Gin), Node.js/Express, PHP, PostgreSQL, MySQL, Docker, Git, Postman, Swagger, Python, Pandas, Streamlit, Plotly, Power BI, Excel, Google Colab, Flutter, Dart, dan Figma'
 
 export { joinList }

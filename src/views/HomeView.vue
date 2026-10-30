@@ -14,7 +14,7 @@ const edition = new Date().getFullYear()
 
 const stats = [
   { value: '4+', label: 'Tahun belajar teknologi' },
-  { value: '6', label: 'Proyek selesai' },
+  { value: '8', label: 'Proyek dibangun' },
   { value: '5', label: 'Peran kerja & organisasi' },
 ]
 

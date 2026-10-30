@@ -22,11 +22,63 @@ import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.png'
 import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.png'
 import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.png'
 import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.png'
+import medcredixThumb from './img-proyek/img-medcredix/img-medcredix-risk-radar.png'
+import simrsThumb from './img-proyek/img-simrs/img-simrs-pasien.png'
+import medcredixLogin from './img-proyek/img-medcredix/img-medcredix-login.png'
+import medcredixPortalEnv from './img-proyek/img-medcredix/img-medcredix-portal-lingkungan.png'
+import medcredixPortalApi from './img-proyek/img-medcredix/img-medcredix-portal-api.png'
+import simrsSpriForm from './img-proyek/img-simrs/img-simrs-spri-form.png'
+import simrsSpriPreview from './img-proyek/img-simrs/img-simrs-spri-preview.png'
 
 // Link tombol "Lihat proyek lainnya" di kanan atas
 const moreProjectsHref = 'https://github.com/joseparhusip?tab=repositories'
 
+// Proyek internal (internal: true) tidak punya demo publik maupun repo,
+// jadi tombol "Lihat demo" & GitHub-nya diganti keterangan "Proyek internal".
+// shots (opsional): foto tambahan. Galeri tetap menampilkan thumb saja supaya
+// layout semua proyek sama; foto lainnya dibuka lewat lightbox (geser kiri/kanan).
 const projects = [
+  {
+    title: 'MedCredix',
+    category: 'Backend · Kesehatan',
+    internal: true,
+    desc: [
+      'Platform kesiapan kredensial rumah sakit (multi-RS, data terisolasi per RS). Saya membangun backend-nya: skema PostgreSQL 33 tabel dan REST API Go (Gin) + GORM, lengkap dengan dokumentasi Swagger.',
+      'Membangun mesin skoring kesiapan RS (Health Score, BDCS, Trust) dengan rincian skor, snapshot bulanan, dan unit test. Hasilnya dipakai untuk dashboard eksekutif, daftar risiko, peringatan dini, dan rencana tindak lanjut.',
+      'Mengimplementasikan keamanan berlapis: autentikasi JWT, RBAC per peran, password bcrypt, pembatas percobaan login, CAPTCHA, serta unggahan dokumen yang dienkripsi AES-256-GCM.',
+      'Membangun alur kredensial tenaga medis (unggah, verifikasi atau penolakan, persetujuan, prasyarat) yang disertai audit trail, dan job otomatis untuk memperbarui status kredensial.',
+      'Mengintegrasikan data SIMRS lewat klien FHIR untuk uji koneksi resource, dengan mode simulasi saat server FHIR belum tersedia.',
+      'Men-deploy dengan Docker Compose (PostgreSQL, API, dan web Nginx) untuk lingkungan dev, sandbox, dan produksi di VPS. Caddy menjadi reverse proxy dengan HTTPS otomatis.',
+    ],
+    thumb: medcredixThumb,
+    shots: [
+      { src: medcredixThumb, caption: 'Hospital Risk Radar' },
+      { src: medcredixLogin, caption: 'Halaman masuk dengan CAPTCHA' },
+      { src: medcredixPortalEnv, caption: 'Developer Portal: Sandbox & Production' },
+      { src: medcredixPortalApi, caption: 'Developer Portal: referensi API' },
+    ],
+    techStack: [{ name: 'Go (Gin)' }, { name: 'PostgreSQL' }, { name: 'Swagger' }, { name: 'Docker' }],
+  },
+  {
+    title: 'SIMRS Dashboard',
+    category: 'Frontend · Kesehatan',
+    internal: true,
+    desc: [
+      'Dashboard SIMRS (sistem informasi rumah sakit) dengan Next.js 16, React 19, TypeScript, dan Tailwind CSS. Modulnya mencakup registrasi, rawat jalan, IGD, rawat inap, laboratorium, radiologi, farmasi, ruang bedah, dan kasir.',
+      'Membangun alur pendaftaran rawat inap dari SPRI dokter: surat persetujuan atau penolakan pasien (tanda tangan digital atau unggah scan), pemilihan ruang dan tempat tidur, sampai cetak gelang pasien.',
+      'Mengintegrasikan frontend dengan REST API backend Go (Gin) berdasarkan kontrak Swagger. Data divalidasi dengan Zod, dan hak akses dibatasi per peran pengguna.',
+      'Mengemas aplikasi dengan Docker multi-stage dan Docker Compose untuk development dan production, dengan hardening container: tanpa root, filesystem read-only, batas resource, dan health check.',
+      'Bekerja dalam tim dengan arsitektur backend PostgreSQL, Redis, MinIO (penyimpanan dokumen), dan Centrifugo (notifikasi realtime).',
+      'Menerapkan standar kode dan privasi data medis: Husky, commitlint, dan Prettier untuk kode; NIK disamarkan dan data pasien tidak disimpan di browser.',
+    ],
+    thumb: simrsThumb,
+    shots: [
+      { src: simrsThumb, caption: 'Daftar pasien (NIK disamarkan)' },
+      { src: simrsSpriForm, caption: 'Form SPRI dengan tanda tangan digital' },
+      { src: simrsSpriPreview, caption: 'Preview surat SPRI' },
+    ],
+    techStack: [{ name: 'Next.js' }, { name: 'React' }, { name: 'TypeScript' }, { name: 'Tailwind CSS' }],
+  },
   {
     title: 'Dashboard KOL',
     category: 'Data & BI',
@@ -225,14 +277,29 @@ watch(activeIndex, () => {
 })
 
 // ---- Lightbox: klik gambar tengah untuk melihat versi penuhnya ----
+// Proyek dengan beberapa foto bisa digeser di dalam lightbox.
 const lightboxProject = ref(null)
+const lightboxIndex = ref(0)
+
+function shotsOf(project) {
+  return project.shots || [{ src: project.thumb, caption: '' }]
+}
+
+const lightboxShots = computed(() => (lightboxProject.value ? shotsOf(lightboxProject.value) : []))
+const lightboxShot = computed(() => lightboxShots.value[lightboxIndex.value])
 
 function openLightbox(project) {
+  lightboxIndex.value = 0
   lightboxProject.value = project
 }
 
 function closeLightbox() {
   lightboxProject.value = null
+}
+
+function stepLightbox(dir) {
+  const n = lightboxShots.value.length
+  lightboxIndex.value = (lightboxIndex.value + dir + n) % n
 }
 
 // Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
@@ -242,6 +309,10 @@ function preventImageAction(event) {
 }
 
 // Domain demo ditampilkan di "address bar" mockup browser
+function hostLabel(project) {
+  return project.internal ? 'Proyek internal' : demoHost(project.demoHref)
+}
+
 function demoHost(url) {
   try {
     const host = new URL(url).hostname.replace(/^www\./, '')
@@ -271,7 +342,11 @@ function onKeydown(event) {
     else if (detailOpen.value) detailOpen.value = false
     return
   }
-  if (lightboxProject.value) return
+  if (lightboxProject.value) {
+    if (lightboxShots.value.length > 1 && event.key === 'ArrowRight') stepLightbox(1)
+    else if (lightboxShots.value.length > 1 && event.key === 'ArrowLeft') stepLightbox(-1)
+    return
+  }
   // Panah hanya aktif kalau fokus sedang ada di galeri, supaya tidak bentrok dengan scroll halaman
   if (!galleryEl.value || !galleryEl.value.contains(document.activeElement)) return
   if (event.key === 'ArrowRight') {
@@ -369,7 +444,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             <!-- Mockup jendela browser -->
             <span class="gallery__chrome" aria-hidden="true">
               <span class="gallery__no">No. {{ String(index + 1).padStart(2, '0') }}</span>
-              <span class="gallery__url">{{ demoHost(project.demoHref) }}</span>
+              <span class="gallery__url">{{ hostLabel(project) }}</span>
+              <span v-if="project.shots?.length > 1" class="gallery__shots">
+                {{ project.shots.length }} foto
+              </span>
             </span>
             <span class="gallery__shot">
               <img
@@ -437,7 +515,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 {{ String(activeIndex + 1).padStart(2, '0') }}
               </span>
               <span class="gallery__category">{{ activeProject.category }}</span>
-              <span class="gallery__host">{{ demoHost(activeProject.demoHref) }}</span>
+              <span v-if="!activeProject.internal" class="gallery__host">{{ demoHost(activeProject.demoHref) }}</span>
             </div>
 
             <div class="gallery__body">
@@ -474,7 +552,16 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                   </svg>
                 </button>
 
+                <!-- Proyek internal: tanpa repo & demo publik -->
+                <span v-if="activeProject.internal" class="gallery__private">
+                  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                    <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                      stroke-linejoin="round" d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" />
+                  </svg>
+                  Proyek internal · tanpa demo &amp; kode publik
+                </span>
                 <a
+                  v-if="!activeProject.internal"
                   :href="activeProject.codeHref"
                   class="gallery__icon-link"
                   target="_blank"
@@ -497,6 +584,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                   </svg>
                 </a>
                 <a
+                  v-if="!activeProject.internal"
                   :href="activeProject.demoHref"
                   class="btn btn--primary gallery__demo"
                   target="_blank"
@@ -561,21 +649,72 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           </svg>
         </button>
 
-        <img
-          :src="lightboxProject.thumb"
-          :alt="lightboxProject.title"
-          class="project-lightbox__img"
-          draggable="false"
-          oncontextmenu="return false"
-          @contextmenu.prevent="preventImageAction"
-          @dragstart.prevent="preventImageAction"
-          @click.stop
-        />
+        <div class="project-lightbox__stage">
+          <button
+            v-if="lightboxShots.length > 1"
+            type="button"
+            class="project-lightbox__nav project-lightbox__nav--prev"
+            aria-label="Foto sebelumnya"
+            @click.stop="stepLightbox(-1)"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" d="M19 12H5m6-6-6 6 6 6" />
+            </svg>
+          </button>
+
+          <img
+            :key="lightboxShot.src"
+            :src="lightboxShot.src"
+            :alt="lightboxShot.caption || lightboxProject.title"
+            class="project-lightbox__img"
+            draggable="false"
+            oncontextmenu="return false"
+            @contextmenu.prevent="preventImageAction"
+            @dragstart.prevent="preventImageAction"
+            @click.stop
+          />
+
+          <button
+            v-if="lightboxShots.length > 1"
+            type="button"
+            class="project-lightbox__nav project-lightbox__nav--next"
+            aria-label="Foto berikutnya"
+            @click.stop="stepLightbox(1)"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+            </svg>
+          </button>
+        </div>
 
         <p class="project-lightbox__caption">
-          <span>{{ lightboxProject.category }}</span>
+          <span>
+            {{ lightboxProject.category }}
+            <template v-if="lightboxShots.length > 1">
+              · {{ lightboxIndex + 1 }} / {{ lightboxShots.length }}
+            </template>
+          </span>
           {{ lightboxProject.title }}
+          <small v-if="lightboxShot.caption">{{ lightboxShot.caption }}</small>
         </p>
+
+        <!-- Deretan thumbnail untuk lompat ke foto tertentu -->
+        <div v-if="lightboxShots.length > 1" class="project-lightbox__thumbs">
+          <button
+            v-for="(shot, i) in lightboxShots"
+            :key="shot.src"
+            type="button"
+            class="project-lightbox__thumb"
+            :class="{ 'project-lightbox__thumb--active': i === lightboxIndex }"
+            :aria-label="`Foto ${i + 1}: ${shot.caption}`"
+            :aria-current="i === lightboxIndex ? 'true' : undefined"
+            @click.stop="lightboxIndex = i"
+          >
+            <img :src="shot.src" alt="" draggable="false" />
+          </button>
+        </div>
       </div>
     </Transition>
   </section>
@@ -724,6 +863,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.gallery__shots {
+  flex-shrink: 0;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--color-rule);
+  color: var(--color-text);
 }
 
 .gallery__shot {
@@ -986,6 +1132,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   background: var(--color-bg);
 }
 
+.gallery__private {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
 .gallery__demo svg {
   transition: transform 0.25s var(--ease-out);
 }
@@ -1108,7 +1265,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 .project-lightbox__img {
   max-width: min(92vw, 1150px);
-  max-height: 76vh;
+  max-height: 66vh;
   object-fit: contain;
   border-radius: var(--radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1128,6 +1285,98 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   font-size: 1.05rem;
   font-weight: 600;
   color: #fff;
+}
+
+.project-lightbox__caption small {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.project-lightbox__stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.project-lightbox__nav {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(14, 15, 17, 0.7);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.project-lightbox__nav:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.project-lightbox__nav--prev {
+  left: -58px;
+}
+
+.project-lightbox__nav--next {
+  right: -58px;
+}
+
+.project-lightbox__thumbs {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.project-lightbox__thumb {
+  flex-shrink: 0;
+  width: 84px;
+  height: 52px;
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  background: none;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.project-lightbox__thumb:hover,
+.project-lightbox__thumb--active {
+  opacity: 1;
+  border-color: #fff;
+}
+
+.project-lightbox__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+  pointer-events: none;
+}
+
+/* Layar sempit: tombol panah masuk ke atas gambar */
+@media (max-width: 1320px) {
+  .project-lightbox__nav--prev {
+    left: 8px;
+  }
+
+  .project-lightbox__nav--next {
+    right: 8px;
+  }
 }
 
 .project-lightbox__caption span {
@@ -1255,9 +1504,24 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     grid-template-columns: minmax(0, 1fr) 46px;
   }
 
-  .gallery__demo {
+  .gallery__demo,
+  .gallery__private {
     grid-column: 1 / -1;
+  }
+
+  .gallery__demo {
     order: -1;
+  }
+
+  /* Proyek internal: tombol detail penuh, keterangan di bawahnya */
+  .gallery__actions:has(.gallery__private) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gallery__private {
+    justify-content: center;
+    text-align: center;
+    line-height: 1.5;
   }
 
   /* Di HP cukup 3 slide yang kelihatan */

@@ -6,8 +6,9 @@ import { ref, onMounted, onUnmounted } from 'vue'
    terbalik di tengahnya (bukan kotak, bukan lingkaran), berpusat di
    posisi mouse.
    - Diarahkan ke card / tombol / link: segitiga jadi penuh, dan sebuah
-     garis tumbuh dari mouse lalu membentang selebar elemen itu di tepi
-     bawahnya (seperti garis bawah), dengan sedikit tarikan magnet.
+     garis pendek muncul di tengah tepi bawah elemen itu (lebarnya
+     sekitar sepertiga elemen, maksimal LINE_MAX px), sedikit tertarik
+     ke arah mouse.
    - Elemen dengan data-cursor="Teks": garis + label kecil di atasnya.
    - Segitiga berputar pelan terus-menerus: saat diam, saat digeser,
      dan saat menyorot card.
@@ -47,6 +48,8 @@ const SNAP_PAD = 6 // jarak garis dari tepi elemen
 const MAX_SNAP_W = 760 // elemen yang lebih besar dari ini diabaikan
 const MAX_SNAP_H = 640
 const MAGNET = 0.08 // seberapa jauh garis ikut tertarik ke mouse
+const LINE_MIN = 18 // lebar garis bawah, px
+const LINE_MAX = 44
 const SPIN_SPEED = 1.2 // derajat per frame (kira-kira 1 putaran per 5 detik)
 
 let mouseX = -100
@@ -66,7 +69,7 @@ function goal() {
     return {
       x: cx + (mouseX - cx) * MAGNET,
       y: cy + (mouseY - cy) * MAGNET,
-      w: r.width + SNAP_PAD * 2,
+      w: Math.min(LINE_MAX, Math.max(LINE_MIN, r.width / 3)),
       h: r.height + SNAP_PAD * 2,
     }
   }
@@ -346,11 +349,12 @@ html.has-custom-cursor .leaflet-container * {
   opacity: 1;
 }
 
-/* Label kecil di atas ujung kiri garis ("LIHAT") */
+/* Label kecil di atas garis, di tengah ("LIHAT") */
 .cursor__label {
   position: absolute;
-  left: 0;
+  left: 50%;
   bottom: 10px;
+  transform: translateX(-50%);
   padding: 3px 7px;
   border-radius: 3px;
   background: var(--ink);

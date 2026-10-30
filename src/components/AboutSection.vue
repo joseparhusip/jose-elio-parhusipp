@@ -2,19 +2,31 @@
 import { ref } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import figmaIcon from './icons/icons-about/Figma-logo.svg'
-import flutterIcon from './icons/icons-about/lockup_flutter_horizontal.svg'
+import flutterIcon from './icons/icons-about/Flutter-mark.svg'
 import powerBiIcon from './icons/icons-about/New_Power_BI_Logo.svg'
 import pythonIcon from './icons/icons-about/Python-logo-notext.svg'
 import reactIcon from './icons/icons-about/React-icon.svg'
 import streamlitIcon from './icons/icons-about/Streamlit.svg'
 import vueIcon from './icons/icons-about/Vue.js_Logo_2.svg'
 import excelIcon from './icons/icons-about/excel-logo.svg'
-import plotlyIcon from './icons/icons-about/plotly-ar21.svg'
+import plotlyIcon from './icons/icons-about/Plotly-mark.svg'
 import colabIcon from './icons/icons-about/Google_Colaboratory_SVG_Logo.svg'
 import postgresqlIcon from './icons/icons-about/Logo_PostgreSQL.png'
-import mysqlIcon from './icons/icons-about/mysql-ar21.svg'
-import nodejsIcon from './icons/icons-about/Node.js_logo.svg'
+import mysqlIcon from './icons/icons-about/MySQL-mark.svg'
+import nodejsIcon from './icons/icons-about/Nodejs-mark.svg'
 import phpIcon from './icons/icons-about/new-php-logo.svg'
+import tailwindIcon from './icons/icons-about/Tailwind_CSS_Logo.svg'
+// Ikon simbol dari Simple Icons (CC0), diwarnai sesuai warna brand
+import nextjsIcon from './icons/icons-about/Nextjs-logo.svg'
+import typescriptIcon from './icons/icons-about/TypeScript-logo.svg'
+import goIcon from './icons/icons-about/Go-logo.svg'
+import expressIcon from './icons/icons-about/Express-logo.svg'
+import dartIcon from './icons/icons-about/Dart-logo.svg'
+import dockerIcon from './icons/icons-about/Docker-logo.svg'
+import gitIcon from './icons/icons-about/Git-logo.svg'
+import postmanIcon from './icons/icons-about/Postman-logo.svg'
+import swaggerIcon from './icons/icons-about/Swagger-logo.svg'
+import pandasIcon from './icons/icons-about/Pandas-logo.svg'
 
 // Tiga kata kunci di kalimat manifesto + catatan kakinya
 const highlights = [
@@ -35,26 +47,39 @@ const highlights = [
 // Kategori dipakai untuk filter di grid tools
 const categories = [
   { key: 'all', label: 'Semua' },
-  { key: 'web', label: 'Web' },
+  { key: 'fe', label: 'Frontend' },
+  { key: 'be', label: 'Backend' },
   { key: 'db', label: 'Database' },
+  { key: 'ops', label: 'API & DevOps' },
   { key: 'data', label: 'Data' },
   { key: 'design', label: 'Mobile & Desain' },
 ]
 
 const tools = [
-  { name: 'Vue.js', icon: vueIcon, cat: 'web' },
-  { name: 'React', icon: reactIcon, cat: 'web' },
-  { name: 'Node.js', icon: nodejsIcon, cat: 'web' },
-  { name: 'PHP', icon: phpIcon, cat: 'web' },
+  { name: 'Vue.js', icon: vueIcon, cat: 'fe' },
+  { name: 'React', icon: reactIcon, cat: 'fe' },
+  { name: 'Next.js', icon: nextjsIcon, cat: 'fe' },
+  { name: 'TypeScript', icon: typescriptIcon, cat: 'fe' },
+  { name: 'Tailwind CSS', icon: tailwindIcon, cat: 'fe' },
+  { name: 'Go (Gin)', icon: goIcon, cat: 'be' },
+  { name: 'Node.js', icon: nodejsIcon, cat: 'be' },
+  { name: 'Express', icon: expressIcon, cat: 'be' },
+  { name: 'PHP', icon: phpIcon, cat: 'be' },
   { name: 'PostgreSQL', icon: postgresqlIcon, cat: 'db' },
   { name: 'MySQL', icon: mysqlIcon, cat: 'db' },
+  { name: 'Docker', icon: dockerIcon, cat: 'ops' },
+  { name: 'Git', icon: gitIcon, cat: 'ops' },
+  { name: 'Postman', icon: postmanIcon, cat: 'ops' },
+  { name: 'Swagger', icon: swaggerIcon, cat: 'ops' },
   { name: 'Python', icon: pythonIcon, cat: 'data' },
+  { name: 'Pandas', icon: pandasIcon, cat: 'data' },
   { name: 'Streamlit', icon: streamlitIcon, cat: 'data' },
   { name: 'Plotly', icon: plotlyIcon, cat: 'data' },
   { name: 'Power BI', icon: powerBiIcon, cat: 'data' },
   { name: 'Excel', icon: excelIcon, cat: 'data' },
   { name: 'Google Colab', icon: colabIcon, cat: 'data' },
   { name: 'Flutter', icon: flutterIcon, cat: 'design' },
+  { name: 'Dart', icon: dartIcon, cat: 'design' },
   { name: 'Figma', icon: figmaIcon, cat: 'design' },
 ]
 
