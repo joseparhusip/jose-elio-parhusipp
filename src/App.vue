@@ -10,9 +10,12 @@ import CustomCursor from './components/CustomCursor.vue'
 <template>
   <TheLoader />
   <ScrollProgress />
-  <TheNavbar />
-  <RouterView />
-  <TheFooter />
+  <!-- Dibungkus supaya bisa "zoom" masuk saat loader selesai (lihat TheLoader.vue) -->
+  <div class="app-stage">
+    <TheNavbar />
+    <RouterView />
+    <TheFooter />
+  </div>
   <!-- Widget chat mengambang, tampil di semua halaman -->
   <ChatWidget />
   <!-- Kursor custom (hanya perangkat dengan mouse) -->

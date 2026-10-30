@@ -1,168 +1,242 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { loaderDone } from '@/composables/useLoaderState'
+import { useTheme } from '@/composables/useTheme'
+
+/* ---------------------------------------------------------
+   Layar pembuka:
+   1. Logo JP besar di tengah + garis progres (± 1,7 detik).
+   2. Logo zoom in sangat besar (seperti kamera menembus logo) lalu hilang.
+   3. Beranda (.app-stage di App.vue) muncul sebagai kartu kecil di
+      tengah layar (layar pertama saja, sudut membulat, latar sekitar
+      lebih gelap), lalu zoom in sampai memenuhi layar.
+   Kelas di <html>: intro-hold (kartu kecil), intro-reveal (kartu
+   membesar). Keduanya dihapus setelah selesai
+   supaya transform tidak mengganggu elemen fixed (navbar, dll).
+--------------------------------------------------------- */
+const COUNT_MS = 1700
+const REVEAL_DELAY = 640 // logo zoom dulu, kartu kecil terlihat sebentar, baru membesar
+const REVEAL_MS = 1100
 
 const isVisible = ref(true)
 const isExiting = ref(false)
+const count = ref(0)
+
+// Logo mengikuti tema, sama seperti di navbar
+const { theme } = useTheme()
+const logoSrc = computed(() =>
+  theme.value === 'light' ? '/logo-navbar-sebelum-scroll.png' : '/logo-navbar-footer.png',
+)
+
+const root = document.documentElement
+let frame = 0
+const timers = []
+
+function finish() {
+  isVisible.value = false
+  root.classList.remove('intro-hold', 'intro-reveal')
+  document.body.style.overflow = ''
+}
 
 onMounted(() => {
   document.body.style.overflow = 'hidden'
+  root.classList.add('intro-hold')
 
-  const exitTimer = setTimeout(() => {
-    isExiting.value = true
-  }, 1900)
-
-  const removeTimer = setTimeout(() => {
-    isVisible.value = false
-    document.body.style.overflow = ''
-    loaderDone.value = true
-  }, 2650)
-
-  return () => {
-    clearTimeout(exitTimer)
-    clearTimeout(removeTimer)
-    document.body.style.overflow = ''
+  const start = performance.now()
+  const tick = (now) => {
+    const t = Math.min(1, (now - start) / COUNT_MS)
+    // Cepat di awal, melambat di akhir
+    count.value = Math.round((1 - Math.pow(1 - t, 3)) * 100)
+    if (t < 1) frame = requestAnimationFrame(tick)
   }
+  frame = requestAnimationFrame(tick)
+
+  timers.push(
+    setTimeout(() => {
+      isExiting.value = true
+      // Animasi hero mulai saat kartu muncul, jadi isinya sudah bergerak
+      loaderDone.value = true
+    }, COUNT_MS + 120),
+    setTimeout(() => {
+      root.classList.add('intro-reveal')
+      root.classList.remove('intro-hold')
+    }, COUNT_MS + 120 + REVEAL_DELAY),
+    setTimeout(finish, COUNT_MS + 120 + REVEAL_DELAY + REVEAL_MS + 60),
+  )
 })
+
+onUnmounted(() => {
+  cancelAnimationFrame(frame)
+  timers.forEach(clearTimeout)
+  finish()
+})
+
+const year = new Date().getFullYear()
 </script>
 
 <template>
   <div v-if="isVisible" class="loader" :class="{ 'loader--exit': isExiting }" aria-hidden="true">
-    <!-- Dua panel ini yang "membelah" seperti tirai saat loading selesai -->
-    <div class="loader__panel loader__panel--top"></div>
-    <div class="loader__panel loader__panel--bottom"></div>
+    <div class="loader__top">
+      <span>Jose Elio Parhusip</span>
+      <span>Portofolio · {{ year }}</span>
+    </div>
 
-    <div class="loader__content" :class="{ 'loader__content--fade': isExiting }">
-      <div class="loader__flip">
-        <div class="loader__flip-card">
-          <div class="loader__flip-face loader__flip-face--front">
-            <img src="/logo-navbar-sebelum-scroll.png" alt="Jose Elio Parhusip" class="loader__logo-img" draggable="false" />
-          </div>
-          <div class="loader__flip-face loader__flip-face--back">
-            <img src="/logo-navbar-sebelum-scroll.png" alt="Jose Elio Parhusip" class="loader__logo-img" draggable="false" />
-          </div>
-        </div>
+    <div class="loader__center">
+      <img :src="logoSrc" alt="" class="loader__logo" draggable="false" />
+    </div>
+
+    <div class="loader__bottom">
+      <div class="loader__meta">
+        <span>{{ count < 100 ? 'Memuat' : 'Siap' }}</span>
+      </div>
+      <div class="loader__bar">
+        <span class="loader__bar-fill" :style="{ transform: `scaleX(${count / 100})` }"></span>
       </div>
     </div>
   </div>
 </template>
+
+<style>
+/* Panggung halaman (App.vue) selama intro. Tanpa scoped karena kelasnya
+   ada di <html> dan elemennya di luar komponen ini. Hanya layar pertama
+   yang ditampilkan (clip setinggi 100vh), jadi terlihat seperti kartu. */
+html.intro-hold #app,
+html.intro-reveal #app {
+  background: color-mix(in srgb, var(--color-bg) 82%, #000);
+}
+
+html.intro-hold .app-stage,
+html.intro-reveal .app-stage {
+  background: var(--color-bg);
+  transform-origin: 50% 50vh;
+  will-change: transform, clip-path;
+}
+
+html.intro-hold .app-stage {
+  transform: scale(0.62);
+  clip-path: inset(0 0 calc(100% - 100vh) 0 round 28px);
+}
+
+html.intro-reveal .app-stage {
+  transform: scale(1);
+  clip-path: inset(0 0 calc(100% - 100vh) 0 round 0);
+  transition:
+    transform 1.1s cubic-bezier(0.76, 0, 0.24, 1),
+    clip-path 1.1s cubic-bezier(0.76, 0, 0.24, 1);
+}
+</style>
 
 <style scoped>
 .loader {
   position: fixed;
   inset: 0;
   z-index: 9999;
-}
-
-.loader__panel {
-  position: absolute;
-  left: 0;
-  right: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: clamp(1.25rem, 3vw, 2.25rem);
   background: var(--color-bg, #0e0f11);
-  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+  color: var(--color-text, #eceef1);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.loader__panel--top {
-  top: 0;
-  height: 51%;
+/* Saat keluar, latar loader memudar: yang terlihat adalah latar
+   kartu beranda yang sudah menunggu di tengah. */
+.loader {
+  transition: background-color 0.45s ease;
 }
 
-.loader__panel--bottom {
-  bottom: 0;
-  height: 51%;
+.loader--exit {
+  background-color: transparent;
+  pointer-events: none;
 }
 
-.loader--exit .loader__panel--top {
-  transform: translateY(-100%);
-}
-
-.loader--exit .loader__panel--bottom {
-  transform: translateY(100%);
-}
-
-.loader__content {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
+.loader__top,
+.loader__meta {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.4rem;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--color-text-soft, #9aa0a8);
+}
+
+.loader__top,
+.loader__bottom {
   transition: opacity 0.3s ease;
 }
 
-.loader__content--fade {
+.loader--exit .loader__top,
+.loader--exit .loader__bottom {
   opacity: 0;
 }
 
-/* Panggung 3D tempat kartu logo berputar */
-.loader__flip {
-  perspective: 900px;
-  width: clamp(120px, 20vw, 180px);
-  height: clamp(120px, 20vw, 180px);
+.loader__center {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1.25rem;
 }
 
-/* Kartu yang diputar terus-menerus sepanjang sumbu Y (efek flip depan-belakang) */
-.loader__flip-card {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  animation: loader-flip 3.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-}
-
-/* Sisi depan & belakang kartu, masing-masing menampilkan logo yang sama.
-   Sisi belakang diputar 180deg lebih dulu supaya saat kartu berputar,
-   yang terlihat gantian adalah "depan" lalu "belakang" logo, bukan layar kosong. */
-.loader__flip-face {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.loader__flip-face--front {
-  transform: rotateY(0deg);
-}
-
-.loader__flip-face--back {
-  transform: rotateY(180deg);
-}
-
-.loader__logo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  -webkit-user-select: none;
+.loader__logo {
+  width: clamp(110px, 15vw, 180px);
+  height: auto;
+  opacity: 0;
+  animation:
+    loader-in 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    loader-breathe 1.6s 0.8s ease-in-out infinite alternate;
   user-select: none;
   -webkit-user-drag: none;
-  -webkit-touch-callout: none;
 }
 
-/* Flip bolak-balik: diam di depan (0deg) -> pelan-pelan buka ke belakang (180deg)
-   -> diam sejenak -> pelan-pelan balik lagi ke depan (0deg) -> diam -> ulang terus.
-   Bukan muter 360 satu arah terus-terusan, tapi kayak kartu dibolak-balik. */
-@keyframes loader-flip {
-  0%,
-  22% {
-    transform: rotateY(0deg);
+/* Zoom in: logo membesar berkali-kali lipat seperti kamera menembus logo,
+   lalu memudar tepat saat kartu beranda muncul */
+.loader__center {
+  transition:
+    transform 0.85s cubic-bezier(0.7, 0, 0.84, 0),
+    opacity 0.35s ease 0.45s;
+}
+
+.loader--exit .loader__center {
+  transform: scale(22);
+  opacity: 0;
+}
+
+.loader__bottom {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.loader__bar {
+  height: 2px;
+  background: var(--color-rule, rgba(230, 233, 238, 0.2));
+  overflow: hidden;
+}
+
+.loader__bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--color-text, #eceef1);
+  transform-origin: left center;
+}
+
+@keyframes loader-in {
+  from {
+    transform: scale(0.82);
   }
-  50%,
-  72% {
-    transform: rotateY(180deg);
-  }
-  100% {
-    transform: rotateY(360deg);
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .loader__panel {
-    transition: none;
+/* Logo "bernapas" pelan selama menunggu */
+@keyframes loader-breathe {
+  from {
+    scale: 1;
+  }
+  to {
+    scale: 1.05;
   }
 }
 </style>
