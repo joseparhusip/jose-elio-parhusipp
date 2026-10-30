@@ -6,20 +6,23 @@ import { useTheme } from '@/composables/useTheme'
 /* ---------------------------------------------------------
    Layar pembuka:
    1. Logo JP besar di tengah + garis progres (± 1,7 detik).
-   2. Logo zoom in sangat besar (seperti kamera menembus logo) lalu hilang.
-   3. Beranda (.app-stage di App.vue) muncul sebagai kartu kecil di
-      tengah layar (layar pertama saja, sudut membulat, latar sekitar
-      lebih gelap), lalu zoom in sampai memenuhi layar.
+   2. Logo zoom in sangat besar (seperti kamera menembus logo) sampai
+      hilang. Latar loader tetap menutup layar selama tahap ini.
+   3. BARU SETELAH ITU latar loader memudar dan beranda (.app-stage di
+      App.vue) terlihat sebagai kartu kecil di tengah layar, lalu zoom
+      in sampai memenuhi layar. Tahap 2 dan 3 sengaja tidak bersamaan.
    Kelas di <html>: intro-hold (kartu kecil), intro-reveal (kartu
    membesar). Keduanya dihapus setelah selesai
    supaya transform tidak mengganggu elemen fixed (navbar, dll).
 --------------------------------------------------------- */
 const COUNT_MS = 1700
-const REVEAL_DELAY = 640 // logo zoom dulu, kartu kecil terlihat sebentar, baru membesar
+const LOGO_ZOOM_MS = 900 // logo zoom sampai habis
+const CARD_PAUSE_MS = 450 // kartu kecil terlihat sebentar, baru membesar
 const REVEAL_MS = 1100
 
 const isVisible = ref(true)
-const isExiting = ref(false)
+const isExiting = ref(false) // tahap 2: logo zoom
+const isHiding = ref(false) // tahap 3: latar loader memudar
 const count = ref(0)
 
 // Logo mengikuti tema, sama seperti di navbar
@@ -51,17 +54,23 @@ onMounted(() => {
   }
   frame = requestAnimationFrame(tick)
 
+  const tZoom = COUNT_MS + 120
+  const tHide = tZoom + LOGO_ZOOM_MS
+  const tReveal = tHide + CARD_PAUSE_MS
   timers.push(
     setTimeout(() => {
       isExiting.value = true
+    }, tZoom),
+    setTimeout(() => {
+      isHiding.value = true
       // Animasi hero mulai saat kartu muncul, jadi isinya sudah bergerak
       loaderDone.value = true
-    }, COUNT_MS + 120),
+    }, tHide),
     setTimeout(() => {
       root.classList.add('intro-reveal')
       root.classList.remove('intro-hold')
-    }, COUNT_MS + 120 + REVEAL_DELAY),
-    setTimeout(finish, COUNT_MS + 120 + REVEAL_DELAY + REVEAL_MS + 60),
+    }, tReveal),
+    setTimeout(finish, tReveal + REVEAL_MS + 60),
   )
 })
 
@@ -75,7 +84,7 @@ const year = new Date().getFullYear()
 </script>
 
 <template>
-  <div v-if="isVisible" class="loader" :class="{ 'loader--exit': isExiting }" aria-hidden="true">
+  <div v-if="isVisible" class="loader" :class="{ 'loader--exit': isExiting, 'loader--hide': isHiding }" aria-hidden="true">
     <div class="loader__top">
       <span>Jose Elio Parhusip</span>
       <span>Portofolio · {{ year }}</span>
@@ -142,13 +151,13 @@ html.intro-reveal .app-stage {
   text-transform: uppercase;
 }
 
-/* Saat keluar, latar loader memudar: yang terlihat adalah latar
+/* Setelah logo selesai zoom, latar loader memudar: yang terlihat adalah
    kartu beranda yang sudah menunggu di tengah. */
 .loader {
-  transition: background-color 0.45s ease;
+  transition: background-color 0.4s ease;
 }
 
-.loader--exit {
+.loader--hide {
   background-color: transparent;
   pointer-events: none;
 }
@@ -190,11 +199,11 @@ html.intro-reveal .app-stage {
 }
 
 /* Zoom in: logo membesar berkali-kali lipat seperti kamera menembus logo,
-   lalu memudar tepat saat kartu beranda muncul */
+   dan sudah hilang penuh sebelum kartu beranda terlihat */
 .loader__center {
   transition:
     transform 0.85s cubic-bezier(0.7, 0, 0.84, 0),
-    opacity 0.35s ease 0.45s;
+    opacity 0.3s ease 0.5s;
 }
 
 .loader--exit .loader__center {
