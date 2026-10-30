@@ -6,7 +6,7 @@
    Judul & deskripsi tiap halaman inilah yang dibaca Google,
    dan biasanya jadi teks "sitelinks" di hasil pencarian.
 --------------------------------------------------------- */
-export const SITE_URL = 'https://jose-elio-parhusipp.vercel.app'
+export const SITE_URL = 'https://www.joseparhusip.com'
 
 export const pages = [
   {

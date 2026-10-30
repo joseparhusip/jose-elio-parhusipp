@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename)
 // ------------------------------------------------------------------
 const LINKEDIN_URL = 'https://www.linkedin.com/in/joseparhusip/'
 const INSTAGRAM_URL = 'https://www.instagram.com/joseparhusip_/'
-const SITE_URL = 'https://jose-elio-parhusipp.vercel.app' // sama dengan SITE_URL di src/router/pages.js
+const SITE_URL = 'https://www.joseparhusip.com' // sama dengan SITE_URL di src/router/pages.js
 
 // Warna mengikuti DESIGN.md (mode terang): grafit netral + biru azure.
 // Email tidak bisa memakai CSS variable, jadi nilainya ditulis di sini.
