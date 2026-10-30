@@ -6,7 +6,6 @@ import AboutSection from '@/components/AboutSection.vue'
 import ExperienceSection from '@/components/ExperienceSection.vue'
 import ProjectsSection from '@/components/ProjectsSection.vue'
 import ContactSection from '@/components/ContactSection.vue'
-import myPhoto from '@/components/icons/icons-about/img-me.png'
 import linkedinIcon from '@/components/icons/icons-about/linkedin-svgrepo-com.svg'
 import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-svgrepo-com.svg'
 
@@ -29,6 +28,17 @@ const prefersReducedMotion =
 --------------------------------------------------------- */
 const roles = ['Full Stack Developer', 'Flutter Developer', 'Data Analyst', 'Business Analyst']
 const typedRole = ref('')
+const roleFull = ref(roles[0]) // peran yang sedang diketik
+const roleNo = ref(1) // nomor peran yang tampil (01 / 04)
+
+// Huruf yang sudah diketik dibagi dua: bagian sebelum kata terakhir
+// (warna teks) dan kata terakhir (biru)
+const typedSplit = computed(() => {
+  const full = roleFull.value
+  const cut = full.lastIndexOf(' ') + 1
+  const typed = typedRole.value
+  return { head: typed.slice(0, cut), tail: typed.slice(cut) }
+})
 
 let roleIndex = 0
 let charIndex = 0
@@ -59,6 +69,8 @@ function tick() {
   } else if (isDeleting && charIndex === 0) {
     isDeleting = false
     roleIndex = (roleIndex + 1) % roles.length
+    roleFull.value = roles[roleIndex]
+    roleNo.value = roleIndex + 1
     delay = PAUSE_AFTER_DELETED
   }
 
@@ -131,76 +143,6 @@ function preventImageAction(event) {
   event.preventDefault()
   return false
 }
-
-/* ---------------------------------------------------------
-   Animasi foto hero: foto masuk dari kanan layar lalu meluncur
-   ke posisi aslinya. TIDAK bergantung pada scroll.
-   Animasi baru dimulai kalau DUA syarat terpenuhi:
-   1. Loader (TheLoader) sudah selesai & layar terbuka.
-   2. Gambar sudah dimuat. Ada fallback 1,5 detik.
---------------------------------------------------------- */
-const photoLoaded = ref(false)
-const photoReady = computed(() => loaderDone.value && photoLoaded.value)
-const photoEl = ref(null)
-let photoFallbackId = null
-
-function markPhotoLoaded() {
-  photoLoaded.value = true
-}
-
-onMounted(() => {
-  if (photoEl.value?.complete) markPhotoLoaded()
-  photoFallbackId = setTimeout(markPhotoLoaded, 1500)
-})
-
-onUnmounted(() => {
-  clearTimeout(photoFallbackId)
-})
-
-/* ---------------------------------------------------------
-   Kartu foto 3D: miring mengikuti kursor, foto di lapisan depan
-   bergerak lebih jauh dari panel sehingga terasa berlapis.
-   Hanya untuk mouse; di layar sentuh & "kurangi animasi" kartu diam.
-   Nilai ditulis ke CSS variable, jadi tidak ada re-render Vue.
---------------------------------------------------------- */
-const cardEl = ref(null)
-const MAX_TILT_Y = 9
-const MAX_TILT_X = 7
-let canTilt = false
-let tiltFrame = 0
-
-function onCardMove(event) {
-  if (!canTilt || !cardEl.value) return
-  const rect = event.currentTarget.getBoundingClientRect()
-  const x = (event.clientX - rect.left) / rect.width
-  const y = (event.clientY - rect.top) / rect.height
-  cancelAnimationFrame(tiltFrame)
-  tiltFrame = requestAnimationFrame(() => {
-    const style = cardEl.value.style
-    style.setProperty('--ry', `${((x - 0.5) * 2 * MAX_TILT_Y).toFixed(2)}deg`)
-    style.setProperty('--rx', `${((0.5 - y) * 2 * MAX_TILT_X).toFixed(2)}deg`)
-    style.setProperty('--gx', `${(x * 100).toFixed(1)}%`)
-    style.setProperty('--gy', `${(y * 100).toFixed(1)}%`)
-    cardEl.value.classList.add('is-tilting')
-  })
-}
-
-function onCardLeave() {
-  if (!cardEl.value) return
-  cancelAnimationFrame(tiltFrame)
-  const style = cardEl.value.style
-  style.setProperty('--rx', '0deg')
-  style.setProperty('--ry', '0deg')
-  cardEl.value.classList.remove('is-tilting')
-}
-
-onMounted(() => {
-  canTilt = !prefersReducedMotion && window.matchMedia('(hover: hover) and (pointer: fine)').matches
-})
-
-onUnmounted(() => {
-  cancelAnimationFrame(tiltFrame)
-})
 
 /* ---------------------------------------------------------
    Angka statistik naik dari 0 saat terlihat di layar.
@@ -282,8 +224,8 @@ onUnmounted(() => {
           </span>
         </div>
 
+        <!-- Tanpa foto: nama besar selebar halaman, lalu dua kolom di bawah garis -->
         <div class="hero__inner">
-          <div class="hero__content">
             <!-- Nama tersibak per baris, baris kedua menyusul -->
             <h1 class="hero__title">
               <span v-reveal.clip="90" class="hero__title-line">Jose Elio</span>
@@ -292,133 +234,121 @@ onUnmounted(() => {
               >
             </h1>
 
-            <p class="hero__role" v-reveal="300">
-              <span class="hero__role-prefix">Saya seorang</span>
-              <!-- Pembaca layar membaca daftar peran lengkap, bukan huruf yang sedang diketik -->
-              <span class="hero__sr">{{ roles.join(', ') }}</span>
-              <span class="hero__role-typed" aria-hidden="true">
-                {{ typedRole }}<span class="hero__cursor"></span>
-              </span>
-            </p>
-
-            <p class="hero__lead" v-reveal="380">
-              Mengubah data, desain, dan kode jadi produk yang benar-benar dipakai.
-            </p>
-
-            <div class="hero__actions" v-reveal.stagger="{ delay: 460, step: 90 }">
-              <a href="#proyek" class="btn btn--primary hero__btn">
-                Lihat Proyek
-                <svg viewBox="0 0 24 24" class="hero__btn-arrow" aria-hidden="true">
-                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
-                </svg>
-              </a>
-              <a
-                href="/CV - Jose Elio Parhusip.pdf"
-                class="btn btn--ghost hero__btn hero__btn--download"
-                :class="{ 'is-loading': downloadState === 'loading', 'is-done': downloadState === 'done' }"
-                :aria-disabled="downloadState !== 'idle'"
-                download="CV - Jose Elio Parhusip.pdf"
-                @click="handleDownloadCV"
-              >
-                <span class="hero__btn-fill" aria-hidden="true"></span>
-
-                <span class="hero__btn-icon" aria-hidden="true">
-                  <svg v-if="downloadState !== 'done'" viewBox="0 0 24 24" class="hero__btn-icon-svg hero__btn-icon-svg--arrow">
-                    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3.5v11m0 0-3.5-3.5M12 14.5 15.5 11" />
-                    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 18.5h14" />
-                  </svg>
-                  <svg v-else viewBox="0 0 24 24" class="hero__btn-icon-svg hero__btn-icon-svg--check">
-                    <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5 10 17.5 19 7" />
-                  </svg>
-                </span>
-
-                <span class="hero__btn-label" aria-live="polite">{{ downloadLabel }}</span>
-              </a>
-            </div>
-
-            <div class="hero__meta" v-reveal="620">
-              <div class="hero__socials">
-                <a
-                  href="https://github.com/joseparhusip"
-                  class="hero__social-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="GitHub"
-                  title="GitHub"
-                  @contextmenu.prevent="preventImageAction"
-                >
-                  <svg viewBox="0 0 24 24" class="hero__social-icon" aria-hidden="true">
-                    <path fill="currentColor" d="M12 .5C5.73.5.75 5.48.75 11.75c0 5.02 3.26 9.27 7.78 10.77.57.1.78-.25.78-.55 0-.27-.01-1-.02-1.96-3.16.69-3.83-1.52-3.83-1.52-.52-1.31-1.26-1.66-1.26-1.66-1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94.1-.73.4-1.23.72-1.51-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.16a10.9 10.9 0 0 1 5.74 0c2.19-1.47 3.15-1.16 3.15-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04 0 4.35-2.66 5.31-5.19 5.59.41.35.77 1.04.77 2.1 0 1.51-.01 2.73-.01 3.1 0 .3.2.66.79.55A11.26 11.26 0 0 0 23.25 11.75C23.25 5.48 18.27.5 12 .5Z" />
-                  </svg>
-                </a>
-
-                <a
-                  href="https://www.linkedin.com/in/joseparhusip/"
-                  class="hero__social-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="LinkedIn"
-                  title="LinkedIn"
-                  @contextmenu.prevent="preventImageAction"
-                >
-                  <img
-                    :src="linkedinIcon"
-                    alt="LinkedIn"
-                    class="hero__social-img"
-                    draggable="false"
-                    @contextmenu.prevent="preventImageAction"
-                    @dragstart.prevent="preventImageAction"
-                  />
-                </a>
-
-                <a
-                  href="https://www.instagram.com/joseparhusip_/"
-                  class="hero__social-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Instagram"
-                  title="Instagram"
-                  @contextmenu.prevent="preventImageAction"
-                >
-                  <img
-                    :src="instagramIcon"
-                    alt="Instagram"
-                    class="hero__social-img"
-                    draggable="false"
-                    @contextmenu.prevent="preventImageAction"
-                    @dragstart.prevent="preventImageAction"
-                  />
-                </a>
+            <div class="hero__bottom">
+              <div class="hero__intro">
+                <p class="hero__role" v-reveal="300">
+                  <!-- Baris label: "Saya seorang" + nomor peran yang sedang tampil -->
+                  <span class="hero__role-head" aria-hidden="true">
+                    <span class="hero__role-prefix">Saya seorang</span>
+                    <span class="hero__role-count">
+                      {{ String(roleNo).padStart(2, '0') }} / {{ String(roles.length).padStart(2, '0') }}
+                    </span>
+                  </span>
+                  <!-- Pembaca layar membaca daftar peran lengkap, bukan huruf yang sedang diketik -->
+                  <span class="hero__sr">Saya seorang {{ roles.join(', ') }}</span>
+                  <!-- Dua warna: kata depan warna teks, kata terakhir biru
+                       (mis. "Full Stack" + "Developer") -->
+                  <span class="hero__role-word" aria-hidden="true">
+                    <span class="hero__role-typed">{{ typedSplit.head }}</span
+                    ><span class="hero__role-typed hero__role-typed--accent">{{ typedSplit.tail }}</span
+                    ><span class="hero__cursor"></span>
+                  </span>
+                </p>
+                <p class="hero__lead" v-reveal="380">
+                  Mengubah data, desain, dan kode jadi produk yang benar-benar dipakai.
+                </p>
               </div>
 
-            </div>
-          </div>
+              <div class="hero__cta">
+                <div class="hero__actions" v-reveal.stagger="{ delay: 460, step: 90 }">
+                  <a href="#proyek" class="btn btn--primary hero__btn">
+                    Lihat Proyek
+                    <svg viewBox="0 0 24 24" class="hero__btn-arrow" aria-hidden="true">
+                      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+                    </svg>
+                  </a>
+                  <a
+                    href="/CV - Jose Elio Parhusip.pdf"
+                    class="btn btn--ghost hero__btn hero__btn--download"
+                    :class="{ 'is-loading': downloadState === 'loading', 'is-done': downloadState === 'done' }"
+                    :aria-disabled="downloadState !== 'idle'"
+                    download="CV - Jose Elio Parhusip.pdf"
+                    @click="handleDownloadCV"
+                  >
+                    <span class="hero__btn-fill" aria-hidden="true"></span>
 
-          <!-- Foto sebagai "pelat" bergambar, lengkap dengan keterangan -->
-          <figure class="hero__visual" :class="{ 'is-in': photoReady }">
-            <div class="hero__plate" @pointermove="onCardMove" @pointerleave="onCardLeave">
-              <div ref="cardEl" class="hero__card">
-                <span class="hero__card-panel" aria-hidden="true">
-                  <span class="hero__plate-mark hero__plate-mark--tl"></span>
-                  <span class="hero__plate-mark hero__plate-mark--br"></span>
-                </span>
-                <img
-                  ref="photoEl"
-                  :src="myPhoto"
-                  alt="Jose Elio Parhusip"
-                  class="hero__photo"
-                  draggable="false"
-                  fetchpriority="high"
-                  width="944"
-                  height="944"
-                  @load="markPhotoLoaded"
-                  @error="markPhotoLoaded"
-                  @contextmenu.prevent="preventImageAction"
-                  @dragstart.prevent="preventImageAction"
-                />
+                    <span class="hero__btn-icon" aria-hidden="true">
+                      <svg v-if="downloadState !== 'done'" viewBox="0 0 24 24" class="hero__btn-icon-svg hero__btn-icon-svg--arrow">
+                        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3.5v11m0 0-3.5-3.5M12 14.5 15.5 11" />
+                        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 18.5h14" />
+                      </svg>
+                      <svg v-else viewBox="0 0 24 24" class="hero__btn-icon-svg hero__btn-icon-svg--check">
+                        <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5 10 17.5 19 7" />
+                      </svg>
+                    </span>
+
+                    <span class="hero__btn-label" aria-live="polite">{{ downloadLabel }}</span>
+                  </a>
+                </div>
+
+                <div class="hero__meta" v-reveal="620">
+                  <div class="hero__socials">
+                    <a
+                      href="https://github.com/joseparhusip"
+                      class="hero__social-link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="GitHub"
+                      title="GitHub"
+                      @contextmenu.prevent="preventImageAction"
+                    >
+                      <svg viewBox="0 0 24 24" class="hero__social-icon" aria-hidden="true">
+                        <path fill="currentColor" d="M12 .5C5.73.5.75 5.48.75 11.75c0 5.02 3.26 9.27 7.78 10.77.57.1.78-.25.78-.55 0-.27-.01-1-.02-1.96-3.16.69-3.83-1.52-3.83-1.52-.52-1.31-1.26-1.66-1.26-1.66-1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94.1-.73.4-1.23.72-1.51-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.16a10.9 10.9 0 0 1 5.74 0c2.19-1.47 3.15-1.16 3.15-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04 0 4.35-2.66 5.31-5.19 5.59.41.35.77 1.04.77 2.1 0 1.51-.01 2.73-.01 3.1 0 .3.2.66.79.55A11.26 11.26 0 0 0 23.25 11.75C23.25 5.48 18.27.5 12 .5Z" />
+                      </svg>
+                    </a>
+
+                    <a
+                      href="https://www.linkedin.com/in/joseparhusip/"
+                      class="hero__social-link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="LinkedIn"
+                      title="LinkedIn"
+                      @contextmenu.prevent="preventImageAction"
+                    >
+                      <img
+                        :src="linkedinIcon"
+                        alt="LinkedIn"
+                        class="hero__social-img"
+                        draggable="false"
+                        @contextmenu.prevent="preventImageAction"
+                        @dragstart.prevent="preventImageAction"
+                      />
+                    </a>
+
+                    <a
+                      href="https://www.instagram.com/joseparhusip_/"
+                      class="hero__social-link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Instagram"
+                      title="Instagram"
+                      @contextmenu.prevent="preventImageAction"
+                    >
+                      <img
+                        :src="instagramIcon"
+                        alt="Instagram"
+                        class="hero__social-img"
+                        draggable="false"
+                        @contextmenu.prevent="preventImageAction"
+                        @dragstart.prevent="preventImageAction"
+                      />
+                    </a>
+                  </div>
+
+                </div>
               </div>
             </div>
-          </figure>
         </div>
 
         <dl ref="statsEl" class="hero__stats" v-reveal.stagger="{ delay: 200, step: 110 }">
@@ -449,8 +379,9 @@ onUnmounted(() => {
 
 <style scoped>
 /* =========================================================
-   HERO — gaya "Field Notes": sampul jurnal dengan garis tipis,
-   nama besar rata kiri, dan foto sebagai pelat bergambar.
+   HERO — gaya "Field Notes": sampul jurnal dengan garis tipis.
+   Tanpa foto: nama sangat besar selebar halaman ("Parhusip." rata
+   kanan), lalu peran + tagline di kiri dan tombol + sosial di kanan.
    ========================================================= */
 .hero {
   position: relative;
@@ -513,16 +444,31 @@ onUnmounted(() => {
   to { transform: scale(1.8); opacity: 0; }
 }
 
-/* ---- Isi utama: teks lebar di kiri, pelat foto di kanan ---- */
+/* ---- Isi utama: nama selebar halaman, lalu dua kolom di bawah garis ---- */
 .hero__inner {
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 4.2fr);
-  gap: clamp(2rem, 5vw, 5rem);
-  align-items: end;
   padding-top: clamp(2.5rem, 6vw, 4.5rem);
 }
 
-.hero__content {
+.hero__bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: end;
+  margin-top: clamp(1.6rem, 3.5vw, 2.6rem);
+  padding-top: clamp(1.4rem, 2.5vw, 1.8rem);
+  border-top: 1px solid var(--color-rule);
+}
+
+.hero__intro {
+  min-width: 0;
+}
+
+/* Tombol & sosial rata kanan, sejajar dengan ujung "Parhusip." */
+.hero__cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1.25rem;
   min-width: 0;
 }
 
@@ -530,8 +476,8 @@ onUnmounted(() => {
   margin: 0;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: clamp(3.4rem, 10vw, 8.2rem);
-  line-height: 0.9;
+  font-size: clamp(3.6rem, 12.5vw, 11rem);
+  line-height: 0.88;
   letter-spacing: -0.045em;
   color: var(--color-text);
 }
@@ -548,6 +494,7 @@ onUnmounted(() => {
   letter-spacing: -0.03em;
   color: var(--color-primary);
   padding-left: 0.04em;
+  text-align: right;
 }
 
 .hero__title-dot {
@@ -559,40 +506,65 @@ onUnmounted(() => {
 
 /* ---- Peran yang diketik ---- */
 .hero__role {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.15rem 0.6rem;
-  margin: clamp(1.4rem, 3vw, 2rem) 0 0;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-rule);
-  max-width: 36rem;
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  max-width: 40rem;
 }
 
-.hero__role-prefix {
+/* Label kecil + nomor peran, dipisah garis putus tipis */
+.hero__role-head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-soft);
 }
 
-.hero__role-typed {
-  min-height: 1.3em;
+.hero__role-head::after {
+  content: '';
+  order: 1;
+  flex: 1;
+  height: 1px;
+  background: var(--color-rule);
+}
+
+.hero__role-count {
+  order: 2;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Peran besar. min-height menjaga tinggi baris saat teks terhapus habis */
+.hero__role-word {
+  display: block;
+  min-height: 1.05em;
   font-family: var(--font-heading);
-  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: clamp(2rem, 4.2vw, 3.3rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.hero__role-typed {
   color: var(--color-text);
 }
 
+.hero__role-typed--accent {
+  color: var(--color-primary);
+}
+
+/* Kursor balok biru, setinggi huruf besar */
 .hero__cursor {
   display: inline-block;
-  width: 2px;
-  height: 0.9em;
-  margin-left: 3px;
-  background: var(--color-text);
-  vertical-align: -0.08em;
+  width: 0.08em;
+  height: 0.85em;
+  margin-left: 0.06em;
+  background: var(--color-primary);
+  vertical-align: -0.06em;
   animation: hero-cursor-blink 0.85s steps(1) infinite;
 }
 
@@ -603,7 +575,7 @@ onUnmounted(() => {
 
 .hero__lead {
   max-width: 34rem;
-  margin: 1rem 0 2rem;
+  margin: 0.9rem 0 0;
   font-size: clamp(1rem, 1.3vw, 1.08rem);
   line-height: 1.75;
   color: var(--color-text-soft);
@@ -715,7 +687,6 @@ onUnmounted(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 1rem 1.5rem;
-  margin-top: 2rem;
 }
 
 .hero__socials {
@@ -763,115 +734,6 @@ onUnmounted(() => {
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
-}
-
-/* ---- Pelat foto ---- */
-.hero__visual {
-  --hero-slide-x: 72px;
-  margin: 0;
-  min-width: 0;
-}
-
-.hero__plate {
-  position: relative;
-  aspect-ratio: 4 / 5;
-  perspective: 1100px;
-}
-
-/* Kartu yang dimiringkan. Anak-anaknya tetap 3D (preserve-3d). */
-.hero__card {
-  --rx: 0deg;
-  --ry: 0deg;
-  --gx: 50%;
-  --gy: 30%;
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  transform: rotateX(var(--rx)) rotateY(var(--ry));
-  transition: transform 0.7s var(--ease-out);
-}
-
-.hero__card.is-tilting {
-  transition: transform 0.12s linear;
-}
-
-/* Panel kartu lebih pendek dari foto, jadi kepala & bahu "keluar" dari bingkai */
-.hero__card-panel {
-  position: absolute;
-  inset: 16% 0 0;
-  overflow: hidden;
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-soft);
-  box-shadow: 0 40px 70px -40px rgba(0, 0, 0, 0.55);
-}
-
-/* Kilau cahaya halus di permukaan panel, mengikuti kursor */
-.hero__card-panel::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at var(--gx) var(--gy), rgba(255, 255, 255, 0.16), transparent 50%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.hero__card.is-tilting .hero__card-panel::after {
-  opacity: 1;
-}
-
-/* Foto di lapisan depan. scale() menetralkan pembesaran dari translateZ,
-   jadi saat kartu diam ukurannya pas dengan panel. */
-.hero__photo {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center bottom;
-  transform: translateZ(50px) scale(0.955);
-  clip-path: inset(0 0 0 0 round 0 0 var(--radius-lg) var(--radius-lg));
-  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.3));
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-/* Tanda registrasi di sudut, seperti cetak foto */
-.hero__plate-mark {
-  position: absolute;
-  z-index: 1;
-  width: 14px;
-  height: 14px;
-  border-color: var(--color-text-soft);
-  border-style: solid;
-  pointer-events: none;
-}
-
-.hero__plate-mark--tl {
-  top: 10px;
-  left: 10px;
-  border-width: 1px 0 0 1px;
-}
-
-.hero__plate-mark--br {
-  right: 10px;
-  bottom: 10px;
-  border-width: 0 1px 1px 0;
-}
-
-/* Foto masuk dari kanan setelah loader selesai (logika di script) */
-.hero__visual:not(.is-in) .hero__plate {
-  opacity: 0;
-  transform: translateX(var(--hero-slide-x));
-}
-
-.hero__visual.is-in .hero__plate {
-  animation: hero-plate-in 1.2s var(--ease-out) backwards;
-}
-
-@keyframes hero-plate-in {
-  from { opacity: 0; transform: translateX(var(--hero-slide-x)); clip-path: inset(0 0 0 100%); }
-  to { opacity: 1; transform: translateX(0); clip-path: inset(0 0 0 0); }
 }
 
 /* ---- Statistik: baris bergaris dengan angka besar ---- */
@@ -965,35 +827,28 @@ onUnmounted(() => {
   .hero__cursor {
     animation: none;
   }
-
-  .hero__visual:not(.is-in) .hero__plate {
-    opacity: 1;
-    transform: none;
-  }
-
-  .hero__visual.is-in .hero__plate {
-    animation: none;
-  }
 }
 
 /* ---- Tablet ---- */
 @media (max-width: 960px) {
-  .hero__inner {
+  .hero__bottom {
     grid-template-columns: 1fr;
-    align-items: start;
+    gap: 2rem;
   }
 
-  .hero__visual {
-    --hero-slide-x: 40px;
-    width: 100%;
-    max-width: 420px;
+  .hero__cta {
+    align-items: flex-start;
   }
 }
 
 /* ---- HP ---- */
 @media (max-width: 640px) {
   .hero__title {
-    font-size: clamp(3.2rem, 18vw, 5rem);
+    font-size: clamp(3.4rem, 19vw, 5.4rem);
+  }
+
+  .hero__cta {
+    align-items: stretch;
   }
 
   .hero__actions .hero__btn {
@@ -1012,11 +867,6 @@ onUnmounted(() => {
   .hero__social-link {
     width: 52px;
     height: 48px;
-  }
-
-  .hero__visual {
-    --hero-slide-x: 24px;
-    display: block;
   }
 
   /* Statistik jadi baris buku besar: label kiri, angka kanan */

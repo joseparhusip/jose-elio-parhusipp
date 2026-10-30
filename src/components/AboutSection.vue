@@ -88,6 +88,25 @@ const activeHighlight = ref(null)
 
 const activeCat = ref('all')
 
+// Tools tampil sebagai baris yang bergeser terus ke kanan; tombol
+// "Lihat semua" membuka grid lengkap (dengan filter), "Tutup" kembali.
+const showAll = ref(false)
+const half = Math.ceil(tools.length / 2)
+const toolRows = [tools.slice(0, half), tools.slice(half)]
+const stackEl = ref(null)
+
+function toggleAll() {
+  showAll.value = !showAll.value
+  if (!showAll.value) {
+    activeCat.value = 'all'
+    // Grid lebih tinggi dari baris geser: kembalikan judul Tools ke layar
+    requestAnimationFrame(() => {
+      const top = stackEl.value?.getBoundingClientRect().top ?? 0
+      if (top < 0) stackEl.value.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    })
+  }
+}
+
 function countOf(key) {
   return key === 'all' ? tools.length : tools.filter((t) => t.cat === key).length
 }
@@ -157,28 +176,85 @@ function preventImageAction(event) {
         </div>
       </header>
 
-      <!-- Tools: grid spesimen bergaris dengan filter kategori -->
-      <div class="about__stack">
+      <!-- Tools: baris bergeser; "Lihat semua" membuka grid + filter kategori -->
+      <div ref="stackEl" class="about__stack">
         <div class="about__block-head about__block-head--stack" v-reveal>
           <span class="about__block-label">Tools</span>
 
-          <div class="about__filters" role="group" aria-label="Filter kategori tools">
+          <div class="about__stack-actions">
+            <div v-if="showAll" class="about__filters" role="group" aria-label="Filter kategori tools">
+              <button
+                v-for="cat in categories"
+                :key="cat.key"
+                type="button"
+                class="about__filter"
+                :class="{ 'about__filter--active': activeCat === cat.key }"
+                :aria-pressed="activeCat === cat.key"
+                @click="activeCat = cat.key"
+              >
+                {{ cat.label }}
+                <span class="about__filter-count">{{ countOf(cat.key) }}</span>
+              </button>
+            </div>
+
             <button
-              v-for="cat in categories"
-              :key="cat.key"
               type="button"
-              class="about__filter"
-              :class="{ 'about__filter--active': activeCat === cat.key }"
-              :aria-pressed="activeCat === cat.key"
-              @click="activeCat = cat.key"
+              class="about__toggle"
+              :aria-expanded="showAll"
+              aria-controls="about-tools"
+              @click="toggleAll"
             >
-              {{ cat.label }}
-              <span class="about__filter-count">{{ countOf(cat.key) }}</span>
+              {{ showAll ? 'Tutup' : `Lihat semua ${tools.length}` }}
+              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                <path
+                  v-if="showAll"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  d="M6 6l12 12M18 6 6 18"
+                />
+                <path
+                  v-else
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"
+                />
+              </svg>
             </button>
           </div>
         </div>
 
-        <ul class="about__tools" v-reveal.stagger.scale="{ delay: 140, step: 45 }">
+        <!-- Dua baris bergeser berlawanan arah. Tiap baris diulang dua kali
+             supaya putarannya mulus tanpa jeda. -->
+        <div v-if="!showAll" class="about__marquees" v-reveal>
+          <div
+            v-for="(row, r) in toolRows"
+            :key="r"
+            class="about__marquee"
+            :class="r === 0 ? 'about__marquee--right' : 'about__marquee--left'"
+          >
+            <ul class="about__marquee-track">
+              <li
+                v-for="(tool, index) in [...row, ...row]"
+                :key="`${tool.name}-${index}`"
+                class="about__chip"
+                :aria-hidden="index >= row.length ? 'true' : undefined"
+                oncontextmenu="return false"
+                @contextmenu.prevent="preventImageAction"
+              >
+                <img
+                  :src="tool.icon"
+                  :alt="index >= row.length ? '' : tool.name"
+                  class="about__chip-icon"
+                  width="24"
+                  height="24"
+                  draggable="false"
+                  @dragstart.prevent="preventImageAction"
+                />
+                <span class="about__chip-name">{{ tool.name }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <ul v-else id="about-tools" class="about__tools">
           <li
             v-for="(tool, index) in tools"
             :key="tool.name"
@@ -309,6 +385,135 @@ function preventImageAction(event) {
   padding-bottom: 1.25rem;
 }
 
+.about__stack-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem 1.75rem;
+}
+
+.about__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  padding: 0 1rem;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-sm);
+  background: none;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.about__toggle:hover {
+  border-color: var(--color-text);
+  background: var(--color-surface);
+}
+
+/* ---- Dua baris bergeser ---- */
+.about__marquees {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.about__marquee {
+  overflow: hidden;
+  /* Tepi kiri & kanan memudar supaya chip "muncul" dan "hilang" halus */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.about__marquee-track {
+  display: flex;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: about-marquee-right 48s linear infinite;
+}
+
+/* Baris bawah bergerak ke kiri, sedikit lebih lambat supaya tidak seirama */
+.about__marquee--left .about__marquee-track {
+  animation-name: about-marquee-left;
+  animation-duration: 54s;
+}
+
+.about__marquee:hover .about__marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes about-marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes about-marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Chip: garis tipis tanpa isi, ikon polos; menyala saat disorot */
+.about__chip {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-shrink: 0;
+  margin-right: 0.75rem;
+  padding: 0.75rem 1.25rem 0.75rem 1rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.about__chip:hover {
+  border-color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.about__chip-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.about__chip-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+/* Grid lengkap muncul pelan saat dibuka */
+.about__tools {
+  animation: about-grid-in 0.4s var(--ease-out);
+}
+
+@keyframes about-grid-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 .about__filters {
   display: flex;
   flex-wrap: wrap;
@@ -431,6 +636,33 @@ function preventImageAction(event) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .about__stack-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .about__marquee-track {
+    animation-duration: 38s;
+  }
+
+  .about__marquee--left .about__marquee-track {
+    animation-duration: 42s;
+  }
+
+  .about__chip {
+    gap: 0.55rem;
+    padding: 0.6rem 1rem 0.6rem 0.8rem;
+  }
+
+  .about__chip-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .about__chip-name {
+    font-size: 0.86rem;
+  }
+
   .about__tool {
     gap: 0.6rem;
     min-height: 72px;
@@ -449,6 +681,30 @@ function preventImageAction(event) {
 
   .about__tool-name {
     font-size: 0.86rem;
+  }
+}
+
+/* Baris Tools tetap bergeser walau "kurangi animasi" aktif (gerakannya
+   pelan & linear, dan berhenti saat disorot). Aturan global di main.css
+   mematikan semua animasi, jadi di sini dikecualikan dengan !important. */
+@media (prefers-reduced-motion: reduce) {
+  .about__marquee-track {
+    animation-duration: 48s !important;
+    animation-iteration-count: infinite !important;
+  }
+
+  .about__marquee--left .about__marquee-track {
+    animation-duration: 54s !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 640px) {
+  .about__marquee-track {
+    animation-duration: 38s !important;
+  }
+
+  .about__marquee--left .about__marquee-track {
+    animation-duration: 42s !important;
   }
 }
 

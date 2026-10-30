@@ -37,7 +37,6 @@ const SNAP = [
   '[data-cursor]',
   '.about__tool',
   '.about__cap',
-  '.hero__plate',
   '.contact__item',
   '.contact__map-card',
 ].join(', ')
