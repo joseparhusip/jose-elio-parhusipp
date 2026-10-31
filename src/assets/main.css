@@ -194,7 +194,44 @@ img {
 /* =====================================================
    Tombol bersama
    ===================================================== */
+/* =========================================================
+   Tombol 3D "bisa ditekan": setiap tombol punya sisi tebal di bawah
+   (--btn-edge), kilap tipis di atas, dan bayangan lembut.
+   - Disorot : terangkat 2px, sisinya menebal (alas tetap di tempat).
+   - Ditekan : turun ke bawah, sisinya menipis seperti tombol fisik.
+   - Kilau   : garis cahaya menyapu sekali saat disorot.
+   Warna sisi & kilap diturunkan dari palet, jadi ikut tema gelap/terang.
+   Token di bawah juga dipakai tombol lain (navbar, Tools, ikon GitHub).
+   ========================================================= */
+:root {
+  --btn-depth: 4px;
+  --btn-press: 3px;
+  /* Tombol utama (biru) */
+  --btn-primary-face: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-primary) 82%, #fff) 0%,
+    var(--color-primary) 55%
+  );
+  --btn-primary-edge: color-mix(in srgb, var(--color-primary) 62%, #000);
+  --btn-primary-shadow: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  /* Tombol garis (ghost) */
+  --btn-ghost-face: var(--color-surface);
+  --btn-ghost-edge: color-mix(in srgb, var(--color-text) 22%, var(--color-bg));
+  --btn-ghost-shadow: rgba(0, 0, 0, 0.45);
+  --btn-highlight: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme='light'] {
+  --btn-ghost-edge: color-mix(in srgb, var(--color-text) 18%, var(--color-bg));
+  --btn-ghost-shadow: rgba(15, 17, 20, 0.18);
+  --btn-highlight: rgba(255, 255, 255, 0.9);
+}
+
 .btn {
+  --depth: var(--btn-depth);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -208,27 +245,85 @@ img {
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
-    transform 0.25s var(--ease-out);
+  transform: translateY(0);
+  transition: transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out),
+    background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
+}
+
+/* Kilau yang menyapu dari kiri ke kanan saat disorot */
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.28) 48%,
+    transparent 66%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.7s var(--ease-out);
+  pointer-events: none;
+}
+
+.btn:hover::after {
+  transform: translateX(120%);
+}
+
+.btn:hover {
+  --depth: calc(var(--btn-depth) + 2px);
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  --depth: 1px;
+  transform: translateY(var(--btn-press));
+  transition-duration: 0.06s;
 }
 
 .btn--primary {
-  background: var(--color-primary);
+  background: var(--btn-primary-face), var(--color-primary);
   color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 var(--depth) 0 var(--btn-primary-edge),
+    0 calc(var(--depth) + 10px) 20px -10px var(--btn-primary-shadow);
 }
 
 .btn--primary:hover {
-  background: var(--color-primary-dark);
+  filter: brightness(1.06);
 }
 
 .btn--ghost {
   border-color: var(--color-rule);
   color: var(--color-text);
-  background: transparent;
+  background: var(--btn-ghost-face);
+  box-shadow:
+    inset 0 1px 0 var(--btn-highlight),
+    0 var(--depth) 0 var(--btn-ghost-edge),
+    0 calc(var(--depth) + 10px) 18px -12px var(--btn-ghost-shadow);
+}
+
+/* Kilau tombol garis lebih tipis supaya tidak terlalu terang */
+.btn--ghost::after {
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    color-mix(in srgb, var(--color-text) 10%, transparent) 48%,
+    transparent 66%
+  );
 }
 
 .btn--ghost:hover {
-  border-color: var(--color-text);
+  border-color: var(--color-text-soft);
+}
+
+/* Tombol nonaktif / sedang memuat: tidak terangkat */
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  transform: translateY(1px);
+  --depth: 2px;
 }
 
 /* =====================================================
@@ -296,3 +391,11 @@ html.nav-menu-open .top-btn {
 .type-rest {
   visibility: hidden;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Tekan tetap terasa, tapi tanpa sapuan kilau */
+  .btn::after {
+    display: none;
+  }
+}
+

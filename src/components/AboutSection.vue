@@ -495,18 +495,32 @@ function preventImageAction(event) {
   padding: 0 1rem;
   border: 1px solid var(--color-rule);
   border-radius: var(--radius-sm);
-  background: none;
   font-family: var(--font-body);
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--color-text);
   cursor: pointer;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  /* Tombol 3D (token di main.css) */
+  --depth: var(--btn-depth);
+  background: var(--btn-ghost-face);
+  box-shadow:
+    inset 0 1px 0 var(--btn-highlight),
+    0 var(--depth) 0 var(--btn-ghost-edge),
+    0 calc(var(--depth) + 10px) 18px -12px var(--btn-ghost-shadow);
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
 }
 
 .about__toggle:hover {
-  border-color: var(--color-text);
-  background: var(--color-surface);
+  --depth: calc(var(--btn-depth) + 2px);
+  border-color: var(--color-text-soft);
+  transform: translateY(-2px);
+}
+
+.about__toggle:active {
+  --depth: 1px;
+  transform: translateY(var(--btn-press));
+  transition-duration: 0.06s;
 }
 
 /* ---- Dua baris bergeser ---- */

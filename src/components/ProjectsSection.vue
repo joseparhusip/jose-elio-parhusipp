@@ -808,7 +808,74 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 .gallery__slide--active {
   cursor: zoom-in;
-  border-color: var(--color-text-soft);
+  border-color: transparent;
+  /* Pendaran lembut berganti warna mengikuti palet (lihat gallery-glow) */
+  animation: gallery-glow 6s linear infinite;
+}
+
+/* ---- Garis warna berputar di slide aktif ----
+   Hanya palet website (biru azure + hijau aksen), tanpa merah/ungu pelangi,
+   sama seperti kartu sertifikat. Slide memakai overflow: hidden, jadi
+   garisnya digambar di tepi DALAM slide dan pendarannya lewat box-shadow. */
+.gallery {
+  --rgb-1: var(--color-primary);
+  --rgb-2: var(--color-accent);
+  --rgb-3: color-mix(in srgb, var(--color-primary) 45%, #fff);
+  --rgb-glow: 55%;
+}
+
+:global(:root[data-theme='light']) .gallery {
+  --rgb-glow: 32%;
+}
+
+@property --gallery-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.gallery__slide--active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--gallery-angle),
+    var(--rgb-1),
+    var(--rgb-3),
+    var(--rgb-2),
+    var(--rgb-1)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  animation: gallery-rgb 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes gallery-rgb {
+  to {
+    --gallery-angle: 360deg;
+  }
+}
+
+@keyframes gallery-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 34px -6px color-mix(in srgb, var(--rgb-1) var(--rgb-glow), transparent);
+  }
+  33% {
+    box-shadow: 0 0 34px -6px color-mix(in srgb, var(--rgb-3) var(--rgb-glow), transparent);
+  }
+  66% {
+    box-shadow: 0 0 34px -6px color-mix(in srgb, var(--rgb-2) var(--rgb-glow), transparent);
+  }
 }
 
 .gallery__slide:not(.gallery__slide--active):hover {
@@ -1125,12 +1192,27 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-rule);
   color: var(--color-text);
-  transition: border-color 0.2s ease, background 0.2s ease;
+  /* Tombol 3D (token di main.css) */
+  --depth: var(--btn-depth);
+  background: var(--btn-ghost-face);
+  box-shadow:
+    inset 0 1px 0 var(--btn-highlight),
+    0 var(--depth) 0 var(--btn-ghost-edge),
+    0 calc(var(--depth) + 10px) 18px -12px var(--btn-ghost-shadow);
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
 }
 
 .gallery__icon-link:hover {
-  border-color: var(--color-text);
-  background: var(--color-bg);
+  --depth: calc(var(--btn-depth) + 2px);
+  border-color: var(--color-text-soft);
+  transform: translateY(-2px);
+}
+
+.gallery__icon-link:active {
+  --depth: 1px;
+  transform: translateY(var(--btn-press));
+  transition-duration: 0.06s;
 }
 
 .gallery__private {
@@ -1437,6 +1519,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
   .gallery__detail-point {
     animation: none !important;
+  }
+
+  /* Garis warna slide aktif tetap berputar (pelan & halus) */
+  .gallery__slide--active,
+  .gallery__slide--active::before {
+    animation-duration: 6s !important;
+    animation-iteration-count: infinite !important;
   }
 }
 

@@ -597,10 +597,6 @@ onUnmounted(() => {
   padding: 0 1.4rem;
 }
 
-.hero__btn:hover {
-  transform: translateY(-2px);
-}
-
 .hero__btn-arrow {
   width: 18px;
   height: 18px;

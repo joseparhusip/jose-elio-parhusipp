@@ -409,7 +409,20 @@ onUnmounted(() => {
   border-radius: var(--radius-sm);
   text-decoration: none;
   white-space: nowrap;
-  transition: background 0.2s ease;
+  /* Tombol 3D: sisi tebal di bawah (token di main.css) */
+  --depth: var(--btn-depth);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 var(--depth) 0 color-mix(in srgb, var(--color-text) 55%, var(--color-bg)),
+    0 calc(var(--depth) + 10px) 18px -12px rgba(0, 0, 0, 0.5);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.18s var(--ease-out),
+    box-shadow 0.18s var(--ease-out);
+}
+
+.navbar__cta:active {
+  --depth: 1px;
+  transform: translateY(var(--btn-press));
+  transition-duration: 0.06s;
 }
 
 .navbar__cta svg {
@@ -417,8 +430,14 @@ onUnmounted(() => {
 }
 
 .navbar__cta:hover {
+  --depth: calc(var(--btn-depth) + 2px);
   background: var(--color-primary);
   color: #fff;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 var(--depth) 0 var(--btn-primary-edge),
+    0 calc(var(--depth) + 10px) 20px -10px var(--btn-primary-shadow);
 }
 
 .navbar__cta:hover svg {

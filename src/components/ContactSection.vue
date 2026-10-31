@@ -317,10 +317,6 @@ onBeforeUnmount(() => {
   margin-top: 1.8rem;
 }
 
-.contact__chat-btn:hover {
-  transform: translateY(-1px);
-}
-
 /* Daftar kontak: baris bergaris, label mono | nilai | panah */
 .contact__list {
   list-style: none;
