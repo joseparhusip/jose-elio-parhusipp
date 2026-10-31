@@ -264,10 +264,10 @@ function preventImageAction(event) {
   padding: 0 1.2vw;
   font-family: var(--font-heading);
   /* Dihitung supaya "Jose Elio Parhusip" pas selebar layar */
-  font-size: 13.8vw;
+  font-size: 13.3vw;
   font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.025em;
   white-space: nowrap;
   text-align: center;
   color: var(--ink);
@@ -377,7 +377,7 @@ function preventImageAction(event) {
      bawah yang sama. Jarak atas dikecilkan supaya tidak terlalu renggang. */
   .footer__wordmark {
     margin-top: 1.25rem;
-    font-size: 12.9vw;
+    font-size: 11.3vw;
   }
 
   .top-btn {

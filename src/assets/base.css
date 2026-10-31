@@ -41,15 +41,22 @@
 
   color-scheme: dark;
 
-  /* ---- Tipografi ----
-     Heading: Bricolage Grotesque (tegas, berkarakter)
-     Aksen  : Instrument Serif italic (kata yang mau ditonjolkan)
-     Body   : Geist (bersih, enak dibaca panjang)
-     Label  : Geist Mono (periode, nomor, label kecil) */
-  --font-heading: 'Bricolage Grotesque', 'Geist', system-ui, sans-serif;
-  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-  --font-body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* ---- Tipografi: "Editorial Elegan" ----
+     Heading: Fraunces (serif modern yang lembut, tebal untuk judul)
+     Aksen  : Fraunces italic (kata yang mau ditonjolkan)
+     Body   : Hanken Grotesk (bersih, hangat, enak dibaca panjang)
+     Label  : JetBrains Mono (periode, nomor, label kecil)
+
+     VERSI ASLI (untuk dikembalikan): tukar 4 baris di bawah dengan ini,
+     lalu kembalikan link Google Fonts di index.html (lihat komentar di sana).
+     --font-heading: 'Bricolage Grotesque', 'Geist', system-ui, sans-serif;
+     --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+     --font-body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+     --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace; */
+  --font-heading: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* ---- Ritme & bentuk ---- */
   --container: 1200px;

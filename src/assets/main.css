@@ -158,7 +158,7 @@ img {
   font-weight: 700;
   font-size: clamp(2.1rem, 5vw, 3.9rem);
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   color: var(--color-text);
   margin: 1rem 0 0;
   text-wrap: balance;
@@ -289,4 +289,10 @@ html.nav-menu-open .top-btn {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* ---- Efek mengetik judul (directive v-type) ---- */
+/* Huruf yang belum diketik tetap memakan tempat supaya layout tidak bergeser */
+.type-rest {
+  visibility: hidden;
 }

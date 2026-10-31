@@ -478,7 +478,7 @@ onUnmounted(() => {
   font-weight: 700;
   font-size: clamp(3.6rem, 12.5vw, 11rem);
   line-height: 0.88;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.025em;
   color: var(--color-text);
 }
 
@@ -491,7 +491,7 @@ onUnmounted(() => {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 400;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.015em;
   color: var(--color-primary);
   padding-left: 0.04em;
   text-align: right;
@@ -546,7 +546,7 @@ onUnmounted(() => {
   font-size: clamp(2rem, 4.2vw, 3.3rem);
   font-weight: 700;
   line-height: 1.05;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
 }
 
 .hero__role-typed {

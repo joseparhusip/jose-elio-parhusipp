@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
+import { vType } from '@/directives/type'
 import GithubContributions from './GithubContributions.vue'
 
 // Tech stack icons
@@ -376,7 +377,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         </div>
         <div class="section-head__main projects__head-main">
           <div>
-            <h2 v-reveal.clip="80" class="section-title">
+            <h2 v-type="'proyek'" class="section-title">
               Karya yang pernah saya <span class="serif-accent">bangun</span>
             </h2>
             <p v-reveal="160" class="section-lead projects__lead">
@@ -1056,7 +1057,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   font-family: var(--font-heading);
   font-size: clamp(1.6rem, 3vw, 2.3rem);
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.015em;
   line-height: 1.08;
   color: var(--color-text);
   margin: 0 0 0.85rem;

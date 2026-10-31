@@ -76,10 +76,10 @@ keunguan di layar, jangan dipakai.
 
 | Peran   | Font                    | Catatan                                        |
 | ------- | ----------------------- | ---------------------------------------------- |
-| Heading | **Bricolage Grotesque** | Berat 700–800, letter-spacing rapat (-0.02em)  |
-| Aksen   | **Instrument Serif** italic | Hanya 1–3 kata per judul (`.serif-accent`) |
-| Body    | **Geist** 400           | 16px, line-height 1.6                          |
-| Label   | **Geist Mono**          | Nomor section, periode, label kecil, uppercase + tracking lebar |
+| Heading | **Fraunces**            | Berat 700, letter-spacing -0.015 s/d -0.025em (jangan lebih rapat, huruf serif bisa menempel) |
+| Aksen   | **Fraunces** italic     | Hanya 1–3 kata per judul (`.serif-accent`) |
+| Body    | **Hanken Grotesk** 400  | 16px, line-height 1.6                          |
+| Label   | **JetBrains Mono**      | Nomor section, periode, label kecil, uppercase + tracking lebar |
 
 Pakai kontras ekstrem: judul besar dan tebal vs label mono kecil. Hindari
 ukuran "tengah-tengah" yang saling mirip.
@@ -140,7 +140,7 @@ Sebelum merge, pastikan:
 - [ ] Tidak ada indigo Tailwind (`#6366f1`, `#4f46e5`, `#8b5cf6`, `#7c3aed`, …).
 - [ ] Tidak ada gradien dua warna di hero (ungu→biru, biru→cyan, dll.).
 - [ ] Tidak ada emoji sebagai ikon. Ikon = SVG garis 1.6–1.8px, `currentColor`.
-- [ ] Judul memakai font display (Bricolage / Instrument Serif), bukan Inter/system.
+- [ ] Judul memakai font display (Fraunces), bukan Inter/system.
 - [ ] Tidak ada kartu membulat dengan garis kiri berwarna.
 - [ ] Tidak ada angka yang dikarang ("10× lebih cepat"). Semua angka nyata.
 - [ ] Tidak ada teks pengisi (lorem ipsum, "fitur satu/dua/tiga").

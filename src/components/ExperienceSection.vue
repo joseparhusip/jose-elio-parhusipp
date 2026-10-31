@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
 import { vReveal } from '@/directives/reveal'
+import { vType } from '@/directives/type'
 import spkdLogo from './icons-experience/spkd.svg'
 import jecLogo from './icons-experience/jec.svg'
 import posLogo from './icons-experience/pos.svg'
@@ -237,7 +238,7 @@ const logoStyle = (item) =>
         </div>
 
         <div class="section-head__main">
-          <h2 v-reveal.clip="80" class="section-title">
+          <h2 v-type="'pengalaman'" class="section-title">
             Perjalanan singkat <span class="serif-accent">sejauh</span> ini
           </h2>
           <p v-reveal="160" class="section-lead">
@@ -699,7 +700,7 @@ const logoStyle = (item) =>
   font-family: var(--font-heading);
   font-size: clamp(1.45rem, 2.6vw, 2rem);
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.015em;
   line-height: 1.1;
   color: var(--color-text);
   margin: 0 0 0.4rem;

@@ -497,7 +497,7 @@ onUnmounted(() => {
   font-size: clamp(2rem, 9vw, 2.8rem);
   font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
 }
 
 .navbar__sheet-arrow {

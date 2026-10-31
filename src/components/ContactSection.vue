@@ -7,6 +7,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { useChatWidgetStore } from '../stores/chatWidget'
 import { vReveal } from '@/directives/reveal'
+import { vType } from '@/directives/type'
 import { loaderDone } from '@/composables/useLoaderState'
 
 const chatStore = useChatWidgetStore()
@@ -156,7 +157,7 @@ onBeforeUnmount(() => {
           </span>
         </div>
         <div class="section-head__main">
-          <h2 v-reveal.clip="80" class="section-title contact__title">
+          <h2 v-type="'kontak'" class="section-title contact__title">
             Punya ide atau proyek? Yuk, <span class="serif-accent">ngobrol</span>.
           </h2>
         </div>

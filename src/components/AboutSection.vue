@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
+import { vType } from '@/directives/type'
 import figmaIcon from './icons/icons-about/Figma-logo.svg'
 import flutterIcon from './icons/icons-about/Flutter-mark.svg'
 import powerBiIcon from './icons/icons-about/New_Power_BI_Logo.svg'
@@ -107,6 +108,94 @@ function toggleAll() {
   }
 }
 
+/* ---------------------------------------------------------
+   Baris Tools mengikuti arah scroll:
+   - scroll ke bawah: baris atas ke kanan, baris bawah ke kiri
+   - scroll ke atas : kebalikannya
+   Arah terakhir dipertahankan saat scroll berhenti. Saat berbalik,
+   kecepatan melambat lalu berbalik arah dengan halus (tidak loncat),
+   karena posisi dihitung sendiri di JS, bukan animasi CSS. Baris yang
+   disorot mouse berhenti. Loop hanya jalan saat bagian Tools terlihat.
+--------------------------------------------------------- */
+const trackEls = [] // elemen <ul> tiap baris (diisi lewat :ref di template)
+const hovered = [false, false]
+const offsets = [0, 0] // posisi geser tiap baris (px)
+const velocity = [0, 0] // kecepatan saat ini (px/detik, bertanda)
+const ROW_SIGN = [1, -1] // saat scroll ke bawah: atas ke kanan (+), bawah ke kiri (-)
+let scrollDir = 1 // 1 = ke bawah, -1 = ke atas
+let lastScrollY = 0
+let marqueeFrame = 0
+let lastTime = 0
+let marqueeObserver = null
+
+// Lama satu putaran penuh (detik); di HP sedikit lebih cepat
+function loopSeconds() {
+  return window.matchMedia('(max-width: 640px)').matches ? [38, 42] : [48, 54]
+}
+
+function tickMarquee(now) {
+  const dt = lastTime ? Math.min(0.05, (now - lastTime) / 1000) : 0
+  lastTime = now
+  const secs = loopSeconds()
+
+  trackEls.forEach((el, r) => {
+    if (!el) return
+    const half = el.scrollWidth / 2 // daftar diulang dua kali
+    if (!half) return
+    const target = hovered[r] ? 0 : (half / secs[r]) * ROW_SIGN[r] * scrollDir
+    // Mulai langsung di kecepatan penuh; setelahnya berubah halus (± 0,3 detik)
+    velocity[r] = velocity[r] === 0 && !hovered[r] ? target : velocity[r] + (target - velocity[r]) * Math.min(1, dt * 5)
+    // Posisi dijaga di rentang (-half, 0], jadi putarannya tidak pernah putus
+    offsets[r] = (((offsets[r] + velocity[r] * dt) % half) - half) % half
+    el.style.transform = `translate3d(${offsets[r]}px, 0, 0)`
+  })
+
+  marqueeFrame = requestAnimationFrame(tickMarquee)
+}
+
+function startMarquee() {
+  if (marqueeFrame) return
+  lastTime = 0
+  marqueeFrame = requestAnimationFrame(tickMarquee)
+}
+
+function stopMarquee() {
+  cancelAnimationFrame(marqueeFrame)
+  marqueeFrame = 0
+}
+
+// Arah baru dipakai setelah bergerak minimal 24px ke arah berlawanan.
+// Pergeseran kecil yang bukan dari pengguna (mis. browser menyesuaikan
+// posisi saat layout berubah) tidak membalik arah baris.
+const FLIP_DISTANCE = 24
+
+function onScrollDirection() {
+  const y = window.scrollY
+  const delta = y - lastScrollY
+  if (Math.sign(delta) === scrollDir) {
+    lastScrollY = y // searah: titik acuan ikut bergerak
+  } else if (Math.abs(delta) >= FLIP_DISTANCE) {
+    scrollDir = -scrollDir
+    lastScrollY = y
+  }
+}
+
+onMounted(() => {
+  lastScrollY = window.scrollY
+  window.addEventListener('scroll', onScrollDirection, { passive: true })
+  marqueeObserver = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) startMarquee()
+    else stopMarquee()
+  })
+  if (stackEl.value) marqueeObserver.observe(stackEl.value)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScrollDirection)
+  marqueeObserver?.disconnect()
+  stopMarquee()
+})
+
 function countOf(key) {
   return key === 'all' ? tools.length : tools.filter((t) => t.cat === key).length
 }
@@ -135,7 +224,7 @@ function preventImageAction(event) {
           >
         </div>
         <div class="section-head__main">
-          <h2 class="section-title about__manifesto" v-reveal.clip="80">
+          <h2 class="section-title about__manifesto" v-type="'tentang'">
             Saya membangun
             <span
               class="about__key"
@@ -221,16 +310,17 @@ function preventImageAction(event) {
           </div>
         </div>
 
-        <!-- Dua baris bergeser berlawanan arah. Tiap baris diulang dua kali
-             supaya putarannya mulus tanpa jeda. -->
+        <!-- Dua baris bergeser berlawanan arah, mengikuti arah scroll (lihat
+             tickMarquee). Tiap baris diulang dua kali supaya putarannya mulus. -->
         <div v-if="!showAll" class="about__marquees" v-reveal>
           <div
             v-for="(row, r) in toolRows"
             :key="r"
             class="about__marquee"
-            :class="r === 0 ? 'about__marquee--right' : 'about__marquee--left'"
+            @mouseenter="hovered[r] = true"
+            @mouseleave="hovered[r] = false"
           >
-            <ul class="about__marquee-track">
+            <ul :ref="(el) => (trackEls[r] = el)" class="about__marquee-track">
               <li
                 v-for="(tool, index) in [...row, ...row]"
                 :key="`${tool.name}-${index}`"
@@ -441,35 +531,8 @@ function preventImageAction(event) {
   margin: 0;
   padding: 0;
   list-style: none;
-  animation: about-marquee-right 48s linear infinite;
-}
-
-/* Baris bawah bergerak ke kiri, sedikit lebih lambat supaya tidak seirama */
-.about__marquee--left .about__marquee-track {
-  animation-name: about-marquee-left;
-  animation-duration: 54s;
-}
-
-.about__marquee:hover .about__marquee-track {
-  animation-play-state: paused;
-}
-
-@keyframes about-marquee-right {
-  from {
-    transform: translateX(-50%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes about-marquee-left {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+  /* Posisi geser diatur dari JS (tickMarquee) */
+  will-change: transform;
 }
 
 /* Chip: garis tipis tanpa isi, ikon polos; menyala saat disorot */
@@ -653,14 +716,6 @@ function preventImageAction(event) {
     justify-content: flex-start;
   }
 
-  .about__marquee-track {
-    animation-duration: 38s;
-  }
-
-  .about__marquee--left .about__marquee-track {
-    animation-duration: 42s;
-  }
-
   .about__chip {
     gap: 0.55rem;
     padding: 0.6rem 1rem 0.6rem 0.8rem;
@@ -693,30 +748,6 @@ function preventImageAction(event) {
 
   .about__tool-name {
     font-size: 0.86rem;
-  }
-}
-
-/* Baris Tools tetap bergeser walau "kurangi animasi" aktif (gerakannya
-   pelan & linear, dan berhenti saat disorot). Aturan global di main.css
-   mematikan semua animasi, jadi di sini dikecualikan dengan !important. */
-@media (prefers-reduced-motion: reduce) {
-  .about__marquee-track {
-    animation-duration: 48s !important;
-    animation-iteration-count: infinite !important;
-  }
-
-  .about__marquee--left .about__marquee-track {
-    animation-duration: 54s !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) and (max-width: 640px) {
-  .about__marquee-track {
-    animation-duration: 38s !important;
-  }
-
-  .about__marquee--left .about__marquee-track {
-    animation-duration: 42s !important;
   }
 }
 
