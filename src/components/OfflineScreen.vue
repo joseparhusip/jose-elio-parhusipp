@@ -6,38 +6,71 @@ import { ref, onMounted, onUnmounted } from 'vue'
    (event offline dari browser) dan menutup sendiri saat tersambung
    lagi, didahului pesan singkat "Tersambung kembali".
    Tombol "Coba lagi" memeriksa koneksi dengan memanggil situs sendiri.
+   Selama offline, pemeriksaan juga berjalan OTOMATIS setiap 10 detik
+   (seolah tombol diklik sendiri). Isian di tombol menunjukkan sisa waktu
+   sampai percobaan berikutnya; saat memeriksa, tombol menampilkan
+   animasi loading.
 
    Catatan: ini hanya bekerja kalau situs sudah sempat terbuka. Kalau
    pengunjung membuka situs dalam keadaan offline sejak awal, browser
    yang menampilkan halaman offline-nya sendiri.
 --------------------------------------------------------- */
+const RETRY_SECONDS = 10
+const MIN_CHECK_MS = 1200 // animasi loading terlihat minimal selama ini
+
 const state = ref('online') // online | offline | back
 const checking = ref(false)
+const countdown = ref(RETRY_SECONDS) // sisa detik sampai coba otomatis
 let backTimer = 0
+let tickTimer = 0
+
+function startCountdown() {
+  clearInterval(tickTimer)
+  countdown.value = RETRY_SECONDS
+  tickTimer = setInterval(() => {
+    if (checking.value) return
+    countdown.value -= 1
+    if (countdown.value <= 0) retry()
+  }, 1000)
+}
+
+function stopCountdown() {
+  clearInterval(tickTimer)
+  tickTimer = 0
+}
 
 function goOffline() {
   clearTimeout(backTimer)
   state.value = 'offline'
+  startCountdown()
 }
 
 function goOnline() {
   if (state.value !== 'offline') return
+  stopCountdown()
   state.value = 'back'
   backTimer = setTimeout(() => (state.value = 'online'), 1600)
 }
 
 async function retry() {
-  if (checking.value) return
+  if (checking.value || state.value !== 'offline') return
   checking.value = true
+  const started = Date.now()
+  let ok = false
   try {
     // Permintaan kecil tanpa cache: berhasil = benar-benar tersambung
-    await fetch(`/favicon.ico?cek=${Date.now()}`, { method: 'HEAD', cache: 'no-store' })
-    goOnline()
+    await fetch(`/favicon.ico?cek=${started}`, { method: 'HEAD', cache: 'no-store' })
+    ok = true
   } catch {
-    // Masih offline: biarkan layar tetap tampil
-  } finally {
-    setTimeout(() => (checking.value = false), 500)
+    // Masih offline: layar tetap tampil, hitung mundur diulang
   }
+  // Tunggu sebentar supaya animasi loading tidak sekadar berkedip
+  const wait = Math.max(0, MIN_CHECK_MS - (Date.now() - started))
+  setTimeout(() => {
+    checking.value = false
+    if (ok) goOnline()
+    else countdown.value = RETRY_SECONDS
+  }, wait)
 }
 
 onMounted(() => {
@@ -48,6 +81,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearTimeout(backTimer)
+  stopCountdown()
   window.removeEventListener('offline', goOffline)
   window.removeEventListener('online', goOnline)
 })
@@ -102,25 +136,27 @@ onUnmounted(() => {
           v-if="state !== 'back'"
           type="button"
           class="btn btn--primary offline__btn"
+          :class="{ 'offline__btn--loading': checking }"
+          :style="{ '--progress': checking ? 1 : (RETRY_SECONDS - countdown) / RETRY_SECONDS }"
           :disabled="checking"
+          :aria-busy="checking"
           @click="retry"
         >
-          <svg
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            aria-hidden="true"
-            :class="{ 'offline__spin': checking }"
-          >
+          <!-- Isian tipis yang bertambah selama hitung mundur -->
+          <span class="offline__btn-fill" aria-hidden="true"></span>
+          <!-- Saat memeriksa: lingkaran berputar; selain itu ikon ulang -->
+          <span v-if="checking" class="offline__spinner" aria-hidden="true"></span>
+          <svg v-else viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" />
           </svg>
-          {{ checking ? 'Memeriksa…' : 'Coba lagi' }}
+          <span class="offline__btn-label">{{ checking ? 'Memeriksa…' : 'Coba lagi' }}</span>
         </button>
 
-        <p v-if="state !== 'back'" class="offline__hint mono-meta">
+        <p v-if="state !== 'back'" class="offline__hint mono-meta" aria-live="polite">
           <span class="offline__pulse" aria-hidden="true"></span>
-          Menunggu koneksi
+          <template v-if="checking">Memeriksa koneksi</template>
+          <template v-else>Coba otomatis dalam {{ countdown }} dtk</template>
         </p>
       </div>
     </div>
@@ -239,18 +275,59 @@ onUnmounted(() => {
 }
 
 .offline__btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-width: 168px;
   min-height: 48px;
   margin-top: 1.5rem;
   padding: 0 1.5rem;
 }
 
 .offline__btn:disabled {
-  opacity: 0.75;
   cursor: progress;
 }
 
-.offline__spin {
-  animation: offline-spin 0.8s linear infinite;
+.offline__btn > svg,
+.offline__spinner,
+.offline__btn-label {
+  position: relative;
+  z-index: 1;
+}
+
+/* Isian hitung mundur: garis terang di bawah tombol yang memanjang */
+.offline__btn-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 0;
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.55);
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left center;
+  transition: transform 1s linear;
+}
+
+/* Saat memeriksa: tombol sedikit meredup, garis berjalan bolak-balik */
+.offline__btn--loading {
+  filter: saturate(0.85) brightness(0.95);
+}
+
+.offline__btn--loading .offline__btn-fill {
+  width: 40%;
+  transform: none;
+  transition: none;
+  animation: offline-bar 1s ease-in-out infinite alternate;
+}
+
+.offline__spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: offline-spin 0.7s linear infinite;
 }
 
 /* Baris sendiri di bawah tombol, rata tengah */
@@ -277,6 +354,15 @@ onUnmounted(() => {
   border-radius: 50%;
   border: 1px solid var(--color-text-soft);
   animation: offline-ping 1.8s var(--ease-out) infinite;
+}
+
+@keyframes offline-bar {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
 }
 
 @keyframes offline-spin {
@@ -316,5 +402,16 @@ onUnmounted(() => {
 .offline-leave-to .offline__card {
   opacity: 0;
   transform: translateY(14px) scale(0.98);
+}
+
+/* Animasi loading tetap jalan walau "kurangi animasi" aktif: ini penanda
+   proses, bukan dekorasi. Aturan global di main.css mematikan semua
+   animasi, jadi dikecualikan dengan !important. */
+@media (prefers-reduced-motion: reduce) {
+  .offline__spinner,
+  .offline__btn--loading .offline__btn-fill {
+    animation-duration: 0.8s !important;
+    animation-iteration-count: infinite !important;
+  }
 }
 </style>

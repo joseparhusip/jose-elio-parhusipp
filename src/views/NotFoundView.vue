@@ -141,6 +141,17 @@ const wantedPath = computed(() => {
   .notfound__body {
     grid-template-columns: 1fr;
     align-content: center;
+    justify-items: center;
+    text-align: center;
+  }
+
+  /* Kalimat alamat rata kanan-kiri; baris terakhir tetap di tengah */
+  .notfound__lead {
+    max-width: 26rem;
+    margin-inline: auto;
+    text-align: justify;
+    text-align-last: center;
+    hyphens: auto;
   }
 }
 </style>
