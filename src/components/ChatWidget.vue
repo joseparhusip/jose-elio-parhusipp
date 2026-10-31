@@ -440,7 +440,7 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'cert') {
     await botSay(
-      'Jose punya <strong>sertifikasi SAP</strong>. Itu jadi nilai tambah buat dia di sisi sistem bisnis dan ERP.',
+      'Ada beberapa: <strong>SAP01 SAP Overview</strong> (EDUGATE, 2025), <strong>TOEFL Prediction</strong> skor 450 (ULBI, 2026), peserta <strong>P2MW 2023</strong> kategori Bisnis Digital, bootcamp karier IT dari <strong>SmartPath</strong> (2024), dan kursus <strong>CodeIgniter 3 &amp; API Raja Ongkir</strong> di Udemy (2023). Semuanya bisa dilihat di bagian <strong>Sertifikat</strong>.',
       500,
     )
     return false

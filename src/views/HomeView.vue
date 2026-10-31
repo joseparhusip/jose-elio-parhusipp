@@ -5,6 +5,7 @@ import { vReveal } from '@/directives/reveal'
 import AboutSection from '@/components/AboutSection.vue'
 import ExperienceSection from '@/components/ExperienceSection.vue'
 import ProjectsSection from '@/components/ProjectsSection.vue'
+import CertificatesSection from '@/components/CertificatesSection.vue'
 import ContactSection from '@/components/ContactSection.vue'
 import linkedinIcon from '@/components/icons/icons-about/linkedin-svgrepo-com.svg'
 import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-svgrepo-com.svg'
@@ -373,6 +374,7 @@ onUnmounted(() => {
     <AboutSection />
     <ExperienceSection />
     <ProjectsSection />
+    <CertificatesSection />
     <ContactSection />
   </main>
 </template>

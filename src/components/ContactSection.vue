@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
       <header class="section-head">
         <div class="section-head__meta">
           <span v-reveal class="section-label">
-            <span class="section-label__num">04</span> Kontak
+            <span class="section-label__num">05</span> Kontak
           </span>
         </div>
         <div class="section-head__main">

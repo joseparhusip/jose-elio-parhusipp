@@ -112,7 +112,7 @@ function onKeydown(event) {
 }
 
 function onResize() {
-  if (window.innerWidth > 900 && isMenuOpen.value) closeMenu()
+  if (window.innerWidth > 640 && isMenuOpen.value) closeMenu()
   onScroll()
   updatePill()
 }
@@ -570,7 +570,21 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 900px) {
+/* Tablet (641–900px): deretan menu tetap tampil, dibuat lebih rapat.
+   Tombol "Hubungi Saya" disembunyikan karena sudah ada menu "Kontak". */
+@media (min-width: 641px) and (max-width: 900px) {
+  .navbar__link {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .navbar__cta--desktop {
+    display: none;
+  }
+}
+
+/* HP (≤ 640px, Android/iOS): menu hamburger */
+@media (max-width: 640px) {
   .navbar__inner {
     display: flex;
     justify-content: space-between;
