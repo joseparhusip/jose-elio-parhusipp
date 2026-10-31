@@ -111,13 +111,31 @@ function onKeydown(event) {
   if (event.key === 'Escape' && isMenuOpen.value) closeMenu()
 }
 
+/* ---------------------------------------------------------
+   Deteksi HP asli. Mode "Situs desktop" di Chrome/Safari HP membuat
+   halaman seolah selebar ±980px, jadi media query lebar layar mengira
+   ini laptop dan menampilkan menu desktop. Karena itu dicek juga
+   perangkat fisiknya: layar sentuh (pointer kasar) dengan sisi pendek
+   layar < 600px = HP (tablet mulai ±744px, jadi tetap pakai menu).
+--------------------------------------------------------- */
+const isPhone = ref(false)
+
+function detectPhone() {
+  const touch = window.matchMedia('(pointer: coarse)').matches
+  const shortSide = Math.min(window.screen.width, window.screen.height)
+  isPhone.value = touch && shortSide < 600
+}
+
 function onResize() {
-  if (window.innerWidth > 640 && isMenuOpen.value) closeMenu()
+  detectPhone()
+  // Menu ditutup kalau layar jadi lebar (mis. diputar) dan bukan HP
+  if (!isPhone.value && window.innerWidth > 640 && isMenuOpen.value) closeMenu()
   onScroll()
   updatePill()
 }
 
 onMounted(() => {
+  detectPhone()
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', onResize, { passive: true })
   window.addEventListener('keydown', onKeydown)
@@ -141,7 +159,11 @@ onUnmounted(() => {
   <header
     ref="headerEl"
     class="navbar"
-    :class="{ 'navbar--scrolled': isScrolled, 'navbar--menu-open': isMenuOpen }"
+    :class="{
+      'navbar--scrolled': isScrolled,
+      'navbar--menu-open': isMenuOpen,
+      'navbar--phone': isPhone,
+    }"
   >
     <nav class="navbar__inner" aria-label="Navigasi utama">
       <a :href="homeLink.path" class="navbar__logo" aria-label="Beranda" @click="onLinkClick($event, homeLink)">
@@ -581,6 +603,27 @@ onUnmounted(() => {
   .navbar__cta--desktop {
     display: none;
   }
+}
+
+/* HP dalam mode "Situs desktop": tetap hamburger (lihat detectPhone). */
+.navbar--phone .navbar__inner {
+  display: flex;
+  justify-content: space-between;
+}
+
+.navbar--phone .navbar__links,
+.navbar--phone .navbar__cta--desktop {
+  display: none;
+}
+
+.navbar--phone .navbar__toggle {
+  display: flex;
+}
+
+.navbar--phone.navbar--menu-open {
+  background: var(--color-bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* HP (≤ 640px, Android/iOS): menu hamburger */
