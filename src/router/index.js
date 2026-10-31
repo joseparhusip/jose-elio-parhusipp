@@ -21,7 +21,17 @@ const router = createRouter({
     ...routes,
     // Alamat lama
     { path: '/about', redirect: '/tentang' },
-    { path: '/:pathMatch(.*)*', redirect: '/' },
+    // Alamat yang tidak ada: tampilkan halaman 404 (bukan dilempar ke beranda)
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue'),
+      meta: {
+        notFound: true,
+        title: '404 — Halaman tidak ditemukan · Jose Elio Parhusip',
+        description: 'Halaman yang kamu cari tidak ada atau sudah dipindahkan.',
+      },
+    },
   ],
   scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) return savedPosition
@@ -43,9 +53,12 @@ function setMeta(selector, attr, value) {
 router.afterEach((to) => {
   const page = to.meta
   if (!page?.title) return
-  const url = SITE_URL + (page.path === '/' ? '/' : page.path)
-
+  // Halaman 404 jangan sampai diindeks Google
+  setMeta('meta[name="robots"]', 'content', page.notFound ? 'noindex, follow' : 'index, follow')
   document.title = page.title
+  if (page.notFound) return
+
+  const url = SITE_URL + (page.path === '/' ? '/' : page.path)
   setMeta('meta[name="description"]', 'content', page.description)
   setMeta('link[rel="canonical"]', 'href', url)
   setMeta('meta[property="og:title"]', 'content', page.title)

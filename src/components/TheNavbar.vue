@@ -80,7 +80,12 @@ function setLinkRef(el, href) {
 
 function updatePill() {
   const el = linkEls.value[hoverHref.value || activeHref.value]
-  if (!el || !el.offsetWidth) return
+  // Halaman di luar menu (mis. 404): sembunyikan pill, jangan tertinggal di "Beranda"
+  if (!el) {
+    pill.value = { ...pill.value, ready: false }
+    return
+  }
+  if (!el.offsetWidth) return
   pill.value = { x: el.offsetLeft, w: el.offsetWidth, ready: true }
 }
 

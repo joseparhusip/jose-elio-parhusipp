@@ -5,7 +5,10 @@
       canonical & Open Graph masing-masing. Hasilnya: alamat itu
       bisa dibuka/di-refresh langsung (tidak 404) dan Google
       langsung membaca judul yang benar.
-   2. Menulis dist/sitemap.xml berisi semua halaman.
+   2. Menulis dist/404.html: Vercel otomatis mengirim file ini (dengan
+      status 404 asli) untuk alamat yang tidak ada, lalu aplikasi
+      menampilkan halaman 404 versi desain sendiri.
+   3. Menulis dist/sitemap.xml berisi semua halaman.
 --------------------------------------------------------- */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -49,6 +52,17 @@ for (const page of pages) {
   writeFileSync(outFile, renderPage(page))
   console.log(`✓ ${page.path} → ${outFile.slice(distDir.length + 1)}`)
 }
+
+// Halaman 404: judul sendiri & noindex (tidak boleh masuk hasil pencarian)
+let notFoundHtml = template
+notFoundHtml = replaceOnce(
+  notFoundHtml,
+  /<title>[^<]*<\/title>/,
+  '<title>404 — Halaman tidak ditemukan · Jose Elio Parhusip</title>',
+)
+notFoundHtml = replaceOnce(notFoundHtml, /(<meta name="robots" content=")[^"]*(")/, '$1noindex, follow$2')
+writeFileSync(join(distDir, '404.html'), notFoundHtml)
+console.log('✓ 404.html')
 
 const today = new Date().toISOString().slice(0, 10)
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
