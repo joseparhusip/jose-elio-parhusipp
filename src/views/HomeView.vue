@@ -475,21 +475,21 @@ onUnmounted(() => {
 }
 
 /* Nama 3D "stempel timbul": sisi tebal dari tumpukan bayangan tajam ke
-   kanan bawah. --depth dikali tiap lapis, jadi cukup ubah satu angka untuk
+   kanan bawah. --name-depth dikali tiap lapis, jadi cukup ubah satu angka untuk
    menebalkan sisi (dipakai saat hover). Satuan em supaya ikut ukuran huruf. */
-@property --depth {
+@property --name-depth {
   syntax: '<number>';
   inherits: true;
   initial-value: 1;
 }
 
 .hero__title {
-  --depth: 1;
+  --name-depth: 1;
   --side-1: #4B5059;
   --side-2: #2A2D33;
   --side-accent-1: #1660AD;
   --side-accent-2: #0D4580;
-  --step: calc(var(--depth) * 0.004em);
+  --step: calc(var(--name-depth) * 0.004em);
   margin: 0;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -497,7 +497,7 @@ onUnmounted(() => {
   line-height: 0.88;
   letter-spacing: -0.025em;
   color: var(--color-text);
-  transition: --depth 0.35s var(--ease-out);
+  transition: --name-depth 0.35s var(--ease-out);
 }
 
 :root[data-theme='light'] .hero__title {
@@ -512,7 +512,7 @@ onUnmounted(() => {
   --s2: var(--side-2);
   display: block;
   padding-bottom: 0.06em; /* ruang untuk ekor huruf saat clip reveal */
-  transform: translate(calc((1 - var(--depth)) * 0.02em), calc((1 - var(--depth)) * 0.02em));
+  transform: translate(calc((1 - var(--name-depth)) * 0.02em), calc((1 - var(--name-depth)) * 0.02em));
 }
 
 .hero__title-line,
@@ -554,7 +554,7 @@ onUnmounted(() => {
 /* Disorot: huruf "naik" sedikit dan sisinya menebal (hanya perangkat bermouse) */
 @media (hover: hover) {
   .hero__title:hover {
-    --depth: 1.6;
+    --name-depth: 1.6;
   }
 }
 
