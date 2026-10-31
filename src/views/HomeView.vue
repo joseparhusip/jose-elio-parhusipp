@@ -474,7 +474,22 @@ onUnmounted(() => {
   min-width: 0;
 }
 
+/* Nama 3D "stempel timbul": sisi tebal dari tumpukan bayangan tajam ke
+   kanan bawah. --depth dikali tiap lapis, jadi cukup ubah satu angka untuk
+   menebalkan sisi (dipakai saat hover). Satuan em supaya ikut ukuran huruf. */
+@property --depth {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
 .hero__title {
+  --depth: 1;
+  --side-1: #4B5059;
+  --side-2: #2A2D33;
+  --side-accent-1: #1660AD;
+  --side-accent-2: #0D4580;
+  --step: calc(var(--depth) * 0.004em);
   margin: 0;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -482,14 +497,42 @@ onUnmounted(() => {
   line-height: 0.88;
   letter-spacing: -0.025em;
   color: var(--color-text);
+  transition: --depth 0.35s var(--ease-out);
+}
+
+:root[data-theme='light'] .hero__title {
+  --side-1: #8C9199;
+  --side-2: #5E636B;
+  --side-accent-1: #2A6FB8;
+  --side-accent-2: #164E8A;
 }
 
 .hero__title-line {
+  --s1: var(--side-1);
+  --s2: var(--side-2);
   display: block;
   padding-bottom: 0.06em; /* ruang untuk ekor huruf saat clip reveal */
+  transform: translate(calc((1 - var(--depth)) * 0.02em), calc((1 - var(--depth)) * 0.02em));
+}
+
+.hero__title-line,
+.hero__title-dot {
+  text-shadow:
+    var(--step) var(--step) 0 var(--s1),
+    calc(var(--step) * 2) calc(var(--step) * 2) 0 var(--s1),
+    calc(var(--step) * 3) calc(var(--step) * 3) 0 var(--s1),
+    calc(var(--step) * 4) calc(var(--step) * 4) 0 var(--s1),
+    calc(var(--step) * 5) calc(var(--step) * 5) 0 var(--s2),
+    calc(var(--step) * 6) calc(var(--step) * 6) 0 var(--s2),
+    calc(var(--step) * 7) calc(var(--step) * 7) 0 var(--s2),
+    calc(var(--step) * 8) calc(var(--step) * 8) 0 var(--s2),
+    calc(var(--step) * 9) calc(var(--step) * 9) 0 var(--s2),
+    calc(var(--step) * 12) calc(var(--step) * 15) 0.05em rgba(0, 0, 0, 0.3);
 }
 
 .hero__title-line--accent {
+  --s1: var(--side-accent-1);
+  --s2: var(--side-accent-2);
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 400;
@@ -500,10 +543,19 @@ onUnmounted(() => {
 }
 
 .hero__title-dot {
+  --s1: var(--side-1);
+  --s2: var(--side-2);
   font-family: var(--font-heading);
   font-style: normal;
   font-weight: 700;
   color: var(--color-text);
+}
+
+/* Disorot: huruf "naik" sedikit dan sisinya menebal (hanya perangkat bermouse) */
+@media (hover: hover) {
+  .hero__title:hover {
+    --depth: 1.6;
+  }
 }
 
 /* ---- Peran yang diketik ---- */
