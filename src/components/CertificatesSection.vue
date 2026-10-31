@@ -188,14 +188,16 @@ function preventImageAction(event) {
             @contextmenu.prevent="preventImageAction"
           >
             <Transition name="cert-fade" mode="out-in">
-              <img
-                :key="activeCert.ref"
-                :src="activeCert.image"
-                :alt="`Sertifikat ${activeCert.title}`"
-                class="certs__frame-img"
-                draggable="false"
-                @dragstart.prevent="preventImageAction"
-              />
+              <!-- Kartu membungkus pas gambar (tegak/mendatar), garis warna di tepinya -->
+              <span :key="activeCert.ref" class="certs__card">
+                <img
+                  :src="activeCert.image"
+                  :alt="`Sertifikat ${activeCert.title}`"
+                  class="certs__frame-img"
+                  draggable="false"
+                  @dragstart.prevent="preventImageAction"
+                />
+              </span>
             </Transition>
           </button>
 
@@ -299,16 +301,16 @@ function preventImageAction(event) {
 }
 
 /* ---- Garis warna berputar di sekeliling kartu sertifikat ---- */
-.certs__frame,
+.certs__card,
 .certs__inline-shot {
   position: relative;
   border-color: transparent !important;
 }
 
 /* Cincin tipis: gradien kerucut yang di-mask jadi garis tepi saja */
-.certs__frame::before,
+.certs__card::before,
 .certs__inline-shot::before,
-.certs__frame::after,
+.certs__card::after,
 .certs__inline-shot::after {
   content: '';
   position: absolute;
@@ -324,7 +326,7 @@ function preventImageAction(event) {
   pointer-events: none;
 }
 
-.certs__frame::before,
+.certs__card::before,
 .certs__inline-shot::before {
   inset: -1px;
   padding: 2px;
@@ -338,7 +340,7 @@ function preventImageAction(event) {
 }
 
 /* Pendaran lembut di BELAKANG kartu */
-.certs__frame::after,
+.certs__card::after,
 .certs__inline-shot::after {
   inset: 2px;
   z-index: -1;
@@ -467,25 +469,34 @@ function preventImageAction(event) {
   top: 6rem;
 }
 
-/* Bingkai: alas lembut + dokumen di tengah dengan bayangan kertas tipis */
+/* Panggung pratinjau: tinggi tetap supaya halaman tidak loncat saat
+   ganti sertifikat; kartu di tengahnya membungkus pas gambar */
 .certs__frame {
   display: grid;
   place-items: center;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  padding: clamp(1rem, 2.5vw, 1.75rem);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-soft);
+  min-height: min(470px, 58vh);
+  padding: 0;
+  border: 0;
+  background: none;
   cursor: zoom-in;
 }
 
+/* Kartu: jarak tipis antara gambar dan garis warna */
+.certs__card {
+  display: block;
+  padding: 7px;
+  border-radius: var(--radius);
+  background: var(--color-surface-soft);
+}
+
 .certs__frame-img {
+  display: block;
+  width: auto;
   max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 2px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 14px 30px -18px rgba(0, 0, 0, 0.45);
+  height: auto;
+  max-height: min(440px, 54vh);
+  border-radius: 3px;
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -681,11 +692,13 @@ function preventImageAction(event) {
     padding-bottom: 1.25rem;
   }
 
+  /* Kartu membungkus pas gambar, jadi garis warna tidak jauh dari sertifikat */
   .certs__inline-shot {
     display: block;
-    width: 100%;
+    width: fit-content;
+    max-width: 100%;
     margin-top: 0.85rem;
-    padding: 0.75rem;
+    padding: 6px;
     border: 1px solid var(--color-rule);
     border-radius: var(--radius);
     background: var(--color-surface-soft);
@@ -694,9 +707,10 @@ function preventImageAction(event) {
 
   .certs__inline-shot img {
     display: block;
-    width: 100%;
+    width: auto;
+    max-width: 100%;
+    height: auto;
     max-height: 60vh;
-    object-fit: contain;
     border-radius: 2px;
     box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.5);
     user-select: none;
@@ -732,8 +746,8 @@ function preventImageAction(event) {
 /* Garis berputar tetap jalan walau "kurangi animasi" aktif (pelan & halus).
    Aturan global di main.css mematikan semua animasi, jadi dikecualikan. */
 @media (prefers-reduced-motion: reduce) {
-  .certs__frame::before,
-  .certs__frame::after,
+  .certs__card::before,
+  .certs__card::after,
   .certs__inline-shot::before,
   .certs__inline-shot::after {
     animation-duration: 6s !important;
