@@ -438,7 +438,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             :aria-label="offsetOf(index) === 0
               ? `Perbesar gambar ${project.title}`
               : `Tampilkan proyek ${project.title}`"
-            oncontextmenu="return false"
             @click="onSlideClickGuarded(index)"
             @contextmenu.prevent="preventImageAction"
           >
@@ -457,7 +456,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 class="gallery__img"
                 :loading="Math.abs(offsetOf(index)) <= 1 ? 'eager' : 'lazy'"
                 draggable="false"
-                oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
                 @dragstart.prevent="preventImageAction"
               />
@@ -634,7 +632,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         role="dialog"
         aria-modal="true"
         :aria-label="lightboxProject.title"
-        oncontextmenu="return false"
         @click.self="closeLightbox"
         @contextmenu.prevent="preventImageAction"
       >
@@ -670,7 +667,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             :alt="lightboxShot.caption || lightboxProject.title"
             class="project-lightbox__img"
             draggable="false"
-            oncontextmenu="return false"
             @contextmenu.prevent="preventImageAction"
             @dragstart.prevent="preventImageAction"
             @click.stop

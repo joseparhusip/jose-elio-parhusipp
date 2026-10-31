@@ -319,7 +319,7 @@ const logoStyle = (item) =>
                 <span
                   class="experience__logo"
                   :style="logoStyle(active)"
-                  oncontextmenu="return false"
+                  @contextmenu.prevent
                 >
                   <img
                     v-if="active.logo"

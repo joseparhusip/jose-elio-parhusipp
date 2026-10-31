@@ -71,7 +71,6 @@ function preventImageAction(event) {
                 class="footer__social"
                 target="_blank"
                 rel="noopener noreferrer"
-                oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
               >
                 <span class="footer__social-name">{{ item.name }}</span>

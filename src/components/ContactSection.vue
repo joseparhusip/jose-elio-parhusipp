@@ -232,7 +232,6 @@ onBeforeUnmount(() => {
             <div
               ref="mapContainer"
               class="contact__map"
-              oncontextmenu="return false"
               @contextmenu.prevent="preventImageAction"
             ></div>
 

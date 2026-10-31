@@ -326,7 +326,6 @@ function preventImageAction(event) {
                 :key="`${tool.name}-${index}`"
                 class="about__chip"
                 :aria-hidden="index >= row.length ? 'true' : undefined"
-                oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
               >
                 <img
@@ -351,7 +350,6 @@ function preventImageAction(event) {
             class="about__tool"
             :class="{ 'about__tool--dim': !isMatch(tool) }"
             :style="{ '--i': index }"
-            oncontextmenu="return false"
             @contextmenu.prevent="preventImageAction"
           >
             <span class="about__tool-icon">
@@ -362,7 +360,6 @@ function preventImageAction(event) {
                 width="28"
                 height="28"
                 draggable="false"
-                oncontextmenu="return false"
                 @contextmenu.prevent="preventImageAction"
                 @dragstart.prevent="preventImageAction"
               />
