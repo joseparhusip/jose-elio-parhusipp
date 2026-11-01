@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { loaderDone } from '@/composables/useLoaderState'
 import { vReveal } from '@/directives/reveal'
+import { t } from '@/composables/useLang'
 import AboutSection from '@/components/AboutSection.vue'
 import ExperienceSection from '@/components/ExperienceSection.vue'
 import ProjectsSection from '@/components/ProjectsSection.vue'
@@ -13,9 +14,9 @@ import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-sv
 const edition = new Date().getFullYear()
 
 const stats = [
-  { value: '4+', label: 'Tahun belajar teknologi' },
-  { value: '8', label: 'Proyek dibangun' },
-  { value: '5', label: 'Peran kerja & organisasi' },
+  { value: '4+', label: { id: 'Tahun belajar teknologi', en: 'Years learning tech' } },
+  { value: '8', label: { id: 'Proyek dibangun', en: 'Projects built' } },
+  { value: '5', label: { id: 'Peran kerja & organisasi', en: 'Work & organization roles' } },
 ]
 
 const prefersReducedMotion =
@@ -95,9 +96,9 @@ const downloadState = ref('idle')
 let resetTimeoutId = null
 
 const downloadLabel = computed(() => {
-  if (downloadState.value === 'loading') return 'Menyiapkan berkas...'
-  if (downloadState.value === 'done') return 'Terunduh!'
-  return 'Unduh CV'
+  if (downloadState.value === 'loading') return t({ id: 'Menyiapkan berkas...', en: 'Preparing file...' })
+  if (downloadState.value === 'done') return t({ id: 'Terunduh!', en: 'Downloaded!' })
+  return t({ id: 'Unduh CV', en: 'Download CV' })
 })
 
 async function handleDownloadCV(event) {
@@ -218,10 +219,10 @@ onUnmounted(() => {
       <div class="container">
         <!-- Strip metadata ala sampul jurnal -->
         <div class="hero__strip mono-meta" v-reveal.down>
-          <span>Portofolio · Edisi {{ edition }}</span>
+          <span>{{ t({ id: 'Portofolio · Edisi', en: 'Portfolio · Edition' }) }} {{ edition }}</span>
           <span class="hero__strip-status">
             <span class="hero__status-dot" aria-hidden="true"></span>
-            Terbuka untuk kerja
+            {{ t({ id: 'Terbuka untuk kerja', en: 'Open to work' }) }}
           </span>
         </div>
 
@@ -240,13 +241,13 @@ onUnmounted(() => {
                 <p class="hero__role" v-reveal="300">
                   <!-- Baris label: "Saya seorang" + nomor peran yang sedang tampil -->
                   <span class="hero__role-head" aria-hidden="true">
-                    <span class="hero__role-prefix">Saya seorang</span>
+                    <span class="hero__role-prefix">{{ t({ id: 'Saya seorang', en: 'I am a' }) }}</span>
                     <span class="hero__role-count">
                       {{ String(roleNo).padStart(2, '0') }} / {{ String(roles.length).padStart(2, '0') }}
                     </span>
                   </span>
                   <!-- Pembaca layar membaca daftar peran lengkap, bukan huruf yang sedang diketik -->
-                  <span class="hero__sr">Saya seorang {{ roles.join(', ') }}</span>
+                  <span class="hero__sr">{{ t({ id: 'Saya seorang', en: 'I am a' }) }} {{ roles.join(', ') }}</span>
                   <!-- Dua warna: kata depan warna teks, kata terakhir biru
                        (mis. "Full Stack" + "Developer") -->
                   <span class="hero__role-word" aria-hidden="true">
@@ -256,14 +257,14 @@ onUnmounted(() => {
                   </span>
                 </p>
                 <p class="hero__lead" v-reveal="380">
-                  Mengubah data, desain, dan kode jadi produk yang benar-benar dipakai.
+                  {{ t({ id: 'Mengubah data, desain, dan kode jadi produk yang benar-benar dipakai.', en: 'Turning data, design, and code into products people actually use.' }) }}
                 </p>
               </div>
 
               <div class="hero__cta">
                 <div class="hero__actions" v-reveal.stagger="{ delay: 460, step: 90 }">
                   <a href="#proyek" class="btn btn--primary hero__btn">
-                    Lihat Proyek
+                    {{ t({ id: 'Lihat Proyek', en: 'View Projects' }) }}
                     <svg viewBox="0 0 24 24" class="hero__btn-arrow" aria-hidden="true">
                       <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
                     </svg>
@@ -353,10 +354,10 @@ onUnmounted(() => {
         </div>
 
         <dl ref="statsEl" class="hero__stats" v-reveal.stagger="{ delay: 200, step: 110 }">
-          <div v-for="(item, index) in stats" :key="item.label" class="hero__stat">
+          <div v-for="(item, index) in stats" :key="item.value" class="hero__stat">
             <dt class="hero__stat-label mono-meta">
               <span class="hero__stat-num">0{{ index + 1 }}</span>
-              {{ item.label }}
+              {{ t(item.label) }}
             </dt>
             <dd class="hero__stat-value">
               <span aria-hidden="true">{{ statDisplay[index] }}</span>
@@ -364,7 +365,7 @@ onUnmounted(() => {
             </dd>
           </div>
           <a href="#tentang" class="hero__scroll mono-meta">
-            <span>Gulir</span>
+            <span>{{ t({ id: 'Gulir', en: 'Scroll' }) }}</span>
             <span class="hero__scroll-line" aria-hidden="true"></span>
           </a>
         </dl>

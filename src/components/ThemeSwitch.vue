@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useTheme } from '@/composables/useTheme'
+import { t } from '@/composables/useLang'
 
 const { theme, toggleTheme } = useTheme()
 const isLight = computed(() => theme.value === 'light')
@@ -13,8 +14,8 @@ const isLight = computed(() => theme.value === 'light')
     :class="{ 'sw--light': isLight }"
     role="switch"
     :aria-checked="isLight"
-    :aria-label="isLight ? 'Ganti ke mode gelap' : 'Ganti ke mode terang'"
-    :title="isLight ? 'Mode terang' : 'Mode gelap'"
+    :aria-label="isLight ? t({ id: 'Ganti ke mode gelap', en: 'Switch to dark mode' }) : t({ id: 'Ganti ke mode terang', en: 'Switch to light mode' })"
+    :title="isLight ? t({ id: 'Mode terang', en: 'Light mode' }) : t({ id: 'Mode gelap', en: 'Dark mode' })"
     @click="toggleTheme"
   >
     <!-- Track cekung (3D inset) -->

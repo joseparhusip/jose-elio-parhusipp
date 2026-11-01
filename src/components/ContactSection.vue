@@ -9,6 +9,7 @@ import { useChatWidgetStore } from '../stores/chatWidget'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
 import { loaderDone } from '@/composables/useLoaderState'
+import { lang, t } from '@/composables/useLang'
 
 const chatStore = useChatWidgetStore()
 
@@ -153,12 +154,17 @@ onBeforeUnmount(() => {
       <header class="section-head">
         <div class="section-head__meta">
           <span v-reveal class="section-label">
-            <span class="section-label__num">05</span> Kontak
+            <span class="section-label__num">05</span> {{ t({ id: 'Kontak', en: 'Contact' }) }}
           </span>
         </div>
         <div class="section-head__main">
-          <h2 v-type="'kontak'" class="section-title contact__title">
-            Punya ide atau proyek? Yuk, <span class="serif-accent">ngobrol</span>.
+          <h2 v-type="'kontak'" :key="lang" class="section-title contact__title">
+            <template v-if="lang === 'en'">
+              Have an idea or project? Let's <span class="serif-accent">talk</span>.
+            </template>
+            <template v-else>
+              Punya ide atau proyek? Yuk, <span class="serif-accent">ngobrol</span>.
+            </template>
           </h2>
         </div>
       </header>
@@ -169,7 +175,7 @@ onBeforeUnmount(() => {
           <div class="contact__cta">
             <span class="contact__status mono-meta">
               <span class="contact__status-dot" aria-hidden="true"></span>
-              Terbuka untuk kerja &amp; kolaborasi
+              {{ t({ id: 'Terbuka untuk kerja & kolaborasi', en: 'Open to work & collaboration' }) }}
             </span>
 
             <div class="contact__cta-actions">
@@ -184,7 +190,7 @@ onBeforeUnmount(() => {
                     d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"
                   />
                 </svg>
-                Mulai Chat
+                {{ t({ id: 'Mulai Chat', en: 'Start Chat' }) }}
               </button>
             </div>
 
@@ -225,7 +231,7 @@ onBeforeUnmount(() => {
         <div ref="infoWrap" class="contact__col" :class="{ 'is-in': infoIn }">
           <figure class="contact__map-card">
             <figcaption class="contact__map-head mono-meta">
-              <span class="contact__map-label">Lokasi</span>
+              <span class="contact__map-label">{{ t({ id: 'Lokasi', en: 'Location' }) }}</span>
               <span>Bandung · Bekasi</span>
             </figcaption>
 

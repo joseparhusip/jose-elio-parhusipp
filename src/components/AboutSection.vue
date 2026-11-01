@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
+import { lang, t } from '@/composables/useLang'
 import figmaIcon from './icons/icons-about/Figma-logo.svg'
 import flutterIcon from './icons/icons-about/Flutter-mark.svg'
 import powerBiIcon from './icons/icons-about/New_Power_BI_Logo.svg'
@@ -32,28 +33,28 @@ import pandasIcon from './icons/icons-about/Pandas-logo.svg'
 // Tiga kata kunci di kalimat manifesto + catatan kakinya
 const highlights = [
   {
-    title: 'full-stack & mobile',
+    title: { id: 'full-stack & mobile', en: 'full-stack & mobile apps' },
     keywords: ['Vue', 'React', 'Flutter', 'Node.js'],
   },
   {
-    title: 'analitis',
+    title: { id: 'analitis', en: 'analytically' },
     keywords: ['ERD', 'UML', 'Flowchart'],
   },
   {
-    title: 'kolaboratif',
-    keywords: ['Tim lintas peran', 'Organisasi'],
+    title: { id: 'kolaboratif', en: 'collaboratively' },
+    keywords: [{ id: 'Tim lintas peran', en: 'Cross-functional teams' }, { id: 'Organisasi', en: 'Organizations' }],
   },
 ]
 
 // Kategori dipakai untuk filter di grid tools
 const categories = [
-  { key: 'all', label: 'Semua' },
+  { key: 'all', label: { id: 'Semua', en: 'All' } },
   { key: 'fe', label: 'Frontend' },
   { key: 'be', label: 'Backend' },
   { key: 'db', label: 'Database' },
   { key: 'ops', label: 'API & DevOps' },
   { key: 'data', label: 'Data' },
-  { key: 'design', label: 'Mobile & Desain' },
+  { key: 'design', label: { id: 'Mobile & Desain', en: 'Mobile & Design' } },
 ]
 
 const tools = [
@@ -220,46 +221,72 @@ function preventImageAction(event) {
       <header class="section-head about__head">
         <div class="section-head__meta">
           <span class="section-label" v-reveal
-            ><span class="section-label__num">01</span>Tentang Saya</span
+            ><span class="section-label__num">01</span>{{ t({ id: 'Tentang Saya', en: 'About Me' }) }}</span
           >
         </div>
         <div class="section-head__main">
-          <h2 class="section-title about__manifesto" v-type="'tentang'">
-            Saya membangun
-            <span
-              class="about__key"
-              :class="{ 'is-active': activeHighlight === 0 }"
-              @mouseenter="activeHighlight = 0"
-              @mouseleave="activeHighlight = null"
-              >{{ highlights[0].title }}<sup>1</sup></span
-            >, berpikir
-            <span
-              class="about__key serif-accent"
-              :class="{ 'is-active': activeHighlight === 1 }"
-              @mouseenter="activeHighlight = 1"
-              @mouseleave="activeHighlight = null"
-              >{{ highlights[1].title }}<sup>2</sup></span
-            >, dan bekerja
-            <span
-              class="about__key"
-              :class="{ 'is-active': activeHighlight === 2 }"
-              @mouseenter="activeHighlight = 2"
-              @mouseleave="activeHighlight = null"
-              >{{ highlights[2].title }}<sup>3</sup></span
-            >.
+          <h2 :key="lang" class="section-title about__manifesto" v-type="'tentang'">
+            <template v-if="lang === 'en'">
+              I build
+              <span
+                class="about__key"
+                :class="{ 'is-active': activeHighlight === 0 }"
+                @mouseenter="activeHighlight = 0"
+                @mouseleave="activeHighlight = null"
+                >{{ t(highlights[0].title) }}<sup>1</sup></span
+              >, think
+              <span
+                class="about__key serif-accent"
+                :class="{ 'is-active': activeHighlight === 1 }"
+                @mouseenter="activeHighlight = 1"
+                @mouseleave="activeHighlight = null"
+                >{{ t(highlights[1].title) }}<sup>2</sup></span
+              >, and work
+              <span
+                class="about__key"
+                :class="{ 'is-active': activeHighlight === 2 }"
+                @mouseenter="activeHighlight = 2"
+                @mouseleave="activeHighlight = null"
+                >{{ t(highlights[2].title) }}<sup>3</sup></span
+              >.
+            </template>
+            <template v-else>
+              Saya membangun
+              <span
+                class="about__key"
+                :class="{ 'is-active': activeHighlight === 0 }"
+                @mouseenter="activeHighlight = 0"
+                @mouseleave="activeHighlight = null"
+                >{{ t(highlights[0].title) }}<sup>1</sup></span
+              >, berpikir
+              <span
+                class="about__key serif-accent"
+                :class="{ 'is-active': activeHighlight === 1 }"
+                @mouseenter="activeHighlight = 1"
+                @mouseleave="activeHighlight = null"
+                >{{ t(highlights[1].title) }}<sup>2</sup></span
+              >, dan bekerja
+              <span
+                class="about__key"
+                :class="{ 'is-active': activeHighlight === 2 }"
+                @mouseenter="activeHighlight = 2"
+                @mouseleave="activeHighlight = null"
+                >{{ t(highlights[2].title) }}<sup>3</sup></span
+              >.
+            </template>
           </h2>
 
           <ol class="about__notes" v-reveal.stagger="{ delay: 200, step: 90 }">
             <li
               v-for="(item, index) in highlights"
-              :key="item.title"
+              :key="item.title.id"
               class="about__note"
               :class="{ 'is-active': activeHighlight === index }"
               @mouseenter="activeHighlight = index"
               @mouseleave="activeHighlight = null"
             >
               <span class="about__note-num">{{ index + 1 }}</span>
-              {{ item.keywords.join(' · ') }}
+              {{ item.keywords.map(t).join(' · ') }}
             </li>
           </ol>
         </div>
@@ -271,7 +298,7 @@ function preventImageAction(event) {
           <span class="about__block-label">Tools</span>
 
           <div class="about__stack-actions">
-            <div v-if="showAll" class="about__filters" role="group" aria-label="Filter kategori tools">
+            <div v-if="showAll" class="about__filters" role="group" :aria-label="t({ id: 'Filter kategori tools', en: 'Filter tools by category' })">
               <button
                 v-for="cat in categories"
                 :key="cat.key"
@@ -281,7 +308,7 @@ function preventImageAction(event) {
                 :aria-pressed="activeCat === cat.key"
                 @click="activeCat = cat.key"
               >
-                {{ cat.label }}
+                {{ t(cat.label) }}
                 <span class="about__filter-count">{{ countOf(cat.key) }}</span>
               </button>
             </div>
@@ -293,7 +320,7 @@ function preventImageAction(event) {
               aria-controls="about-tools"
               @click="toggleAll"
             >
-              {{ showAll ? 'Tutup' : `Lihat semua ${tools.length}` }}
+              {{ showAll ? t({ id: 'Tutup', en: 'Close' }) : t({ id: `Lihat semua ${tools.length}`, en: `View all ${tools.length}` }) }}
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                 <path
                   v-if="showAll"

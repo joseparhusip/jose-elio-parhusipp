@@ -8,6 +8,7 @@ import ChatWidget from './components/ChatWidget.vue'
 import ScrollProgress from './components/ScrollProgress.vue'
 import CustomCursor from './components/CustomCursor.vue'
 import OfflineScreen from './components/OfflineScreen.vue'
+import PrivacyDialog from './components/PrivacyDialog.vue'
 
 // Halaman pemberitahuan (404) tampil penuh: tanpa navbar, footer, & chat
 const route = useRoute()
@@ -25,6 +26,8 @@ const isNotice = computed(() => Boolean(route.meta.notFound))
   </div>
   <!-- Widget chat mengambang, tampil di semua halaman kecuali pemberitahuan -->
   <ChatWidget v-if="!isNotice" />
+  <!-- Pop up kebijakan privasi (dibuka dari footer) -->
+  <PrivacyDialog />
   <!-- Layar "Koneksi terputus" saat internet hilang -->
   <OfflineScreen />
   <!-- Kursor custom (hanya perangkat dengan mouse) -->

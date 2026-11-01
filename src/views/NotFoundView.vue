@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { vReveal } from '@/directives/reveal'
+import { lang } from '@/composables/useLang'
 
 /* ---------------------------------------------------------
    Halaman 404: alamat yang dibuka tidak ada.
@@ -33,13 +34,21 @@ const wantedPath = computed(() => {
 
         <div class="notfound__text">
           <h1 v-reveal.clip="140" class="notfound__title">
-            Halaman ini <span class="serif-accent">tersesat</span>.
+            <template v-if="lang === 'en'">This page <span class="serif-accent">got lost</span>.</template>
+            <template v-else>Halaman ini <span class="serif-accent">tersesat</span>.</template>
           </h1>
           <p v-reveal="220" class="notfound__lead">
-            Alamat <code class="notfound__path">{{ wantedPath }}</code> tidak ada atau
-            sudah dipindahkan. Coba mulai lagi dari
-            <!-- Tanpa tombol: satu-satunya jalan keluar adalah tautan teks ini -->
-            <RouterLink to="/" class="notfound__home">beranda</RouterLink>.
+            <template v-if="lang === 'en'">
+              The address <code class="notfound__path">{{ wantedPath }}</code> does not exist or
+              has been moved. Try starting again from the
+              <RouterLink to="/" class="notfound__home">home page</RouterLink>.
+            </template>
+            <template v-else>
+              Alamat <code class="notfound__path">{{ wantedPath }}</code> tidak ada atau
+              sudah dipindahkan. Coba mulai lagi dari
+              <!-- Tanpa tombol: satu-satunya jalan keluar adalah tautan teks ini -->
+              <RouterLink to="/" class="notfound__home">beranda</RouterLink>.
+            </template>
           </p>
         </div>
       </div>

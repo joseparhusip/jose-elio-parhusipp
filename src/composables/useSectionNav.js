@@ -7,7 +7,12 @@ import { pages } from '@/router/pages'
    mengenali tiap halaman. Tapi di beranda, klik menu tetap
    meluncur ke bagiannya seperti biasa, tanpa pindah halaman.
 --------------------------------------------------------- */
-export const navLinks = pages.map(({ path, sectionId, label }) => ({ path, sectionId, label }))
+// label: { id, en }, tampilkan dengan t(link.label) dari useLang
+export const navLinks = pages.map(({ path, sectionId, label, en }) => ({
+  path,
+  sectionId,
+  label: { id: label, en: en.label },
+}))
 
 export function useSectionNav() {
   const route = useRoute()

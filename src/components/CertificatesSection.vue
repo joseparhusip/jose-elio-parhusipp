@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
+import { lang, t } from '@/composables/useLang'
 import toeflImg from './img-sertifikat/toefl-ulbi-2026.jpg'
 import sapImg from './img-sertifikat/sap01-edugate-2025.jpg'
 import smartpathImg from './img-sertifikat/smartpath-bootcamp-2024.png'
@@ -21,18 +22,24 @@ const certificates = [
   {
     title: 'TOEFL Prediction Test',
     issuer: 'Pusat Bahasa ULBI',
-    kind: 'Bahasa',
+    kind: { id: 'Bahasa', en: 'Language' },
     date: 'Jan 2026',
-    detail: 'Skor keseluruhan 450 (Listening 44 · Structure 46 · Reading 45).',
+    detail: {
+      id: 'Skor keseluruhan 450 (Listening 44 · Structure 46 · Reading 45).',
+      en: 'Overall score 450 (Listening 44 · Structure 46 · Reading 45).',
+    },
     ref: '0013/MANPBIO-ULBI/SRT/I/2026',
     image: toeflImg,
   },
   {
     title: 'SAP01 — SAP Overview',
     issuer: 'SAP University Partnership · EDUGATE',
-    kind: 'Kursus profesional',
+    kind: { id: 'Kursus profesional', en: 'Professional course' },
     date: 'Jul 2025',
-    detail: 'Pengenalan sistem ERP SAP dan modul-modul bisnisnya.',
+    detail: {
+      id: 'Pengenalan sistem ERP SAP dan modul-modul bisnisnya.',
+      en: 'An introduction to the SAP ERP system and its business modules.',
+    },
     ref: 'ID 550181560',
     image: sapImg,
   },
@@ -41,32 +48,43 @@ const certificates = [
     issuer: 'SmartPath · International Bootcamp',
     kind: 'Bootcamp',
     date: 'Jan 2024',
-    detail: 'Peserta sesi "Introduction to Successful Career Planning for IT/Computer".',
+    detail: {
+      id: 'Peserta sesi "Introduction to Successful Career Planning for IT/Computer".',
+      en: 'Participated in the session "Introduction to Successful Career Planning for IT/Computer".',
+    },
     ref: '170/SP/I/2024',
     image: smartpathImg,
   },
   {
-    title: 'Peserta P2MW 2023',
+    title: { id: 'Peserta P2MW 2023', en: 'P2MW 2023 Participant' },
     issuer: 'Ditjen Diktiristek · Kemendikbudristek',
-    kind: 'Program nasional',
-    date: 'Des 2023',
-    detail:
-      'Program Pembinaan Mahasiswa Wirausaha, kategori Bisnis Digital: aplikasi marketplace untuk UMKM di lingkungan ULBI.',
+    kind: { id: 'Program nasional', en: 'National program' },
+    date: { id: 'Des 2023', en: 'Dec 2023' },
+    detail: {
+      id: 'Program Pembinaan Mahasiswa Wirausaha, kategori Bisnis Digital: aplikasi marketplace untuk UMKM di lingkungan ULBI.',
+      en: 'Student Entrepreneurship Development Program, Digital Business category: a marketplace app for MSMEs in the ULBI community.',
+    },
     ref: '7358/E2/DT.01.03/2023',
     image: p2mwImg,
   },
   {
-    title: 'Toko Online dengan CodeIgniter 3 & API Raja Ongkir',
+    title: {
+      id: 'Toko Online dengan CodeIgniter 3 & API Raja Ongkir',
+      en: 'Online Store with CodeIgniter 3 & Raja Ongkir API',
+    },
     issuer: 'Udemy · Padang Tekno',
-    kind: 'Kursus online',
-    date: 'Agu 2023',
-    detail: 'Kursus 21,5 jam membangun toko online lengkap dengan cek ongkir.',
+    kind: { id: 'Kursus online', en: 'Online course' },
+    date: { id: 'Agu 2023', en: 'Aug 2023' },
+    detail: {
+      id: 'Kursus 21,5 jam membangun toko online lengkap dengan cek ongkir.',
+      en: 'A 21.5-hour course on building a complete online store with shipping cost checks.',
+    },
     ref: 'UC-eebd53d3-c6d2-4898-92a8-e439588435b3',
     image: udemyImg,
   },
 ]
 
-const years = certificates.map((c) => Number(c.date.slice(-4)))
+const years = certificates.map((c) => Number(t(c.date).slice(-4)))
 const yearRange = `${Math.min(...years)}–${Math.max(...years)}`
 
 const active = ref(0)
@@ -110,15 +128,20 @@ function preventImageAction(event) {
       <header class="section-head">
         <div class="section-head__meta">
           <span v-reveal class="section-label">
-            <span class="section-label__num">04</span> Sertifikat
+            <span class="section-label__num">04</span> {{ t({ id: 'Sertifikat', en: 'Certificates' }) }}
           </span>
           <span v-reveal="80" class="section-head__note">
-            {{ String(certificates.length).padStart(2, '0') }} dokumen<br />{{ yearRange }}
+            {{ String(certificates.length).padStart(2, '0') }} {{ t({ id: 'dokumen', en: 'documents' }) }}<br />{{ yearRange }}
           </span>
         </div>
         <div class="section-head__main">
-          <h2 v-type="'sertifikat'" class="section-title">
-            Bukti saya terus <span class="serif-accent">belajar</span>
+          <h2 :key="lang" v-type="'sertifikat'" class="section-title">
+            <template v-if="lang === 'en'">
+              Proof that I keep <span class="serif-accent">learning</span>
+            </template>
+            <template v-else>
+              Bukti saya terus <span class="serif-accent">belajar</span>
+            </template>
           </h2>
         </div>
       </header>
@@ -137,36 +160,36 @@ function preventImageAction(event) {
               class="certs__row"
               :aria-expanded="active === index"
               :aria-controls="`cert-${index}`"
-              data-cursor="Lihat"
+              :data-cursor="t({ id: 'Lihat', en: 'View' })"
               @mouseenter="active = index"
               @focus="active = index"
               @click="active === index ? openLightbox(index) : (active = index)"
             >
               <span class="certs__num">{{ String(index + 1).padStart(2, '0') }}</span>
               <span class="certs__main">
-                <span class="certs__title">{{ cert.title }}</span>
+                <span class="certs__title">{{ t(cert.title) }}</span>
                 <span class="certs__issuer">{{ cert.issuer }}</span>
               </span>
               <span class="certs__side">
-                <span class="certs__kind">{{ cert.kind }}</span>
-                <span class="certs__date">{{ cert.date }}</span>
+                <span class="certs__kind">{{ t(cert.kind) }}</span>
+                <span class="certs__date">{{ t(cert.date) }}</span>
               </span>
             </button>
 
             <!-- HP: gambar terbuka di bawah baris yang dipilih -->
             <div :id="`cert-${index}`" class="certs__inline" :inert="active !== index">
               <div class="certs__inline-inner">
-                <p class="certs__detail">{{ cert.detail }}</p>
+                <p class="certs__detail">{{ t(cert.detail) }}</p>
                 <button
                   type="button"
                   class="certs__inline-shot"
-                  :aria-label="`Perbesar sertifikat ${cert.title}`"
+                  :aria-label="t({ id: `Perbesar sertifikat ${t(cert.title)}`, en: `Enlarge certificate: ${t(cert.title)}` })"
                   @click="openLightbox(index)"
                   @contextmenu.prevent="preventImageAction"
                 >
                   <img
                     :src="cert.image"
-                    :alt="`Sertifikat ${cert.title}`"
+                    :alt="t({ id: `Sertifikat ${t(cert.title)}`, en: `Certificate: ${t(cert.title)}` })"
                     loading="lazy"
                     draggable="false"
                     @dragstart.prevent="preventImageAction"
@@ -182,8 +205,8 @@ function preventImageAction(event) {
           <button
             type="button"
             class="certs__frame"
-            data-cursor="Perbesar"
-            :aria-label="`Perbesar sertifikat ${activeCert.title}`"
+            :data-cursor="t({ id: 'Perbesar', en: 'Enlarge' })"
+            :aria-label="t({ id: `Perbesar sertifikat ${t(activeCert.title)}`, en: `Enlarge certificate: ${t(activeCert.title)}` })"
             @click="openLightbox(active)"
             @contextmenu.prevent="preventImageAction"
           >
@@ -192,7 +215,7 @@ function preventImageAction(event) {
               <span :key="activeCert.ref" class="certs__card">
                 <img
                   :src="activeCert.image"
-                  :alt="`Sertifikat ${activeCert.title}`"
+                  :alt="t({ id: `Sertifikat ${t(activeCert.title)}`, en: `Certificate: ${t(activeCert.title)}` })"
                   class="certs__frame-img"
                   draggable="false"
                   @dragstart.prevent="preventImageAction"
@@ -202,7 +225,7 @@ function preventImageAction(event) {
           </button>
 
           <div class="certs__caption">
-            <p class="certs__detail">{{ activeCert.detail }}</p>
+            <p class="certs__detail">{{ t(activeCert.detail) }}</p>
             <dl class="certs__meta mono-meta">
               <div>
                 <dt>No.</dt>
@@ -221,11 +244,11 @@ function preventImageAction(event) {
         class="cert-lightbox"
         role="dialog"
         aria-modal="true"
-        :aria-label="certificates[lightbox].title"
+        :aria-label="t(certificates[lightbox].title)"
         @click.self="closeLightbox"
         @contextmenu.prevent="preventImageAction"
       >
-        <button type="button" class="cert-lightbox__close" aria-label="Tutup" @click="closeLightbox">
+        <button type="button" class="btn-close btn-close--dark cert-lightbox__close" :aria-label="t({ id: 'Tutup', en: 'Close' })" @click="closeLightbox">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               d="M6 6l12 12M18 6 6 18" />
@@ -235,8 +258,8 @@ function preventImageAction(event) {
         <div class="cert-lightbox__stage" @click.self="closeLightbox">
           <button
             type="button"
-            class="cert-lightbox__nav cert-lightbox__nav--prev"
-            aria-label="Sertifikat sebelumnya"
+            class="btn-close btn-close--dark cert-lightbox__nav cert-lightbox__nav--prev"
+            :aria-label="t({ id: 'Sertifikat sebelumnya', en: 'Previous certificate' })"
             @click="stepLightbox(-1)"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -247,15 +270,15 @@ function preventImageAction(event) {
           <img
             :key="certificates[lightbox].ref"
             :src="certificates[lightbox].image"
-            :alt="`Sertifikat ${certificates[lightbox].title}`"
+            :alt="t({ id: `Sertifikat ${t(certificates[lightbox].title)}`, en: `Certificate: ${t(certificates[lightbox].title)}` })"
             class="cert-lightbox__img"
             draggable="false"
             @dragstart.prevent="preventImageAction"
           />
           <button
             type="button"
-            class="cert-lightbox__nav cert-lightbox__nav--next"
-            aria-label="Sertifikat berikutnya"
+            class="btn-close btn-close--dark cert-lightbox__nav cert-lightbox__nav--next"
+            :aria-label="t({ id: 'Sertifikat berikutnya', en: 'Next certificate' })"
             @click="stepLightbox(1)"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -267,10 +290,10 @@ function preventImageAction(event) {
 
         <p class="cert-lightbox__caption">
           <span>
-            {{ certificates[lightbox].kind }} · {{ certificates[lightbox].date }} ·
+            {{ t(certificates[lightbox].kind) }} · {{ t(certificates[lightbox].date) }} ·
             {{ lightbox + 1 }} / {{ certificates.length }}
           </span>
-          {{ certificates[lightbox].title }}
+          {{ t(certificates[lightbox].title) }}
         </p>
       </div>
     </Transition>
@@ -577,26 +600,7 @@ function preventImageAction(event) {
   -webkit-user-drag: none;
 }
 
-.cert-lightbox__close,
-.cert-lightbox__nav {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(14, 15, 17, 0.7);
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.cert-lightbox__close:hover,
-.cert-lightbox__nav:hover {
-  background: rgba(255, 255, 255, 0.16);
-}
-
+/* Tampilan tombol dari .btn-close--dark (main.css); di sini hanya posisi */
 .cert-lightbox__close {
   position: absolute;
   top: 1.25rem;

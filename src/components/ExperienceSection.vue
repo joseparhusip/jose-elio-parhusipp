@@ -2,6 +2,7 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
+import { lang, t } from '@/composables/useLang'
 import spkdLogo from './icons-experience/spkd.svg'
 import jecLogo from './icons-experience/jec.svg'
 import posLogo from './icons-experience/pos.svg'
@@ -10,81 +11,143 @@ import himabigLogo from './icons-experience/himabig.svg'
 
 const experiences = [
   {
-    period: 'Oktober 2026 — Sekarang',
+    period: { id: 'Oktober 2026 — Sekarang', en: 'Oct 2026 – Present' },
     role: 'Back End Developer',
-    company: 'Kontrak — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
+    company: {
+      id: 'Kontrak — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
+      en: 'Contract — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
+    },
     short: 'SPKD',
     logo: spkdLogo,
     current: true,
-    desc: [
-      'Mengerjakan backend MedCredix, platform multi-rumah sakit untuk menilai kesiapan kredensial RS secara otomatis dari data operasional RS.',
-      'Membangun 44 endpoint REST API dengan Go (Gin) dan GORM di atas PostgreSQL, lengkap dengan dokumentasi Swagger.',
-      'Mengimplementasikan login JWT dan hak akses per peran (RBAC), sampai pengaturan tombol mana yang boleh dipakai tiap peran.',
-      'Membangun mesin skoring kesiapan RS (rincian skor dan snapshot bulanan) yang menjadi dasar dashboard eksekutif, daftar risiko, peringatan dini, dan rencana tindak lanjut.',
-      'Membangun alur kredensial tenaga medis: unggah dokumen PDF/DOC, verifikasi atau penolakan dokumen, persetujuan kredensial, dan pengelolaan prasyarat.',
-      'Mengintegrasikan data SIMRS melalui uji koneksi 24 resource FHIR, serta modul klaim (deteksi anomali), data klinis, dan kepatuhan regulasi.',
-      'Menyediakan data referensi: direktori RS dari registri Kemenkes, data wilayah Indonesia, dan validasi kode faskes BPJS saat menambah RS mitra.',
-      'Membangun audit trail, pencarian global, dan laporan yang bisa dicetak atau diekspor; menguji API dengan Postman dan database dengan DBeaver.',
-    ],
+    desc: {
+      id: [
+        'Mengerjakan backend MedCredix, platform multi-rumah sakit untuk menilai kesiapan kredensial RS secara otomatis dari data operasional RS.',
+        'Membangun 44 endpoint REST API dengan Go (Gin) dan GORM di atas PostgreSQL, lengkap dengan dokumentasi Swagger.',
+        'Mengimplementasikan login JWT dan hak akses per peran (RBAC), sampai pengaturan tombol mana yang boleh dipakai tiap peran.',
+        'Membangun mesin skoring kesiapan RS (rincian skor dan snapshot bulanan) yang menjadi dasar dashboard eksekutif, daftar risiko, peringatan dini, dan rencana tindak lanjut.',
+        'Membangun alur kredensial tenaga medis: unggah dokumen PDF/DOC, verifikasi atau penolakan dokumen, persetujuan kredensial, dan pengelolaan prasyarat.',
+        'Mengintegrasikan data SIMRS melalui uji koneksi 24 resource FHIR, serta modul klaim (deteksi anomali), data klinis, dan kepatuhan regulasi.',
+        'Menyediakan data referensi: direktori RS dari registri Kemenkes, data wilayah Indonesia, dan validasi kode faskes BPJS saat menambah RS mitra.',
+        'Membangun audit trail, pencarian global, dan laporan yang bisa dicetak atau diekspor; menguji API dengan Postman dan database dengan DBeaver.',
+      ],
+      en: [
+        'Develop the backend for MedCredix, a multi-hospital platform that automatically assesses hospital credentialing readiness from hospital operational data.',
+        'Build 44 REST API endpoints with Go (Gin) and GORM on PostgreSQL, fully documented with Swagger.',
+        'Implement JWT authentication and role-based access control (RBAC), down to which buttons each role is allowed to use.',
+        'Build the hospital readiness scoring engine (score breakdowns and monthly snapshots) that powers the executive dashboard, risk register, early warnings, and follow-up action plans.',
+        'Build the medical staff credentialing workflow: PDF/DOC document uploads, document verification or rejection, credential approval, and prerequisite management.',
+        'Integrate SIMRS data through connection tests for 24 FHIR resources, along with modules for claims (anomaly detection), clinical data, and regulatory compliance.',
+        'Provide reference data: a hospital directory from the Ministry of Health (Kemenkes) registry, Indonesian region data, and BPJS facility code validation when adding partner hospitals.',
+        'Build audit trails, global search, and printable or exportable reports; test APIs with Postman and databases with DBeaver.',
+      ],
+    },
     tags: ['Go', 'Gin', 'GORM', 'PostgreSQL', 'JWT', 'FHIR', 'Swagger'],
   },
   {
-    period: 'Agustus 2025 — September 2025',
+    period: { id: 'Agustus 2025 — September 2025', en: 'Aug 2025 – Sep 2025' },
     role: 'Mobile Developer',
-    company: 'Solo Project — JEC Eye Hospitals & Clinics',
+    company: {
+      id: 'Solo Project — JEC Eye Hospitals & Clinics',
+      en: 'Solo Project — JEC Eye Hospitals & Clinics',
+    },
     short: 'JEC',
     logo: jecLogo,
-    desc: [
-      'Mengumpulkan data melalui kuesioner ke pengguna baru non-JEC sebagai dasar analisis kebutuhan aplikasi.',
-      'Merancang UI aplikasi di Figma serta mendokumentasikan arsitektur sistem melalui Use Case, Activity, Class Diagram, dan ERD.',
-      'Membangun backend menggunakan Node.js & Express.js untuk mendukung komunikasi data antara aplikasi dan server.',
-      'Mengimplementasikan sistem autentikasi (auth) dan fitur keamanan aplikasi untuk melindungi data pengguna.',
-      'Merancang database relasional menggunakan SQL dengan metode pengembangan sistem Waterfall yang diintegrasikan pendekatan User-Centered Design (UCD).',
-      'Mengimplementasikan UI ke aplikasi Android menggunakan Flutter & Dart, termasuk fitur OCR.',
-      'Melakukan Black Box Testing untuk memastikan fungsi aplikasi berjalan sesuai kebutuhan, serta evaluasi usability menggunakan System Usability Scale (SUS) melibatkan 120 responden pengguna baru, memperoleh skor rata-rata 79 (kategori Acceptable/Good).',
-    ],
+    desc: {
+      id: [
+        'Mengumpulkan data melalui kuesioner ke pengguna baru non-JEC sebagai dasar analisis kebutuhan aplikasi.',
+        'Merancang UI aplikasi di Figma serta mendokumentasikan arsitektur sistem melalui Use Case, Activity, Class Diagram, dan ERD.',
+        'Membangun backend menggunakan Node.js & Express.js untuk mendukung komunikasi data antara aplikasi dan server.',
+        'Mengimplementasikan sistem autentikasi (auth) dan fitur keamanan aplikasi untuk melindungi data pengguna.',
+        'Merancang database relasional menggunakan SQL dengan metode pengembangan sistem Waterfall yang diintegrasikan pendekatan User-Centered Design (UCD).',
+        'Mengimplementasikan UI ke aplikasi Android menggunakan Flutter & Dart, termasuk fitur OCR.',
+        'Melakukan Black Box Testing untuk memastikan fungsi aplikasi berjalan sesuai kebutuhan, serta evaluasi usability menggunakan System Usability Scale (SUS) melibatkan 120 responden pengguna baru, memperoleh skor rata-rata 79 (kategori Acceptable/Good).',
+      ],
+      en: [
+        'Collected data through questionnaires sent to new non-JEC users as the basis for the app requirements analysis.',
+        'Designed the app UI in Figma and documented the system architecture with Use Case, Activity, and Class Diagrams, and an ERD.',
+        'Built the backend with Node.js & Express.js to support data communication between the app and the server.',
+        'Implemented the authentication (auth) system and app security features to protect user data.',
+        'Designed a relational SQL database using the Waterfall development method combined with a User-Centered Design (UCD) approach.',
+        'Implemented the UI in an Android app using Flutter & Dart, including an OCR feature.',
+        'Performed Black Box Testing to ensure the app functioned as required, and evaluated usability with the System Usability Scale (SUS) across 120 new-user respondents, achieving an average score of 79 (Acceptable/Good category).',
+      ],
+    },
     tags: ['Flutter', 'Dart', 'Figma'],
   },
   {
-    period: 'Juli 2024 — September 2024',
+    period: { id: 'Juli 2024 — September 2024', en: 'Jul 2024 – Sep 2024' },
     role: 'Back End Developer',
-    company: 'Group Project — Kantor Pusat PT Pos Indonesia',
+    company: {
+      id: 'Group Project — Kantor Pusat PT Pos Indonesia',
+      en: 'Group Project — PT Pos Indonesia Head Office',
+    },
     short: 'POS',
     logo: posLogo,
-    desc: [
-      'Mengembangkan backend web application IHSAN POS untuk mendukung pengelolaan data tenaga kerja profesional PT Pos Indonesia, dari perancangan arsitektur sistem hingga implementasi API.',
-      'Merancang ERD dan membangun database menggunakan PostgreSQL yang aman dan terstruktur, termasuk konfigurasi environment untuk keamanan dan fleksibilitas sistem.',
-      'Menguji dan memvalidasi seluruh endpoint API menggunakan Postman untuk memastikan proses request/response dan integrasi backend-frontend berjalan sesuai kebutuhan.',
-      'Berkoordinasi dengan tim pengembang, serta menyelesaikan pengembangan tepat waktu sesuai standar keamanan dan skalabilitas; hasil proyek dipublikasikan di Jurnal JUISI (Sinta 5).',
-    ],
+    desc: {
+      id: [
+        'Mengembangkan backend web application IHSAN POS untuk mendukung pengelolaan data tenaga kerja profesional PT Pos Indonesia, dari perancangan arsitektur sistem hingga implementasi API.',
+        'Merancang ERD dan membangun database menggunakan PostgreSQL yang aman dan terstruktur, termasuk konfigurasi environment untuk keamanan dan fleksibilitas sistem.',
+        'Menguji dan memvalidasi seluruh endpoint API menggunakan Postman untuk memastikan proses request/response dan integrasi backend-frontend berjalan sesuai kebutuhan.',
+        'Berkoordinasi dengan tim pengembang, serta menyelesaikan pengembangan tepat waktu sesuai standar keamanan dan skalabilitas; hasil proyek dipublikasikan di Jurnal JUISI (Sinta 5).',
+      ],
+      en: [
+        'Developed the backend of the IHSAN POS web application to support management of PT Pos Indonesia\'s professional workforce data, from system architecture design to API implementation.',
+        'Designed the ERD and built a secure, well-structured PostgreSQL database, including environment configuration for system security and flexibility.',
+        'Tested and validated all API endpoints with Postman to ensure request/response handling and backend-frontend integration met requirements.',
+        'Coordinated with the development team and delivered on schedule in line with security and scalability standards; the project was published in the JUISI journal (Sinta 5).',
+      ],
+    },
     tags: ['Backend', 'REST API', 'Database'],
   },
   {
-    period: 'Mei 2023 — April 2024',
+    period: { id: 'Mei 2023 — April 2024', en: 'May 2023 – Apr 2024' },
     role: 'System Analyst',
-    company: 'Program Pembinaan Mahasiswa Wirausaha — Kampus Merdeka',
+    company: {
+      id: 'Program Pembinaan Mahasiswa Wirausaha — Kampus Merdeka',
+      en: 'Student Entrepreneurship Development Program — Kampus Merdeka',
+    },
     short: 'KM',
     logo: p2mwLogo,
-    desc: [
-      'Mengelola anggaran proyek dari estimasi biaya hingga pencatatan pengeluaran, termasuk penyusunan invoice, penawaran, dan kuitansi.',
-      'Melakukan pemodelan sistem (Flowchart, ERD, UML) sebagai dasar pengembangan platform marketplace UMKM yang didanai Kemendikbudristek.',
-    ],
+    desc: {
+      id: [
+        'Mengelola anggaran proyek dari estimasi biaya hingga pencatatan pengeluaran, termasuk penyusunan invoice, penawaran, dan kuitansi.',
+        'Melakukan pemodelan sistem (Flowchart, ERD, UML) sebagai dasar pengembangan platform marketplace UMKM yang didanai Kemendikbudristek.',
+      ],
+      en: [
+        'Managed the project budget from cost estimation to expense tracking, including preparing invoices, quotations, and receipts.',
+        'Performed system modeling (Flowchart, ERD, UML) as the foundation for an MSME marketplace platform funded by the Indonesian Ministry of Education (Kemendikbudristek).',
+      ],
+    },
     tags: ['ERD', 'UML', 'Flowchart'],
   },
   {
-    period: 'Oktober 2022 — Mei 2023',
+    period: { id: 'Oktober 2022 — Mei 2023', en: 'Oct 2022 – May 2023' },
     role: 'Deputy Human Capital and Governance',
-    company: 'Himpunan Mahasiswa Bisnis Digital (HIMABIG)',
+    company: {
+      id: 'Himpunan Mahasiswa Bisnis Digital (HIMABIG)',
+      en: 'Digital Business Student Association (HIMABIG)',
+    },
     short: 'HIMABIG',
     logo: himabigLogo,
     // Logo HIMABIG aslinya di atas latar navy (tulisannya putih)
     logoBg: '#152348',
-    desc: [
-      'Membantu proses rekrutmen dan seleksi pengurus.',
-      'Menyusun target, jadwal, dan anggaran organisasi.',
-      'Mempersiapkan rapat umum sebagai Komite Pengarah.',
+    desc: {
+      id: [
+        'Membantu proses rekrutmen dan seleksi pengurus.',
+        'Menyusun target, jadwal, dan anggaran organisasi.',
+        'Mempersiapkan rapat umum sebagai Komite Pengarah.',
+      ],
+      en: [
+        'Assisted in recruiting and selecting board members.',
+        'Prepared organizational targets, schedules, and budgets.',
+        'Prepared the general assembly as a member of the Steering Committee.',
+      ],
+    },
+    tags: [
+      { id: 'Organisasi', en: 'Organization' },
+      { id: 'Rekrutmen', en: 'Recruitment' },
     ],
-    tags: ['Organisasi', 'Rekrutmen'],
   },
 ]
 
@@ -104,7 +167,7 @@ function parseMonth(text) {
 }
 
 function monthsOf(period) {
-  const [startText, endText = ''] = period.split('—')
+  const [startText, endText = ''] = period.id.split('—')
   const start = parseMonth(startText)
   const now = new Date()
   const end = /sekarang/i.test(endText)
@@ -118,7 +181,10 @@ function formatMonths(total) {
   if (!total) return ''
   const years = Math.floor(total / 12)
   const months = total % 12
-  return [years && `${years} thn`, months && `${months} bln`].filter(Boolean).join(' ')
+  const en = lang.value === 'en'
+  const yearText = en ? `${years} ${years === 1 ? 'yr' : 'yrs'}` : `${years} thn`
+  const monthText = en ? `${months} ${months === 1 ? 'mo' : 'mos'}` : `${months} bln`
+  return [years && yearText, months && monthText].filter(Boolean).join(' ')
 }
 
 function duration(period) {
@@ -127,9 +193,9 @@ function duration(period) {
 
 // Tahun mulai–selesai singkat untuk tab, mis. "2024" atau "2023–2024"
 function yearRange(period) {
-  const [startText, endText = ''] = period.split('—')
+  const [startText, endText = ''] = period.id.split('—')
   const startYear = startText.trim().split(/\s+/).pop()
-  const endYear = /sekarang/i.test(endText) ? 'Kini' : endText.trim().split(/\s+/).pop()
+  const endYear = /sekarang/i.test(endText) ? t({ id: 'Kini', en: 'Now' }) : endText.trim().split(/\s+/).pop()
   return startYear === endYear ? startYear : `${startYear}–${endYear}`
 }
 
@@ -146,14 +212,14 @@ function tenureRatio(item) {
 }
 
 const totalMonths = experiences.reduce((sum, e) => sum + monthsOf(e.period), 0)
-const firstYear = Math.min(...experiences.map((e) => Number(e.period.split('—')[0].trim().split(/\s+/).pop())))
+const firstYear = Math.min(...experiences.map((e) => Number(e.period.id.split('—')[0].trim().split(/\s+/).pop())))
 
 /* ---------------------------------------------------------
    Tab: pilih satu peran, detailnya tampil di panel kanan
 --------------------------------------------------------- */
 const activeIndex = ref(0)
 const active = computed(() => experiences[activeIndex.value])
-const activeCompany = computed(() => splitCompany(active.value.company))
+const activeCompany = computed(() => splitCompany(t(active.value.company)))
 
 const tabRefs = ref([])
 const tablistEl = ref(null)
@@ -199,9 +265,10 @@ function scrollActiveTabIntoView() {
 /* Poin panjang dilipat: tampil 4 dulu, sisanya lewat "Lihat semua" */
 const PREVIEW_COUNT = 4
 const expanded = ref(false)
-const visiblePoints = computed(() =>
-  expanded.value ? active.value.desc : active.value.desc.slice(0, PREVIEW_COUNT),
-)
+const visiblePoints = computed(() => {
+  const points = t(active.value.desc)
+  return expanded.value ? points : points.slice(0, PREVIEW_COUNT)
+})
 
 watch(activeIndex, () => {
   expanded.value = false
@@ -218,16 +285,16 @@ const logoStyle = (item) =>
       <header class="section-head">
         <div class="section-head__meta">
           <span v-reveal class="section-label">
-            <span class="section-label__num">02</span> Pengalaman
+            <span class="section-label__num">02</span> {{ t({ id: 'Pengalaman', en: 'Experience' }) }}
           </span>
 
           <dl v-reveal.stagger="{ delay: 200, step: 90 }" class="experience__summary">
             <div>
-              <dt>Peran</dt>
+              <dt>{{ t({ id: 'Peran', en: 'Roles' }) }}</dt>
               <dd>{{ String(experiences.length).padStart(2, '0') }}</dd>
             </div>
             <div>
-              <dt>Rentang</dt>
+              <dt>{{ t({ id: 'Rentang', en: 'Span' }) }}</dt>
               <dd>{{ firstYear }}–{{ new Date().getFullYear() }}</dd>
             </div>
             <div>
@@ -238,12 +305,23 @@ const logoStyle = (item) =>
         </div>
 
         <div class="section-head__main">
-          <h2 v-type="'pengalaman'" class="section-title">
-            Perjalanan singkat <span class="serif-accent">sejauh</span> ini
+          <h2 :key="lang" v-type="'pengalaman'" class="section-title">
+            <template v-if="lang === 'en'">
+              A brief journey <span class="serif-accent">so far</span>
+            </template>
+            <template v-else>
+              Perjalanan singkat <span class="serif-accent">sejauh</span> ini
+            </template>
           </h2>
           <p v-reveal="160" class="section-lead">
-            Beberapa peran yang pernah saya jalani, dari pekerjaan profesional, proyek mandiri,
-            sampai organisasi, yang membentuk cara saya bekerja.
+            <template v-if="lang === 'en'">
+              A selection of roles I have held, from professional work and independent projects
+              to student organizations, that have shaped the way I work.
+            </template>
+            <template v-else>
+              Beberapa peran yang pernah saya jalani, dari pekerjaan profesional, proyek mandiri,
+              sampai organisasi, yang membentuk cara saya bekerja.
+            </template>
           </p>
         </div>
       </header>
@@ -253,22 +331,22 @@ const logoStyle = (item) =>
         <div v-reveal.left="120" class="experience__ledger">
           <div class="experience__ledger-head mono-meta" aria-hidden="true">
             <span>No.</span>
-            <span>Peran</span>
-            <span>Tahun</span>
+            <span>{{ t({ id: 'Peran', en: 'Role' }) }}</span>
+            <span>{{ t({ id: 'Tahun', en: 'Year' }) }}</span>
           </div>
 
           <div
             ref="tablistEl"
             class="experience__tabs"
             role="tablist"
-            aria-label="Daftar pengalaman"
+            :aria-label="t({ id: 'Daftar pengalaman', en: 'Experience list' })"
             aria-orientation="vertical"
             @keydown="onTabKeydown"
           >
             <button
               v-for="(item, index) in experiences"
               :id="`exp-tab-${index}`"
-              :key="item.role + item.period"
+              :key="item.role + item.period.id"
               :ref="(el) => setTabRef(el, index)"
               type="button"
               role="tab"
@@ -310,7 +388,7 @@ const logoStyle = (item) =>
           :aria-labelledby="`exp-tab-${activeIndex}`"
         >
           <Transition name="panel" mode="out-in">
-            <article :key="active.role + active.period" class="experience__card">
+            <article :key="active.role + active.period.id" class="experience__card">
               <div class="experience__card-top">
                 <span class="experience__card-num" aria-hidden="true">
                   <span>No.</span>{{ String(activeIndex + 1).padStart(2, '0') }}
@@ -324,7 +402,7 @@ const logoStyle = (item) =>
                   <img
                     v-if="active.logo"
                     :src="active.logo"
-                    :alt="`Logo ${active.short}`"
+                    :alt="t({ id: `Logo ${active.short}`, en: `${active.short} logo` })"
                     width="52"
                     height="36"
                     draggable="false"
@@ -344,12 +422,12 @@ const logoStyle = (item) =>
               <div class="experience__meta">
                 <span class="experience__period">
                   <span v-if="active.current" class="experience__now" aria-hidden="true"></span>
-                  {{ active.period }}
+                  {{ t(active.period) }}
                 </span>
                 <span v-if="duration(active.period)" class="experience__duration">
                   {{ duration(active.period) }}
                 </span>
-                <span v-if="active.current" class="experience__current">Sedang berjalan</span>
+                <span v-if="active.current" class="experience__current">{{ t({ id: 'Sedang berjalan', en: 'Ongoing' }) }}</span>
               </div>
 
               <ol class="experience__points">
@@ -364,18 +442,22 @@ const logoStyle = (item) =>
               </ol>
 
               <div class="experience__card-bottom">
-                <ul class="experience__tags" aria-label="Teknologi">
-                  <li v-for="tag in active.tags" :key="tag" class="experience__tag">{{ tag }}</li>
+                <ul class="experience__tags" :aria-label="t({ id: 'Teknologi', en: 'Technologies' })">
+                  <li v-for="tag in active.tags" :key="t(tag)" class="experience__tag">{{ t(tag) }}</li>
                 </ul>
 
                 <button
-                  v-if="active.desc.length > PREVIEW_COUNT"
+                  v-if="active.desc.id.length > PREVIEW_COUNT"
                   type="button"
                   class="experience__more"
                   :aria-expanded="expanded"
                   @click="expanded = !expanded"
                 >
-                  {{ expanded ? 'Ringkas' : `Lihat semua (${active.desc.length})` }}
+                  {{
+                    expanded
+                      ? t({ id: 'Ringkas', en: 'Show less' })
+                      : t({ id: `Lihat semua (${active.desc.id.length})`, en: `Show all (${active.desc.en.length})` })
+                  }}
                   <svg
                     viewBox="0 0 24 24"
                     width="14"
@@ -392,7 +474,7 @@ const logoStyle = (item) =>
           </Transition>
 
           <!-- Pindah ke peran sebelum/berikutnya tanpa balik ke daftar -->
-          <nav class="experience__pager" aria-label="Navigasi pengalaman">
+          <nav class="experience__pager" :aria-label="t({ id: 'Navigasi pengalaman', en: 'Experience navigation' })">
             <button
               type="button"
               class="experience__pager-btn"
@@ -403,7 +485,7 @@ const logoStyle = (item) =>
                 <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-              Lebih baru
+              {{ t({ id: 'Lebih baru', en: 'Newer' }) }}
             </button>
             <span class="experience__pager-count">
               {{ String(activeIndex + 1).padStart(2, '0') }} / {{ String(experiences.length).padStart(2, '0') }}
@@ -414,7 +496,7 @@ const logoStyle = (item) =>
               :disabled="activeIndex === experiences.length - 1"
               @click="select(activeIndex + 1)"
             >
-              Lebih lama
+              {{ t({ id: 'Lebih lama', en: 'Older' }) }}
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                 <path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round" />

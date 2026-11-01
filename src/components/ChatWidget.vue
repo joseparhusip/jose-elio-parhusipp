@@ -1338,7 +1338,7 @@ watch([messages, step, form, pendingClarify, pendingOffer], saveChatState, {
           <div class="chat-widget__header-actions">
             <button
               type="button"
-              class="chat-widget__icon-btn"
+              class="btn-close btn-close--blue chat-widget__icon-btn"
               aria-label="Hapus riwayat chat"
               title="Hapus riwayat chat"
               @click="clearConversation"
@@ -1357,7 +1357,7 @@ watch([messages, step, form, pendingClarify, pendingOffer], saveChatState, {
 
             <button
               type="button"
-              class="chat-widget__icon-btn"
+              class="btn-close btn-close--blue chat-widget__icon-btn"
               aria-label="Tutup chat"
               @click="closeWidget"
             >
@@ -1673,23 +1673,14 @@ watch([messages, step, form, pendingClarify, pendingOffer], saveChatState, {
   flex-shrink: 0;
 }
 
+/* Tampilan tombol dari .btn-close--blue (main.css); header chat lebih rapat */
 .chat-widget__icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  flex-shrink: 0;
+  --close-size: 32px;
+  --close-depth: 2px;
 }
 
 .chat-widget__icon-btn:hover {
-  background: rgba(255, 255, 255, 0.26);
+  --close-depth: 3px;
 }
 
 .chat-widget__icon-svg {

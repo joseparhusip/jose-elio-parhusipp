@@ -2,6 +2,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { navLinks, useSectionNav } from '@/composables/useSectionNav'
+import { openPrivacy } from '@/composables/usePrivacy'
+import { lang, t } from '@/composables/useLang'
 
 const { onNavClick } = useSectionNav()
 
@@ -44,26 +46,35 @@ function preventImageAction(event) {
       <!-- Kolom informasi -->
       <div v-reveal.stagger="{ delay: 60, step: 90 }" class="footer__grid">
         <div class="footer__brand">
-          <a :href="navLinks[0].path" class="footer__logo" aria-label="Kembali ke beranda" @click="onNavClick($event, navLinks[0])">
+          <a :href="navLinks[0].path" class="footer__logo" :aria-label="t({ id: 'Kembali ke beranda', en: 'Back to home' })" @click="onNavClick($event, navLinks[0])">
             <img src="/logo-navbar-footer.png" alt="Jose Elio Parhusip" class="footer__logo-img" draggable="false" />
           </a>
           <p class="footer__statement">
-            Membangun web, mobile, dan dashboard data yang
-            <span class="footer__serif">benar-benar dipakai.</span>
+            <template v-if="lang === 'en'">
+              Building web, mobile, and data dashboards that
+              <span class="footer__serif">people actually use.</span>
+            </template>
+            <template v-else>
+              Membangun web, mobile, dan dashboard data yang
+              <span class="footer__serif">benar-benar dipakai.</span>
+            </template>
           </p>
+          <button type="button" class="footer__legal" aria-haspopup="dialog" @click="openPrivacy">
+            {{ t({ id: 'Kebijakan privasi', en: 'Privacy policy' }) }}
+          </button>
         </div>
 
-        <nav class="footer__col" aria-label="Navigasi footer">
+        <nav class="footer__col" :aria-label="t({ id: 'Navigasi footer', en: 'Footer navigation' })">
           <ul class="footer__list">
             <li v-for="link in navLinks" :key="link.path">
               <a :href="link.path" class="footer__link" @click="onNavClick($event, link)">
-                {{ link.label }}
+                {{ t(link.label) }}
               </a>
             </li>
           </ul>
         </nav>
 
-        <div class="footer__col" aria-label="Sosial media">
+        <div class="footer__col" :aria-label="t({ id: 'Sosial media', en: 'Social media' })">
           <ul class="footer__list">
             <li v-for="item in socials" :key="item.name">
               <a
@@ -100,8 +111,8 @@ function preventImageAction(event) {
       class="top-btn"
       type="button"
       @click="scrollToTop"
-      aria-label="Kembali ke atas"
-      title="Kembali ke atas"
+      :aria-label="t({ id: 'Kembali ke atas', en: 'Back to top' })"
+      :title="t({ id: 'Kembali ke atas', en: 'Back to top' })"
     >
       <svg viewBox="0 0 24 24" class="top-btn__icon" aria-hidden="true">
         <path
@@ -250,7 +261,31 @@ function preventImageAction(event) {
   transform: translate(2px, -2px);
 }
 
+.footer__legal {
+  display: block;
+  margin-top: 1.4rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 4px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.footer__legal:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+}
+
 .footer__link:focus-visible,
+.footer__legal:focus-visible,
 .footer__social:focus-visible,
 .footer__logo:focus-visible {
   outline: 2px solid var(--footer-accent);

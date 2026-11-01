@@ -1,6 +1,8 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import ThemeSwitch from '@/components/ThemeSwitch.vue'
+import LangSwitch from '@/components/LangSwitch.vue'
+import { lang, t } from '@/composables/useLang'
 import { useTheme } from '@/composables/useTheme'
 import { navLinks, useSectionNav } from '@/composables/useSectionNav'
 
@@ -89,7 +91,8 @@ function updatePill() {
   pill.value = { x: el.offsetLeft, w: el.offsetWidth, ready: true }
 }
 
-watch([activeHref, hoverHref], () => nextTick(updatePill))
+// Ganti bahasa mengubah lebar menu, jadi pill dihitung ulang
+watch([activeHref, hoverHref, lang], () => nextTick(updatePill))
 
 /* ---------------------------------------------------------
    Menu HP: layar penuh, scroll halaman dikunci selama terbuka,
@@ -165,8 +168,8 @@ onUnmounted(() => {
       'navbar--phone': isPhone,
     }"
   >
-    <nav class="navbar__inner" aria-label="Navigasi utama">
-      <a :href="homeLink.path" class="navbar__logo" aria-label="Beranda" @click="onLinkClick($event, homeLink)">
+    <nav class="navbar__inner" :aria-label="t({ id: 'Navigasi utama', en: 'Main navigation' })">
+      <a :href="homeLink.path" class="navbar__logo" :aria-label="t(homeLink.label)" @click="onLinkClick($event, homeLink)">
         <img
           :src="theme === 'light' ? '/logo-navbar-sebelum-scroll.png' : '/logo-navbar-footer.png'"
           alt="Jose Elio Parhusip"
@@ -195,15 +198,16 @@ onUnmounted(() => {
             @focus="hoverHref = link.path"
             @blur="hoverHref = null"
           >
-            {{ link.label }}
+            {{ t(link.label) }}
           </a>
         </li>
       </ul>
 
       <div class="navbar__actions">
+        <LangSwitch />
         <ThemeSwitch />
         <a :href="contactLink.path" class="navbar__cta navbar__cta--desktop" @click="onLinkClick($event, contactLink)">
-          Hubungi Saya
+          {{ t({ id: 'Hubungi Saya', en: 'Get in Touch' }) }}
           <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
               stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
@@ -214,7 +218,11 @@ onUnmounted(() => {
           class="navbar__toggle"
           :class="{ 'navbar__toggle--open': isMenuOpen }"
           type="button"
-          :aria-label="isMenuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'"
+          :aria-label="
+            isMenuOpen
+              ? t({ id: 'Tutup menu navigasi', en: 'Close navigation menu' })
+              : t({ id: 'Buka menu navigasi', en: 'Open navigation menu' })
+          "
           :aria-expanded="isMenuOpen"
           aria-controls="navbar-sheet"
           @click="toggleMenu"
@@ -243,7 +251,7 @@ onUnmounted(() => {
               @click="onLinkClick($event, link)"
             >
               <span class="navbar__sheet-num">0{{ index + 1 }}</span>
-              <span class="navbar__sheet-text">{{ link.label }}</span>
+              <span class="navbar__sheet-text">{{ t(link.label) }}</span>
               <svg class="navbar__sheet-arrow" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                   stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
@@ -258,7 +266,7 @@ onUnmounted(() => {
           :style="{ '--i': navLinks.length }"
           @click="onLinkClick($event, contactLink)"
         >
-          Hubungi Saya
+          {{ t({ id: 'Hubungi Saya', en: 'Get in Touch' }) }}
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
               stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />

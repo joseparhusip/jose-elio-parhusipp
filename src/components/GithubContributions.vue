@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
+import { lang, t } from '@/composables/useLang'
 
 /* ---------------------------------------------------------
    Grafik kontribusi GitHub (seperti di halaman profil).
@@ -15,15 +16,22 @@ const FIRST_YEAR = 2024
 
 const currentYear = new Date().getFullYear()
 const ranges = [
-  { key: 'last', label: 'Setahun terakhir' },
+  { key: 'last', label: { id: 'Setahun terakhir', en: 'Past 12 months' } },
   ...Array.from({ length: currentYear - FIRST_YEAR + 1 }, (_, i) => {
     const year = String(currentYear - i)
     return { key: year, label: year }
   }),
 ]
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-const DAY_LABELS = ['', 'Sen', '', 'Rab', '', 'Jum', '']
+const MONTHS = {
+  id: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+}
+const DAY_LABELS = {
+  id: ['', 'Sen', '', 'Rab', '', 'Jum', ''],
+  en: ['', 'Mon', '', 'Wed', '', 'Fri', ''],
+}
+const locale = computed(() => (lang.value === 'en' ? 'en-US' : 'id-ID'))
 
 const activeRange = ref('last')
 const status = ref('loading')
@@ -82,7 +90,7 @@ const monthLabels = computed(() => {
     if (month !== lastMonth) {
       // Lewati label yang terlalu mepet dengan label sebelumnya
       if (!labels.length || index - labels[labels.length - 1].col >= 3) {
-        labels.push({ col: index, text: MONTHS[month] })
+        labels.push({ col: index, text: t(MONTHS)[month] })
       }
       lastMonth = month
     }
@@ -92,18 +100,28 @@ const monthLabels = computed(() => {
 
 const heading = computed(() => {
   if (!data.value) return ''
-  const total = data.value.total.toLocaleString('id-ID')
+  const total = data.value.total.toLocaleString(locale.value)
+  if (lang.value === 'en') {
+    const noun = data.value.total === 1 ? 'contribution' : 'contributions'
+    return activeRange.value === 'last'
+      ? `${total} ${noun} in the last year`
+      : `${total} ${noun} in ${activeRange.value}`
+  }
   return activeRange.value === 'last'
     ? `${total} kontribusi dalam setahun terakhir`
     : `${total} kontribusi di tahun ${activeRange.value}`
 })
 
 function formatDay(day) {
-  const date = new Date(`${day.date}T00:00:00`).toLocaleDateString('id-ID', {
+  const date = new Date(`${day.date}T00:00:00`).toLocaleDateString(locale.value, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   })
+  if (lang.value === 'en') {
+    if (!day.count) return `No contributions on ${date}`
+    return `${day.count} ${day.count === 1 ? 'contribution' : 'contributions'} on ${date}`
+  }
   return day.count
     ? `${day.count} kontribusi pada ${date}`
     : `Tidak ada kontribusi pada ${date}`
@@ -125,7 +143,7 @@ function showTooltip(event, day) {
   const cell = event.currentTarget.getBoundingClientRect()
   const box = graphEl.value.getBoundingClientRect()
   tooltip.value = {
-    text: formatDay(day),
+    day,
     x: cell.left - box.left + cell.width / 2,
     y: cell.top - box.top,
   }
@@ -140,15 +158,15 @@ function hideTooltip() {
   <div v-reveal="120" class="gh">
     <div class="gh__head">
       <div class="gh__title">
-        <h3 class="gh__heading"><span class="gh__heading-num">03.1</span> Aktivitas GitHub</h3>
+        <h3 class="gh__heading"><span class="gh__heading-num">03.1</span> {{ t({ id: 'Aktivitas GitHub', en: 'GitHub activity' }) }}</h3>
         <p class="gh__sub" aria-live="polite">
           <template v-if="status === 'ready'">{{ heading }}</template>
-          <template v-else-if="status === 'loading'">Memuat kontribusi...</template>
-          <template v-else>Kontribusi belum bisa dimuat.</template>
+          <template v-else-if="status === 'loading'">{{ t({ id: 'Memuat kontribusi...', en: 'Loading contributions...' }) }}</template>
+          <template v-else>{{ t({ id: 'Kontribusi belum bisa dimuat.', en: 'Contributions could not be loaded.' }) }}</template>
         </p>
       </div>
 
-      <div class="gh__tabs" role="tablist" aria-label="Pilih rentang waktu">
+      <div class="gh__tabs" role="tablist" :aria-label="t({ id: 'Pilih rentang waktu', en: 'Select time range' })">
         <button
           v-for="range in ranges"
           :key="range.key"
@@ -159,15 +177,15 @@ function hideTooltip() {
           :aria-selected="activeRange === range.key"
           @click="load(range.key)"
         >
-          {{ range.label }}
+          {{ t(range.label) }}
         </button>
       </div>
     </div>
 
     <div ref="graphEl" class="gh__graph" :class="{ 'is-loading': status === 'loading' }">
       <div v-if="status === 'error'" class="gh__error">
-        <p>Coba muat ulang halaman, atau lihat langsung di profil GitHub saya.</p>
-        <button type="button" class="gh__retry" @click="load(activeRange)">Coba lagi</button>
+        <p>{{ t({ id: 'Coba muat ulang halaman, atau lihat langsung di profil GitHub saya.', en: 'Try reloading the page, or view my GitHub profile directly.' }) }}</p>
+        <button type="button" class="gh__retry" @click="load(activeRange)">{{ t({ id: 'Coba lagi', en: 'Try again' }) }}</button>
       </div>
 
       <div v-else ref="scrollEl" class="gh__scroll">
@@ -184,10 +202,10 @@ function hideTooltip() {
           </div>
 
           <div class="gh__days" aria-hidden="true">
-            <span v-for="(label, i) in DAY_LABELS" :key="i">{{ label }}</span>
+            <span v-for="(label, i) in t(DAY_LABELS)" :key="i">{{ label }}</span>
           </div>
 
-          <div class="gh__grid" role="img" :aria-label="heading || 'Grafik kontribusi GitHub'">
+          <div class="gh__grid" role="img" :aria-label="heading || t({ id: 'Grafik kontribusi GitHub', en: 'GitHub contribution graph' })">
             <template v-if="status === 'ready'">
               <div v-for="(week, w) in weeks" :key="w" class="gh__week">
                 <span
@@ -215,22 +233,22 @@ function hideTooltip() {
         :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
         aria-hidden="true"
       >
-        {{ tooltip.text }}
+        {{ formatDay(tooltip.day) }}
       </div>
     </div>
 
     <div class="gh__foot">
       <a :href="PROFILE_URL" class="gh__link" target="_blank" rel="noopener noreferrer">
-        Lihat profil GitHub
+        {{ t({ id: 'Lihat profil GitHub', en: 'View GitHub profile' }) }}
         <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
           <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
             stroke-linejoin="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
         </svg>
       </a>
       <div class="gh__legend" aria-hidden="true">
-        <span>Sedikit</span>
+        <span>{{ t({ id: 'Sedikit', en: 'Less' }) }}</span>
         <span v-for="lv in 5" :key="lv" class="gh__cell" :class="`lv-${lv - 1}`"></span>
-        <span>Banyak</span>
+        <span>{{ t({ id: 'Banyak', en: 'More' }) }}</span>
       </div>
     </div>
   </div>

@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
+import { lang, t } from '@/composables/useLang'
 import GithubContributions from './GithubContributions.vue'
 
 // Tech stack icons
@@ -41,55 +42,84 @@ const moreProjectsHref = 'https://github.com/joseparhusip?tab=repositories'
 const projects = [
   {
     title: 'MedCredix',
-    category: 'Backend · Kesehatan',
+    category: { id: 'Backend · Kesehatan', en: 'Backend · Healthcare' },
     internal: true,
-    desc: [
-      'Platform kesiapan kredensial rumah sakit (multi-RS, data terisolasi per RS). Saya membangun backend-nya: skema PostgreSQL 33 tabel dan REST API Go (Gin) + GORM, lengkap dengan dokumentasi Swagger.',
-      'Membangun mesin skoring kesiapan RS (Health Score, BDCS, Trust) dengan rincian skor, snapshot bulanan, dan unit test. Hasilnya dipakai untuk dashboard eksekutif, daftar risiko, peringatan dini, dan rencana tindak lanjut.',
-      'Mengimplementasikan keamanan berlapis: autentikasi JWT, RBAC per peran, password bcrypt, pembatas percobaan login, CAPTCHA, serta unggahan dokumen yang dienkripsi AES-256-GCM.',
-      'Membangun alur kredensial tenaga medis (unggah, verifikasi atau penolakan, persetujuan, prasyarat) yang disertai audit trail, dan job otomatis untuk memperbarui status kredensial.',
-      'Mengintegrasikan data SIMRS lewat klien FHIR untuk uji koneksi resource, dengan mode simulasi saat server FHIR belum tersedia.',
-      'Men-deploy dengan Docker Compose (PostgreSQL, API, dan web Nginx) untuk lingkungan dev, sandbox, dan produksi di VPS. Caddy menjadi reverse proxy dengan HTTPS otomatis.',
-    ],
+    desc: {
+      id: [
+        'Platform kesiapan kredensial rumah sakit (multi-RS, data terisolasi per RS). Saya membangun backend-nya: skema PostgreSQL 33 tabel dan REST API Go (Gin) + GORM, lengkap dengan dokumentasi Swagger.',
+        'Membangun mesin skoring kesiapan RS (Health Score, BDCS, Trust) dengan rincian skor, snapshot bulanan, dan unit test. Hasilnya dipakai untuk dashboard eksekutif, daftar risiko, peringatan dini, dan rencana tindak lanjut.',
+        'Mengimplementasikan keamanan berlapis: autentikasi JWT, RBAC per peran, password bcrypt, pembatas percobaan login, CAPTCHA, serta unggahan dokumen yang dienkripsi AES-256-GCM.',
+        'Membangun alur kredensial tenaga medis (unggah, verifikasi atau penolakan, persetujuan, prasyarat) yang disertai audit trail, dan job otomatis untuk memperbarui status kredensial.',
+        'Mengintegrasikan data SIMRS lewat klien FHIR untuk uji koneksi resource, dengan mode simulasi saat server FHIR belum tersedia.',
+        'Men-deploy dengan Docker Compose (PostgreSQL, API, dan web Nginx) untuk lingkungan dev, sandbox, dan produksi di VPS. Caddy menjadi reverse proxy dengan HTTPS otomatis.',
+      ],
+      en: [
+        'A hospital credentialing readiness platform (multi-hospital, with data isolated per hospital). I built the backend: a 33-table PostgreSQL schema and a Go (Gin) + GORM REST API, complete with Swagger documentation.',
+        'Built a hospital readiness scoring engine (Health Score, BDCS, Trust) with score breakdowns, monthly snapshots, and unit tests. The results feed the executive dashboard, risk list, early warnings, and follow-up plans.',
+        'Implemented layered security: JWT authentication, role-based access control (RBAC), bcrypt password hashing, login attempt limiting, CAPTCHA, and document uploads encrypted with AES-256-GCM.',
+        'Built the medical staff credentialing workflow (upload, verification or rejection, approval, prerequisites) with an audit trail, plus automated jobs that update credential statuses.',
+        'Integrated SIMRS data through a FHIR client for resource connection testing, with a simulation mode for when the FHIR server is not yet available.',
+        'Deployed with Docker Compose (PostgreSQL, API, and an Nginx web server) for dev, sandbox, and production environments on a VPS. Caddy serves as the reverse proxy with automatic HTTPS.',
+      ],
+    },
     thumb: medcredixThumb,
     shots: [
       { src: medcredixThumb, caption: 'Hospital Risk Radar' },
-      { src: medcredixLogin, caption: 'Halaman masuk dengan CAPTCHA' },
+      { src: medcredixLogin, caption: { id: 'Halaman masuk dengan CAPTCHA', en: 'Sign-in page with CAPTCHA' } },
       { src: medcredixPortalEnv, caption: 'Developer Portal: Sandbox & Production' },
-      { src: medcredixPortalApi, caption: 'Developer Portal: referensi API' },
+      { src: medcredixPortalApi, caption: { id: 'Developer Portal: referensi API', en: 'Developer Portal: API reference' } },
     ],
     techStack: [{ name: 'Go (Gin)' }, { name: 'PostgreSQL' }, { name: 'Swagger' }, { name: 'Docker' }],
   },
   {
     title: 'SIMRS Dashboard',
-    category: 'Frontend · Kesehatan',
+    category: { id: 'Frontend · Kesehatan', en: 'Frontend · Healthcare' },
     internal: true,
-    desc: [
-      'Dashboard SIMRS (sistem informasi rumah sakit) dengan Next.js 16, React 19, TypeScript, dan Tailwind CSS. Modulnya mencakup registrasi, rawat jalan, IGD, rawat inap, laboratorium, radiologi, farmasi, ruang bedah, dan kasir.',
-      'Membangun alur pendaftaran rawat inap dari SPRI dokter: surat persetujuan atau penolakan pasien (tanda tangan digital atau unggah scan), pemilihan ruang dan tempat tidur, sampai cetak gelang pasien.',
-      'Mengintegrasikan frontend dengan REST API backend Go (Gin) berdasarkan kontrak Swagger. Data divalidasi dengan Zod, dan hak akses dibatasi per peran pengguna.',
-      'Mengemas aplikasi dengan Docker multi-stage dan Docker Compose untuk development dan production, dengan hardening container: tanpa root, filesystem read-only, batas resource, dan health check.',
-      'Bekerja dalam tim dengan arsitektur backend PostgreSQL, Redis, MinIO (penyimpanan dokumen), dan Centrifugo (notifikasi realtime).',
-      'Menerapkan standar kode dan privasi data medis: Husky, commitlint, dan Prettier untuk kode; NIK disamarkan dan data pasien tidak disimpan di browser.',
-    ],
+    desc: {
+      id: [
+        'Dashboard SIMRS (sistem informasi rumah sakit) dengan Next.js 16, React 19, TypeScript, dan Tailwind CSS. Modulnya mencakup registrasi, rawat jalan, IGD, rawat inap, laboratorium, radiologi, farmasi, ruang bedah, dan kasir.',
+        'Membangun alur pendaftaran rawat inap dari SPRI dokter: surat persetujuan atau penolakan pasien (tanda tangan digital atau unggah scan), pemilihan ruang dan tempat tidur, sampai cetak gelang pasien.',
+        'Mengintegrasikan frontend dengan REST API backend Go (Gin) berdasarkan kontrak Swagger. Data divalidasi dengan Zod, dan hak akses dibatasi per peran pengguna.',
+        'Mengemas aplikasi dengan Docker multi-stage dan Docker Compose untuk development dan production, dengan hardening container: tanpa root, filesystem read-only, batas resource, dan health check.',
+        'Bekerja dalam tim dengan arsitektur backend PostgreSQL, Redis, MinIO (penyimpanan dokumen), dan Centrifugo (notifikasi realtime).',
+        'Menerapkan standar kode dan privasi data medis: Husky, commitlint, dan Prettier untuk kode; NIK disamarkan dan data pasien tidak disimpan di browser.',
+      ],
+      en: [
+        'A SIMRS (hospital information system) dashboard built with Next.js 16, React 19, TypeScript, and Tailwind CSS. Its modules cover registration, outpatient care, emergency, inpatient care, laboratory, radiology, pharmacy, operating rooms, and billing.',
+        'Built the inpatient admission flow from a doctor\'s SPRI (admission order): patient consent or refusal forms (digital signature or scanned upload), room and bed selection, through to printing the patient wristband.',
+        'Integrated the frontend with the Go (Gin) backend REST API based on the Swagger contract. Data is validated with Zod, and access rights are restricted by user role.',
+        'Packaged the app with multi-stage Docker builds and Docker Compose for development and production, with container hardening: non-root, read-only filesystem, resource limits, and health checks.',
+        'Worked in a team on a backend architecture of PostgreSQL, Redis, MinIO (document storage), and Centrifugo (real-time notifications).',
+        'Applied code standards and medical data privacy practices: Husky, commitlint, and Prettier for code; national ID numbers (NIK) are masked and patient data is not stored in the browser.',
+      ],
+    },
     thumb: simrsThumb,
     shots: [
-      { src: simrsThumb, caption: 'Daftar pasien (NIK disamarkan)' },
-      { src: simrsSpriForm, caption: 'Form SPRI dengan tanda tangan digital' },
-      { src: simrsSpriPreview, caption: 'Preview surat SPRI' },
+      { src: simrsThumb, caption: { id: 'Daftar pasien (NIK disamarkan)', en: 'Patient list (NIK masked)' } },
+      { src: simrsSpriForm, caption: { id: 'Form SPRI dengan tanda tangan digital', en: 'SPRI form with digital signature' } },
+      { src: simrsSpriPreview, caption: { id: 'Preview surat SPRI', en: 'SPRI letter preview' } },
     ],
     techStack: [{ name: 'Next.js' }, { name: 'React' }, { name: 'TypeScript' }, { name: 'Tailwind CSS' }],
   },
   {
     title: 'Dashboard KOL',
     category: 'Data & BI',
-    desc: [
-      'Membangun pipeline ETL dengan Python (Pandas) untuk membersihkan dan mentransformasi data ekspor TikTok Shop.',
-      'Mengidentifikasi dan memperbaiki bug double-counting pada metrik views dan likes yang menyebabkan data performa creator terhitung berulang.',
-      'Merancang metrik turunan (GMV, Conversion Rate, GMV per View, Engagement Rate) serta sistem scoring creator berbasis percentile-rank yang tahan terhadap outlier.',
-      'Membangun dan menghosting dashboard BI interaktif 5 halaman (Streamlit + Plotly) mencakup Overview, Campaign & Produk, Creator Intelligence, Risk & Anomali, dan AI Insights untuk monitoring GMV dan performa campaign secara real time.',
-      'Mengintegrasikan Gemini AI API untuk menghasilkan analisis strategi dan rencana aksi 30 hari secara otomatis berdasarkan ringkasan performa bulanan.',
-    ],
+    desc: {
+      id: [
+        'Membangun pipeline ETL dengan Python (Pandas) untuk membersihkan dan mentransformasi data ekspor TikTok Shop.',
+        'Mengidentifikasi dan memperbaiki bug double-counting pada metrik views dan likes yang menyebabkan data performa creator terhitung berulang.',
+        'Merancang metrik turunan (GMV, Conversion Rate, GMV per View, Engagement Rate) serta sistem scoring creator berbasis percentile-rank yang tahan terhadap outlier.',
+        'Membangun dan menghosting dashboard BI interaktif 5 halaman (Streamlit + Plotly) mencakup Overview, Campaign & Produk, Creator Intelligence, Risk & Anomali, dan AI Insights untuk monitoring GMV dan performa campaign secara real time.',
+        'Mengintegrasikan Gemini AI API untuk menghasilkan analisis strategi dan rencana aksi 30 hari secara otomatis berdasarkan ringkasan performa bulanan.',
+      ],
+      en: [
+        'Built an ETL pipeline in Python (Pandas) to clean and transform TikTok Shop export data.',
+        'Identified and fixed a double-counting bug in the views and likes metrics that caused creator performance data to be counted multiple times.',
+        'Designed derived metrics (GMV, Conversion Rate, GMV per View, Engagement Rate) and a percentile-rank-based creator scoring system that is robust to outliers.',
+        'Built and hosted a 5-page interactive BI dashboard (Streamlit + Plotly) covering Overview, Campaign & Products, Creator Intelligence, Risk & Anomalies, and AI Insights for real-time monitoring of GMV and campaign performance.',
+        'Integrated the Gemini AI API to automatically generate strategy analysis and a 30-day action plan based on monthly performance summaries.',
+      ],
+    },
     thumb: kolThumb,
     techStack: [
       { name: 'Python', icon: pythonIcon },
@@ -101,15 +131,25 @@ const projects = [
   },
   {
     title: 'Mobile JEC',
-    category: 'Aplikasi Mobile',
-    desc: [
-      'Mengumpulkan data melalui kuesioner ke pengguna baru non-JEC sebagai dasar analisis kebutuhan aplikasi.',
-      'Merancang UI aplikasi di Figma serta mendokumentasikan arsitektur sistem melalui Use Case, Activity, Class Diagram, dan ERD.',
-      'Membangun backend menggunakan Node.js & Express.js untuk mendukung komunikasi data antara aplikasi dan server.',
-      'Mengimplementasikan sistem autentikasi (auth) dan fitur keamanan aplikasi untuk melindungi data pengguna.',
-      'Merancang database relasional menggunakan MySQL dengan metode pengembangan sistem Waterfall yang diintegrasikan pendekatan User-Centered Design (UCD).',
-      'Mengimplementasikan UI ke aplikasi Android menggunakan Flutter & Dart, termasuk fitur OCR untuk membaca data KTP secara otomatis saat pendaftaran, serta login dengan akun Google.',
-    ],
+    category: { id: 'Aplikasi Mobile', en: 'Mobile App' },
+    desc: {
+      id: [
+        'Mengumpulkan data melalui kuesioner ke pengguna baru non-JEC sebagai dasar analisis kebutuhan aplikasi.',
+        'Merancang UI aplikasi di Figma serta mendokumentasikan arsitektur sistem melalui Use Case, Activity, Class Diagram, dan ERD.',
+        'Membangun backend menggunakan Node.js & Express.js untuk mendukung komunikasi data antara aplikasi dan server.',
+        'Mengimplementasikan sistem autentikasi (auth) dan fitur keamanan aplikasi untuk melindungi data pengguna.',
+        'Merancang database relasional menggunakan MySQL dengan metode pengembangan sistem Waterfall yang diintegrasikan pendekatan User-Centered Design (UCD).',
+        'Mengimplementasikan UI ke aplikasi Android menggunakan Flutter & Dart, termasuk fitur OCR untuk membaca data KTP secara otomatis saat pendaftaran, serta login dengan akun Google.',
+      ],
+      en: [
+        'Collected data through questionnaires with new non-JEC users as the basis for analyzing the app\'s requirements.',
+        'Designed the app UI in Figma and documented the system architecture with Use Case, Activity, and Class Diagrams and an ERD.',
+        'Built the backend with Node.js & Express.js to handle data communication between the app and the server.',
+        'Implemented the authentication (auth) system and app security features to protect user data.',
+        'Designed a relational MySQL database using the Waterfall development method combined with a User-Centered Design (UCD) approach.',
+        'Implemented the UI as an Android app with Flutter & Dart, including an OCR feature that automatically reads ID card (KTP) data during registration, plus sign-in with a Google account.',
+      ],
+    },
     thumb: mobileJecThumb,
     techStack: [
       { name: 'Flutter', icon: flutterIcon },
@@ -123,13 +163,22 @@ const projects = [
   {
     title: 'Dashboard JEC',
     category: 'Web Admin',
-    desc: [
-      'Merancang dan mengembangkan antarmuka admin dashboard menggunakan React JS untuk mengelola data pasien, jadwal, dan operasional klinik secara terpusat.',
-      'Membangun backend menggunakan Node.js & Express.js, satu ekosistem yang sama dengan backend Mobile JEC, untuk mendukung komunikasi data antara dashboard dan server.',
-      'Mengimplementasikan sistem autentikasi (auth) dan fitur keamanan aplikasi untuk melindungi akses data admin.',
-      'Menggunakan database relasional MySQL yang sama dan terintegrasi dengan aplikasi Mobile JEC, sehingga data pasien dan operasional tetap konsisten di kedua platform.',
-      'Menyediakan tampilan ringkas berupa statistik, antrian pasien, dan manajemen data secara terpusat untuk mempermudah operasional klinik sehari-hari.',
-    ],
+    desc: {
+      id: [
+        'Merancang dan mengembangkan antarmuka admin dashboard menggunakan React JS untuk mengelola data pasien, jadwal, dan operasional klinik secara terpusat.',
+        'Membangun backend menggunakan Node.js & Express.js, satu ekosistem yang sama dengan backend Mobile JEC, untuk mendukung komunikasi data antara dashboard dan server.',
+        'Mengimplementasikan sistem autentikasi (auth) dan fitur keamanan aplikasi untuk melindungi akses data admin.',
+        'Menggunakan database relasional MySQL yang sama dan terintegrasi dengan aplikasi Mobile JEC, sehingga data pasien dan operasional tetap konsisten di kedua platform.',
+        'Menyediakan tampilan ringkas berupa statistik, antrian pasien, dan manajemen data secara terpusat untuk mempermudah operasional klinik sehari-hari.',
+      ],
+      en: [
+        'Designed and developed the admin dashboard interface with React JS to manage patient data, schedules, and clinic operations in one place.',
+        'Built the backend with Node.js & Express.js, in the same ecosystem as the Mobile JEC backend, to handle data communication between the dashboard and the server.',
+        'Implemented the authentication (auth) system and app security features to protect access to admin data.',
+        'Used the same relational MySQL database, integrated with the Mobile JEC app, so patient and operational data stay consistent across both platforms.',
+        'Provided a concise view of statistics, the patient queue, and centralized data management to simplify day-to-day clinic operations.',
+      ],
+    },
     thumb: dashboardJecThumb,
     techStack: [
       { name: 'React', icon: reactIcon },
@@ -142,14 +191,24 @@ const projects = [
   {
     title: 'Secura Kost',
     category: 'Web App',
-    desc: [
-      'Mengembangkan prototype platform marketplace kost secara end-to-end, mencakup perancangan UI/UX, arsitektur komponen, dan alur navigasi antar halaman.',
-      'Membangun frontend menggunakan Vue.js dan Tailwind CSS.',
-      'Membangun sistem autentikasi dua peran (penyewa & pemilik kost) dengan tab switching dinamis dan validasi form interaktif.',
-      'Mengimplementasikan fitur Virtual Tour 360° pada detail kost untuk meningkatkan transparansi dan kepercayaan pengguna.',
-      'Merancang landing page responsif dengan komponen dinamis: hero carousel, grid solusi, timeline cara kerja, dan segmentasi target audiens.',
-      'Membangun modul profil tim dengan struktur visual (tree layout) menggunakan komponen reusable.',
-    ],
+    desc: {
+      id: [
+        'Mengembangkan prototype platform marketplace kost secara end-to-end, mencakup perancangan UI/UX, arsitektur komponen, dan alur navigasi antar halaman.',
+        'Membangun frontend menggunakan Vue.js dan Tailwind CSS.',
+        'Membangun sistem autentikasi dua peran (penyewa & pemilik kost) dengan tab switching dinamis dan validasi form interaktif.',
+        'Mengimplementasikan fitur Virtual Tour 360° pada detail kost untuk meningkatkan transparansi dan kepercayaan pengguna.',
+        'Merancang landing page responsif dengan komponen dinamis: hero carousel, grid solusi, timeline cara kerja, dan segmentasi target audiens.',
+        'Membangun modul profil tim dengan struktur visual (tree layout) menggunakan komponen reusable.',
+      ],
+      en: [
+        'Developed an end-to-end prototype of a boarding house (kost) marketplace platform, covering UI/UX design, component architecture, and navigation flow between pages.',
+        'Built the frontend with Vue.js and Tailwind CSS.',
+        'Built a two-role authentication system (tenants & property owners) with dynamic tab switching and interactive form validation.',
+        'Implemented a 360° Virtual Tour feature on listing detail pages to increase transparency and user trust.',
+        'Designed a responsive landing page with dynamic components: a hero carousel, solutions grid, how-it-works timeline, and target audience segments.',
+        'Built a team profile module with a visual structure (tree layout) using reusable components.',
+      ],
+    },
     // Nama file gambarnya tertukar di folder: img-toko-kelontong.png berisi screenshot Secura Kost
     thumb: tokoKelontongThumb,
     // Disamakan dengan deskripsi (Vue.js + Tailwind CSS)
@@ -163,15 +222,26 @@ const projects = [
   {
     title: 'Toko Kelontong Online',
     category: 'E-commerce',
-    desc: [
-      'Mengembangkan prototype website e-commerce "Toko Kelontong Online" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi halaman.',
-      'Membangun frontend menggunakan Vue.js (Composition API) dan Tailwind CSS.',
-      'Mengimplementasikan state management dengan Pinia untuk mengelola keranjang belanja dan filter kategori produk secara reaktif.',
-      'Membangun katalog produk dinamis dengan filter kategori, fallback gambar error, dan format Rupiah otomatis.',
-      'Merancang alur pemesanan lengkap dari katalog, detail pesanan, hingga riwayat pesanan pengguna.',
-      'Membangun komponen reusable (navbar, footer, page header, promo banner, testimonial) untuk konsistensi desain.',
-      'Menyusun halaman informasi pendukung (FAQ, cara pemesanan, kebijakan privasi, syarat & ketentuan, hubungi kami).',
-    ],
+    desc: {
+      id: [
+        'Mengembangkan prototype website e-commerce "Toko Kelontong Online" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi halaman.',
+        'Membangun frontend menggunakan Vue.js (Composition API) dan Tailwind CSS.',
+        'Mengimplementasikan state management dengan Pinia untuk mengelola keranjang belanja dan filter kategori produk secara reaktif.',
+        'Membangun katalog produk dinamis dengan filter kategori, fallback gambar error, dan format Rupiah otomatis.',
+        'Merancang alur pemesanan lengkap dari katalog, detail pesanan, hingga riwayat pesanan pengguna.',
+        'Membangun komponen reusable (navbar, footer, page header, promo banner, testimonial) untuk konsistensi desain.',
+        'Menyusun halaman informasi pendukung (FAQ, cara pemesanan, kebijakan privasi, syarat & ketentuan, hubungi kami).',
+      ],
+      en: [
+        'Developed an end-to-end prototype of the "Toko Kelontong Online" e-commerce website, covering UI/UX, component structure, and page navigation flow.',
+        'Built the frontend with Vue.js (Composition API) and Tailwind CSS.',
+        'Implemented state management with Pinia to reactively manage the shopping cart and product category filters.',
+        'Built a dynamic product catalog with category filters, fallbacks for broken images, and automatic Rupiah formatting.',
+        'Designed the complete ordering flow, from the catalog and order details to the user\'s order history.',
+        'Built reusable components (navbar, footer, page header, promo banner, testimonial) for design consistency.',
+        'Created supporting information pages (FAQ, how to order, privacy policy, terms & conditions, contact us).',
+      ],
+    },
     // Nama file gambarnya tertukar di folder: img-secura-kost.png berisi screenshot Toko Kelontong
     thumb: securaKostThumb,
     // Disamakan dengan deskripsi (Vue.js + Tailwind CSS)
@@ -185,15 +255,26 @@ const projects = [
   {
     title: 'Kindle Coffee',
     category: 'Landing Page',
-    desc: [
-      'Mengembangkan prototype front end website coffee shop "Kindle Coffee" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi antar halaman (Home, Menu, Cart, History, About). Proyek ini murni prototype tampilan, belum terhubung ke backend/server sungguhan.',
-      'Membangun frontend menggunakan Vue.js (Composition API, Vue Router) dan Tailwind CSS untuk seluruh tampilan.',
-      'Mengimplementasikan state management dengan Pinia untuk mengelola keranjang belanja, pemilihan meja/kursi, dan riwayat pesanan secara reaktif.',
-      'Membangun halaman Menu dengan filter kategori produk serta katalog dinamis menggunakan komponen ProductCard yang reusable.',
-      'Merancang alur pemesanan pada halaman Cart, mencakup pemilihan nomor meja/kursi interaktif dan simulasi checkout (integrasi UI Midtrans Snap sebagai contoh alur pembayaran, tanpa backend nyata).',
-      'Membangun halaman Riwayat Pesanan dengan filter rentang tanggal, status pesanan pending dengan countdown, serta fitur cetak struk/invoice ke PDF menggunakan jsPDF.',
-      'Menyusun halaman Home dan About sebagai landing page dengan hero section, value proposition, dan testimoni untuk memperkuat identitas brand.',
-    ],
+    desc: {
+      id: [
+        'Mengembangkan prototype front end website coffee shop "Kindle Coffee" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi antar halaman (Home, Menu, Cart, History, About). Proyek ini murni prototype tampilan, belum terhubung ke backend/server sungguhan.',
+        'Membangun frontend menggunakan Vue.js (Composition API, Vue Router) dan Tailwind CSS untuk seluruh tampilan.',
+        'Mengimplementasikan state management dengan Pinia untuk mengelola keranjang belanja, pemilihan meja/kursi, dan riwayat pesanan secara reaktif.',
+        'Membangun halaman Menu dengan filter kategori produk serta katalog dinamis menggunakan komponen ProductCard yang reusable.',
+        'Merancang alur pemesanan pada halaman Cart, mencakup pemilihan nomor meja/kursi interaktif dan simulasi checkout (integrasi UI Midtrans Snap sebagai contoh alur pembayaran, tanpa backend nyata).',
+        'Membangun halaman Riwayat Pesanan dengan filter rentang tanggal, status pesanan pending dengan countdown, serta fitur cetak struk/invoice ke PDF menggunakan jsPDF.',
+        'Menyusun halaman Home dan About sebagai landing page dengan hero section, value proposition, dan testimoni untuk memperkuat identitas brand.',
+      ],
+      en: [
+        'Developed an end-to-end front-end prototype of the "Kindle Coffee" coffee shop website, covering UI/UX, component structure, and navigation between pages (Home, Menu, Cart, History, About). This project is a UI-only prototype and is not yet connected to a real backend/server.',
+        'Built the frontend with Vue.js (Composition API, Vue Router) and Tailwind CSS for the entire interface.',
+        'Implemented state management with Pinia to reactively manage the shopping cart, table/seat selection, and order history.',
+        'Built the Menu page with product category filters and a dynamic catalog using a reusable ProductCard component.',
+        'Designed the ordering flow on the Cart page, including interactive table/seat number selection and a simulated checkout (a Midtrans Snap UI integration as a sample payment flow, without a real backend).',
+        'Built the Order History page with a date range filter, pending order status with a countdown, and receipt/invoice printing to PDF using jsPDF.',
+        'Created the Home and About pages as a landing page with a hero section, value proposition, and testimonials to strengthen the brand identity.',
+      ],
+    },
     thumb: kindleCoffeeThumb,
     techStack: [
       { name: 'Vue.js', icon: vueIcon },
@@ -311,7 +392,7 @@ function preventImageAction(event) {
 
 // Domain demo ditampilkan di "address bar" mockup browser
 function hostLabel(project) {
-  return project.internal ? 'Proyek internal' : demoHost(project.demoHref)
+  return project.internal ? t({ id: 'Proyek internal', en: 'Internal project' }) : demoHost(project.demoHref)
 }
 
 function demoHost(url) {
@@ -369,20 +450,27 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <header class="section-head">
         <div class="section-head__meta">
           <span v-reveal class="section-label">
-            <span class="section-label__num">03</span> Proyek
+            <span class="section-label__num">03</span> {{ t({ id: 'Proyek', en: 'Projects' }) }}
           </span>
           <span v-reveal="80" class="section-head__note">
-            {{ String(total).padStart(2, '0') }} proyek terpilih<br />Web · Mobile · Data
+            {{ String(total).padStart(2, '0') }} {{ t({ id: 'proyek terpilih', en: 'selected projects' }) }}<br />Web · Mobile · Data
           </span>
         </div>
         <div class="section-head__main projects__head-main">
           <div>
-            <h2 v-type="'proyek'" class="section-title">
-              Karya yang pernah saya <span class="serif-accent">bangun</span>
+            <h2 :key="lang" v-type="'proyek'" class="section-title">
+              <template v-if="lang === 'en'">
+                Work I have <span class="serif-accent">built</span>
+              </template>
+              <template v-else>
+                Karya yang pernah saya <span class="serif-accent">bangun</span>
+              </template>
             </h2>
             <p v-reveal="160" class="section-lead projects__lead">
-              Kumpulan proyek yang menunjukkan cara saya berpikir, mulai dari
-              menyusun struktur sampai menyelesaikan detail kecil.
+              {{ t({
+                id: 'Kumpulan proyek yang menunjukkan cara saya berpikir, mulai dari menyusun struktur sampai menyelesaikan detail kecil.',
+                en: 'A collection of projects that shows how I think, from setting up the structure to finishing the small details.',
+              }) }}
             </p>
           </div>
           <a
@@ -392,7 +480,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             target="_blank"
             rel="noopener noreferrer"
           >
-            Lihat proyek lainnya
+            {{ t({ id: 'Lihat proyek lainnya', en: 'View more projects' }) }}
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
               <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 stroke-linejoin="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
@@ -412,7 +500,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         }"
         role="region"
         aria-roledescription="carousel"
-        aria-label="Galeri proyek"
+        :aria-label="t({ id: 'Galeri proyek', en: 'Project gallery' })"
       >
         <div
           class="gallery__stage"
@@ -434,10 +522,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             :tabindex="Math.abs(offsetOf(index)) > 1 ? -1 : 0"
             :aria-hidden="Math.abs(offsetOf(index)) > 2"
             :aria-current="offsetOf(index) === 0 ? 'true' : undefined"
-            :data-cursor="offsetOf(index) === 0 ? 'Lihat' : 'Pilih'"
+            :data-cursor="offsetOf(index) === 0
+              ? t({ id: 'Lihat', en: 'View' })
+              : t({ id: 'Pilih', en: 'Select' })"
             :aria-label="offsetOf(index) === 0
-              ? `Perbesar gambar ${project.title}`
-              : `Tampilkan proyek ${project.title}`"
+              ? t({ id: `Perbesar gambar ${project.title}`, en: `Enlarge ${project.title} image` })
+              : t({ id: `Tampilkan proyek ${project.title}`, en: `Show ${project.title} project` })"
             @click="onSlideClickGuarded(index)"
             @contextmenu.prevent="preventImageAction"
           >
@@ -446,7 +536,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               <span class="gallery__no">No. {{ String(index + 1).padStart(2, '0') }}</span>
               <span class="gallery__url">{{ hostLabel(project) }}</span>
               <span v-if="project.shots?.length > 1" class="gallery__shots">
-                {{ project.shots.length }} foto
+                {{ project.shots.length }} {{ t({ id: 'foto', en: 'photos' }) }}
               </span>
             </span>
             <span class="gallery__shot">
@@ -476,7 +566,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             / {{ String(total).padStart(2, '0') }}
           </span>
 
-          <div class="gallery__dots-nav" role="tablist" aria-label="Pilih proyek">
+          <div class="gallery__dots-nav" role="tablist" :aria-label="t({ id: 'Pilih proyek', en: 'Select project' })">
             <button
               v-for="(project, index) in projects"
               :key="`dot-${project.title}`"
@@ -485,19 +575,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               class="gallery__dot"
               :class="{ 'gallery__dot--active': index === activeIndex }"
               :aria-selected="index === activeIndex"
-              :aria-label="`Proyek ${index + 1}: ${project.title}`"
+              :aria-label="t({ id: `Proyek ${index + 1}: ${project.title}`, en: `Project ${index + 1}: ${project.title}` })"
               @click="goTo(index)"
             ></button>
           </div>
 
           <div class="gallery__arrows">
-            <button type="button" class="gallery__arrow" aria-label="Proyek sebelumnya" @click="prev">
+            <button type="button" class="gallery__arrow" :aria-label="t({ id: 'Proyek sebelumnya', en: 'Previous project' })" @click="prev">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                   stroke-linejoin="round" d="M19 12H5m6-6-6 6 6 6" />
               </svg>
             </button>
-            <button type="button" class="gallery__arrow" aria-label="Proyek berikutnya" @click="next">
+            <button type="button" class="gallery__arrow" :aria-label="t({ id: 'Proyek berikutnya', en: 'Next project' })" @click="next">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                   stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
@@ -513,17 +603,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               <span class="gallery__num" aria-hidden="true">
                 {{ String(activeIndex + 1).padStart(2, '0') }}
               </span>
-              <span class="gallery__category">{{ activeProject.category }}</span>
+              <span class="gallery__category">{{ t(activeProject.category) }}</span>
               <span v-if="!activeProject.internal" class="gallery__host">{{ demoHost(activeProject.demoHref) }}</span>
             </div>
 
             <div class="gallery__body">
               <h3 class="gallery__title">{{ activeProject.title }}</h3>
-              <p class="gallery__summary">{{ activeProject.desc[0] }}</p>
+              <p class="gallery__summary">{{ t(activeProject.desc)[0] }}</p>
 
               <!-- Teknologi: teks mono dipisah titik. Logo wordmark (Flutter,
                    Node.js, MySQL) tidak terbaca kalau dikecilkan jadi ikon. -->
-              <ul class="gallery__stack" aria-label="Teknologi">
+              <ul class="gallery__stack" :aria-label="t({ id: 'Teknologi', en: 'Technologies' })">
                 <li v-for="tech in activeProject.techStack" :key="tech.name" class="gallery__chip">
                   {{ tech.name }}
                 </li>
@@ -537,7 +627,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                   aria-controls="project-detail"
                   @click="toggleDetail"
                 >
-                  {{ detailOpen ? 'Tutup detail' : 'Detail pengerjaan' }}
+                  {{ detailOpen
+                    ? t({ id: 'Tutup detail', en: 'Hide details' })
+                    : t({ id: 'Detail pengerjaan', en: 'Project details' }) }}
                   <svg
                     viewBox="0 0 24 24"
                     width="15"
@@ -557,7 +649,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                     <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                       stroke-linejoin="round" d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" />
                   </svg>
-                  Proyek internal · tanpa demo &amp; kode publik
+                  <template v-if="lang === 'en'">Internal project · no public demo or code</template>
+                  <template v-else>Proyek internal · tanpa demo &amp; kode publik</template>
                 </span>
                 <a
                   v-if="!activeProject.internal"
@@ -565,8 +658,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                   class="gallery__icon-link"
                   target="_blank"
                   rel="noopener noreferrer"
-                  :aria-label="`Kode sumber ${activeProject.title} di GitHub`"
-                  title="Kode Sumber"
+                  :aria-label="t({
+                    id: `Kode sumber ${activeProject.title} di GitHub`,
+                    en: `${activeProject.title} source code on GitHub`,
+                  })"
+                  :title="t({ id: 'Kode Sumber', en: 'Source Code' })"
                 >
                   <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
                     <path
@@ -588,9 +684,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                   class="btn btn--primary gallery__demo"
                   target="_blank"
                   rel="noopener noreferrer"
-                  :aria-label="`Lihat demo ${activeProject.title}`"
+                  :aria-label="t({ id: `Lihat demo ${activeProject.title}`, en: `View ${activeProject.title} demo` })"
                 >
-                  Lihat demo
+                  {{ t({ id: 'Lihat demo', en: 'View demo' }) }}
                   <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
                     <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                       stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
@@ -607,9 +703,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 :inert="!detailOpen"
               >
                 <div class="gallery__detail-inner">
-                  <span class="gallery__detail-eyebrow">Ringkasan pengerjaan</span>
+                  <span class="gallery__detail-eyebrow">{{ t({ id: 'Ringkasan pengerjaan', en: 'Work summary' }) }}</span>
                   <ol class="gallery__detail-list">
-                    <li v-for="point in activeProject.desc" :key="point" class="gallery__detail-point">
+                    <li v-for="point in t(activeProject.desc)" :key="point" class="gallery__detail-point">
                       {{ point }}
                     </li>
                   </ol>
@@ -637,8 +733,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       >
         <button
           type="button"
-          class="project-lightbox__close"
-          aria-label="Tutup gambar"
+          class="btn-close btn-close--dark project-lightbox__close"
+          :aria-label="t({ id: 'Tutup gambar', en: 'Close image' })"
           @click="closeLightbox"
         >
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -651,8 +747,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <button
             v-if="lightboxShots.length > 1"
             type="button"
-            class="project-lightbox__nav project-lightbox__nav--prev"
-            aria-label="Foto sebelumnya"
+            class="btn-close btn-close--dark project-lightbox__nav project-lightbox__nav--prev"
+            :aria-label="t({ id: 'Foto sebelumnya', en: 'Previous photo' })"
             @click.stop="stepLightbox(-1)"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -664,7 +760,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <img
             :key="lightboxShot.src"
             :src="lightboxShot.src"
-            :alt="lightboxShot.caption || lightboxProject.title"
+            :alt="t(lightboxShot.caption) || lightboxProject.title"
             class="project-lightbox__img"
             draggable="false"
             @contextmenu.prevent="preventImageAction"
@@ -675,8 +771,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <button
             v-if="lightboxShots.length > 1"
             type="button"
-            class="project-lightbox__nav project-lightbox__nav--next"
-            aria-label="Foto berikutnya"
+            class="btn-close btn-close--dark project-lightbox__nav project-lightbox__nav--next"
+            :aria-label="t({ id: 'Foto berikutnya', en: 'Next photo' })"
             @click.stop="stepLightbox(1)"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -688,13 +784,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
         <p class="project-lightbox__caption">
           <span>
-            {{ lightboxProject.category }}
+            {{ t(lightboxProject.category) }}
             <template v-if="lightboxShots.length > 1">
               · {{ lightboxIndex + 1 }} / {{ lightboxShots.length }}
             </template>
           </span>
           {{ lightboxProject.title }}
-          <small v-if="lightboxShot.caption">{{ lightboxShot.caption }}</small>
+          <small v-if="lightboxShot.caption">{{ t(lightboxShot.caption) }}</small>
         </p>
 
         <!-- Deretan thumbnail untuk lompat ke foto tertentu -->
@@ -705,7 +801,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             type="button"
             class="project-lightbox__thumb"
             :class="{ 'project-lightbox__thumb--active': i === lightboxIndex }"
-            :aria-label="`Foto ${i + 1}: ${shot.caption}`"
+            :aria-label="t({ id: `Foto ${i + 1}: ${t(shot.caption)}`, en: `Photo ${i + 1}: ${t(shot.caption)}` })"
             :aria-current="i === lightboxIndex ? 'true' : undefined"
             @click.stop="lightboxIndex = i"
           >
@@ -1381,26 +1477,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   max-width: 100%;
 }
 
+/* Tampilan tombol dari .btn-close--dark (main.css); di sini hanya posisi */
 .project-lightbox__nav {
   position: absolute;
   top: 50%;
   z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
   margin-top: -22px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(14, 15, 17, 0.7);
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.project-lightbox__nav:hover {
-  background: rgba(255, 255, 255, 0.16);
 }
 
 .project-lightbox__nav--prev {
@@ -1471,21 +1553,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   position: absolute;
   top: 1.25rem;
   right: 1.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: transparent;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.project-lightbox__close:hover {
-  background: rgba(255, 255, 255, 0.12);
 }
 
 .lightbox-enter-active,
