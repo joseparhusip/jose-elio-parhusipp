@@ -82,6 +82,9 @@ export default async (req, res) => {
   const name = oneLine(req.body?.name)
   const email = oneLine(req.body?.email)
   const message = String(req.body?.message || '').trim()
+  // Bahasa pengunjung (untuk email konfirmasi): hanya 'en' yang diterima,
+  // nilai lain apa pun dianggap 'id'.
+  const lang = req.body?.lang === 'en' ? 'en' : 'id'
 
   if (!name || !email || !message) {
     return res.status(400).json({ ok: false, error: 'Nama, email, dan pesan wajib diisi.' })
@@ -94,8 +97,8 @@ export default async (req, res) => {
   }
 
   try {
-    const ownerEmail = buildOwnerNotificationEmail({ name, email, message })
-    const visitorEmail = buildVisitorConfirmationEmail({ name, message })
+    const ownerEmail = buildOwnerNotificationEmail({ name, email, message, lang })
+    const visitorEmail = buildVisitorConfirmationEmail({ name, message, lang })
 
     await transporter.sendMail({
       // Tanda kutip dibuang supaya nama tidak merusak format alamat pengirim

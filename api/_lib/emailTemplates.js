@@ -79,9 +79,23 @@ function button(href, text) {
     </table>`
 }
 
-function emailShell({ previewText, eyebrow, bodyHtml }) {
+// Teks kaki email per bahasa (lang: 'id' default, atau 'en' untuk
+// pengunjung yang memakai situs versi Inggris)
+const SHELL_COPY = {
+  id: {
+    portfolioLink: 'Lihat portofolio',
+    footer: 'Dikirim otomatis dari chat kontak di portofolio Jose. Bandung, Indonesia.',
+  },
+  en: {
+    portfolioLink: 'View portfolio',
+    footer: "Sent automatically from the contact chat on Jose's portfolio. Bandung, Indonesia.",
+  },
+}
+
+function emailShell({ previewText, eyebrow, bodyHtml, lang = 'id' }) {
+  const copy = SHELL_COPY[lang] || SHELL_COPY.id
   return `<!doctype html>
-<html lang="id">
+<html lang="${lang === 'en' ? 'en' : 'id'}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -128,13 +142,13 @@ function emailShell({ previewText, eyebrow, bodyHtml }) {
                   </td>
                   <td align="right" style="padding-top:18px;">
                     <a href="${SITE_URL}" target="_blank" style="font-family:${MONO}; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:${C.accent}; text-decoration:none;">
-                      Lihat portofolio
+                      ${copy.portfolioLink}
                     </a>
                   </td>
                 </tr>
               </table>
               <p style="margin:16px 0 0; font-family:${FONT}; font-size:12px; line-height:1.6; color:${C.soft};">
-                Dikirim otomatis dari chat kontak di portofolio Jose. Bandung, Indonesia.
+                ${copy.footer}
               </p>
             </td>
           </tr>
@@ -158,7 +172,11 @@ function detailRow(name, valueHtml, last = false) {
     </tr>`
 }
 
-function buildOwnerNotificationEmail({ name, email, message }) {
+// Notifikasi ke Jose tetap berbahasa Indonesia; baris "Bahasa" menunjukkan
+// bahasa situs yang dipakai pengunjung (jadi Jose tahu harus membalas pakai
+// bahasa apa).
+function buildOwnerNotificationEmail({ name, email, message, lang = 'id' }) {
+  const langLabel = lang === 'en' ? 'EN (Inggris)' : 'ID (Indonesia)'
   const safeName = escapeHtml(name)
   const safeEmail = escapeHtml(email)
   const safeMessage = escapeHtml(message).replace(/\n/g, '<br/>')
@@ -175,6 +193,7 @@ function buildOwnerNotificationEmail({ name, email, message }) {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${C.ink}; margin-bottom:24px;">
       ${detailRow('Nama', `<strong style="color:${C.ink};">${safeName}</strong>`)}
       ${detailRow('Email', `<a href="mailto:${safeEmail}" style="color:${C.accent}; text-decoration:none; font-weight:600;">${safeEmail}</a>`)}
+      ${detailRow('Bahasa', langLabel)}
       ${detailRow('Pesan', safeMessage, true)}
     </table>
 
@@ -183,7 +202,7 @@ function buildOwnerNotificationEmail({ name, email, message }) {
 
   return {
     subject: `Pesan baru dari ${name} lewat portofolio`,
-    text: `Pesan baru lewat portofolio\n\nNama: ${name}\nEmail: ${email}\n\nPesan:\n${message}\n\nBalas: ${gmailReplyUrl}`,
+    text: `Pesan baru lewat portofolio\n\nNama: ${name}\nEmail: ${email}\nBahasa: ${langLabel}\n\nPesan:\n${message}\n\nBalas: ${gmailReplyUrl}`,
     html: emailShell({
       previewText: `${name}: ${String(message).slice(0, 90)}`,
       eyebrow: 'Pesan baru masuk',
@@ -193,7 +212,9 @@ function buildOwnerNotificationEmail({ name, email, message }) {
   }
 }
 
-function buildVisitorConfirmationEmail({ name, message = '' }) {
+// Konfirmasi ke pengunjung, mengikuti bahasa situs yang dia pakai.
+function buildVisitorConfirmationEmail({ name, message = '', lang = 'id' }) {
+  if (lang === 'en') return buildVisitorConfirmationEmailEn({ name, message })
   const safeName = escapeHtml(name)
   const safeMessage = escapeHtml(message).replace(/\n/g, '<br/>')
 
@@ -234,6 +255,54 @@ function buildVisitorConfirmationEmail({ name, message = '' }) {
       previewText: 'Pesan kamu sudah saya terima, akan saya balas secepatnya.',
       eyebrow: 'Pesan diterima',
       bodyHtml,
+    }),
+    attachments: brandAttachments,
+  }
+}
+
+// Versi Inggris dari email konfirmasi di atas (struktur dan gaya sama persis).
+function buildVisitorConfirmationEmailEn({ name, message = '' }) {
+  const safeName = escapeHtml(name)
+  const safeMessage = escapeHtml(message).replace(/\n/g, '<br/>')
+
+  const bodyHtml = `
+    <h1 style="margin:0 0 16px; font-family:${FONT}; font-size:21px; line-height:1.3; letter-spacing:-0.01em; color:${C.ink};">
+      Thank you, ${safeName}!
+    </h1>
+    <p style="margin:0 0 14px; font-family:${FONT}; font-size:15px; line-height:1.75; color:${C.text};">
+      Your message through my portfolio has arrived safely. I will read it and
+      reply as soon as possible, within 24 hours at the latest.
+    </p>
+
+    ${
+      safeMessage
+        ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 20px; border-top:1px solid ${C.ink};">
+            ${detailRow('A copy of your message', safeMessage, true)}
+          </table>`
+        : ''
+    }
+
+    <p style="margin:0 0 22px; font-family:${FONT}; font-size:15px; line-height:1.75; color:${C.text};">
+      In the meantime, feel free to explore my other projects on my portfolio or
+      say hello on LinkedIn and Instagram.
+    </p>
+
+    ${button(SITE_URL, 'View portfolio &rarr;')}
+
+    <p style="margin:28px 0 0; font-family:${FONT}; font-size:14px; line-height:1.7; color:${C.soft};">
+      Best regards,<br />
+      <strong style="color:${C.ink};">Jose Elio Parhusip</strong>
+    </p>
+  `
+
+  return {
+    subject: 'I have received your message',
+    text: `Hi ${name},\n\nThank you for sending a message through my portfolio. I have received it and will reply within 24 hours at the latest.${message ? `\n\nA copy of your message:\n${message}` : ''}\n\nPortfolio: ${SITE_URL}\n\nBest regards,\nJose Elio Parhusip`,
+    html: emailShell({
+      previewText: 'I have received your message and will reply as soon as possible.',
+      eyebrow: 'Message received',
+      bodyHtml,
+      lang: 'en',
     }),
     attachments: brandAttachments,
   }

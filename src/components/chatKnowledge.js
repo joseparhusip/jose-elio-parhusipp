@@ -200,8 +200,9 @@ export const PROJECTS = [
     title: 'Secura Kost',
     summary:
       'Prototipe <em>marketplace</em> kost (Vue.js dan Tailwind CSS) dengan tur virtual 360 derajat, autentikasi dua peran (penyewa dan pemilik), serta <em>landing page</em> dinamis.',
-    image: securaKostThumb,
-    tags: ['React', 'Tailwind CSS'],
+    // Nama file gambarnya tertukar di folder (lihat ProjectsSection.vue)
+    image: tokoKelontongThumb,
+    tags: ['Vue.js', 'Tailwind CSS'],
     demoHref: 'https://secura-kost.vercel.app/',
     codeHref: 'https://github.com/joseparhusip/secura-kost',
   },
@@ -209,8 +210,8 @@ export const PROJECTS = [
     title: 'Toko Kelontong Online',
     summary:
       'Prototipe <em>e-commerce</em> (Vue.js, Pinia, dan Tailwind CSS) dengan katalog produk dinamis, filter kategori, keranjang belanja reaktif, serta alur pemesanan lengkap.',
-    image: tokoKelontongThumb,
-    tags: ['React'],
+    image: securaKostThumb,
+    tags: ['Vue.js', 'Tailwind CSS'],
     demoHref: 'https://toko-kelontong-online.vercel.app/',
     codeHref: 'https://github.com/joseparhusip/toko-kelontong-online',
   },

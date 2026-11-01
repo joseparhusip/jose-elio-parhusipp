@@ -3,7 +3,6 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
 import { lang, t } from '@/composables/useLang'
-import toeflImg from './img-sertifikat/toefl-ulbi-2026.jpg'
 import sapImg from './img-sertifikat/sap01-edugate-2025.jpg'
 import smartpathImg from './img-sertifikat/smartpath-bootcamp-2024.png'
 import p2mwImg from './img-sertifikat/p2mw-2023.jpg'
@@ -19,18 +18,6 @@ import udemyImg from './img-sertifikat/udemy-codeigniter-2023.jpg'
    Urutan: terbaru di atas.
 --------------------------------------------------------- */
 const certificates = [
-  {
-    title: 'TOEFL Prediction Test',
-    issuer: 'Pusat Bahasa ULBI',
-    kind: { id: 'Bahasa', en: 'Language' },
-    date: 'Jan 2026',
-    detail: {
-      id: 'Skor keseluruhan 450 (Listening 44 · Structure 46 · Reading 45).',
-      en: 'Overall score 450 (Listening 44 · Structure 46 · Reading 45).',
-    },
-    ref: '0013/MANPBIO-ULBI/SRT/I/2026',
-    image: toeflImg,
-  },
   {
     title: 'SAP01 — SAP Overview',
     issuer: 'SAP University Partnership · EDUGATE',
