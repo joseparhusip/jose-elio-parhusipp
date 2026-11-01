@@ -16,7 +16,7 @@ const edition = new Date().getFullYear()
 const stats = [
   { value: '4+', label: { id: 'Tahun belajar teknologi', en: 'Years learning tech' } },
   { value: '8', label: { id: 'Proyek dibangun', en: 'Projects built' } },
-  { value: '5', label: { id: 'Peran kerja & organisasi', en: 'Work & organization roles' } },
+  { value: '5', label: { id: 'Peran kerja & organisasi', en: 'Work & organizational roles' } },
 ]
 
 const prefersReducedMotion =
@@ -96,7 +96,7 @@ const downloadState = ref('idle')
 let resetTimeoutId = null
 
 const downloadLabel = computed(() => {
-  if (downloadState.value === 'loading') return t({ id: 'Menyiapkan berkas...', en: 'Preparing file...' })
+  if (downloadState.value === 'loading') return t({ id: 'Menyiapkan berkas...', en: 'Preparing file…' })
   if (downloadState.value === 'done') return t({ id: 'Terunduh!', en: 'Downloaded!' })
   return t({ id: 'Unduh CV', en: 'Download CV' })
 })

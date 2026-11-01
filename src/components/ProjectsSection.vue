@@ -460,7 +460,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <div>
             <h2 :key="lang" v-type="'proyek'" class="section-title">
               <template v-if="lang === 'en'">
-                Work I have <span class="serif-accent">built</span>
+                Things I've <span class="serif-accent">built</span>
               </template>
               <template v-else>
                 Karya yang pernah saya <span class="serif-accent">bangun</span>
@@ -469,7 +469,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             <p v-reveal="160" class="section-lead projects__lead">
               {{ t({
                 id: 'Kumpulan proyek yang menunjukkan cara saya berpikir, mulai dari menyusun struktur sampai menyelesaikan detail kecil.',
-                en: 'A collection of projects that shows how I think, from setting up the structure to finishing the small details.',
+                en: 'A collection of projects that shows how I think, from setting up the structure to polishing the final details.',
               }) }}
             </p>
           </div>

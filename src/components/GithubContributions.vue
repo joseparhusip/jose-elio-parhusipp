@@ -161,7 +161,7 @@ function hideTooltip() {
         <h3 class="gh__heading"><span class="gh__heading-num">03.1</span> {{ t({ id: 'Aktivitas GitHub', en: 'GitHub activity' }) }}</h3>
         <p class="gh__sub" aria-live="polite">
           <template v-if="status === 'ready'">{{ heading }}</template>
-          <template v-else-if="status === 'loading'">{{ t({ id: 'Memuat kontribusi...', en: 'Loading contributions...' }) }}</template>
+          <template v-else-if="status === 'loading'">{{ t({ id: 'Memuat kontribusi...', en: 'Loading contributions…' }) }}</template>
           <template v-else>{{ t({ id: 'Kontribusi belum bisa dimuat.', en: 'Contributions could not be loaded.' }) }}</template>
         </p>
       </div>

@@ -250,7 +250,7 @@ watch(privacyOpen, async (open) => {
               <span class="privacy__num">05</span>
               <div class="privacy__body">
                 <h3 id="pv-5" class="privacy__h3">{{ t({ id: 'Kalau ada yang berubah.', en: 'If anything changes.' }) }}</h3>
-                <p>{{ t({ id: 'Dokumen ini diperbarui, dan tanggal di bagian atas ikut berganti.', en: 'This document is updated, and the date at the top changes with it.' }) }}</p>
+                <p>{{ t({ id: 'Dokumen ini diperbarui, dan tanggal di bagian atas ikut berganti.', en: 'If anything changes, this document will be updated and the date at the top will change accordingly.' }) }}</p>
               </div>
             </section>
           </div>

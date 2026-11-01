@@ -51,7 +51,7 @@ function preventImageAction(event) {
           </a>
           <p class="footer__statement">
             <template v-if="lang === 'en'">
-              Building web, mobile, and data dashboards that
+              Building web apps, mobile apps, and data dashboards that
               <span class="footer__serif">people actually use.</span>
             </template>
             <template v-else>

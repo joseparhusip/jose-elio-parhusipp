@@ -77,7 +77,7 @@ const certificates = [
     date: { id: 'Agu 2023', en: 'Aug 2023' },
     detail: {
       id: 'Kursus 21,5 jam membangun toko online lengkap dengan cek ongkir.',
-      en: 'A 21.5-hour course on building a complete online store with shipping cost checks.',
+      en: 'A 21.5-hour course on building a complete online store with shipping cost calculation.',
     },
     ref: 'UC-eebd53d3-c6d2-4898-92a8-e439588435b3',
     image: udemyImg,
