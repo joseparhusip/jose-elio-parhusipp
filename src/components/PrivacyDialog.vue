@@ -12,13 +12,13 @@ import { lang, t } from '@/composables/useLang'
    Sengaja bukan <dialog> bawaan: elemen itu naik ke "top layer"
    di atas kursor custom, sehingga kursor tidak terlihat.
 --------------------------------------------------------- */
-const UPDATED = { iso: '2026-11-01', label: { id: '1 Nov 2026', en: 'Nov 1, 2026' } }
+const UPDATED = { iso: '2026-11-04', label: { id: '4 Nov 2026', en: 'Nov 4, 2026' } }
 const CONTACT_EMAIL = 'joseparhusip7@gmail.com'
 
 // Ringkasan: semua data yang pernah disimpan situs ini
 const ledger = [
   {
-    data: { id: 'Pilihan tema gelap/terang dan bahasa', en: 'Theme (dark/light) and language preference' },
+    data: { id: 'Pilihan tema gelap/terang, bahasa, dan penanda kunjungan', en: 'Theme (dark/light), language, and a first-visit marker' },
     where: { id: 'Browser kamu', en: 'Your browser' },
     until: { id: 'Sampai kamu menghapusnya', en: 'Until you delete it' },
     erase: { id: 'Hapus data situs di pengaturan browser', en: 'Clear site data in your browser settings' },

@@ -15,15 +15,41 @@ import { useTheme } from '@/composables/useTheme'
    Kelas di <html>: intro-hold (kartu kecil), intro-reveal (kartu
    membesar). Keduanya dihapus setelah selesai
    supaya transform tidak mengganggu elemen fixed (navbar, dll).
+
+   Intro zoom di atas hanya untuk kunjungan pertama. Penanda disimpan
+   setelah intro selesai ditonton sampai habis; kunjungan berikutnya
+   memakai loading biasa: logo + garis progres, lalu memudar (± 0,7 detik).
 --------------------------------------------------------- */
 const COUNT_MS = 1700
 const LOGO_ZOOM_MS = 900 // logo zoom sampai habis
 const CARD_PAUSE_MS = 450 // kartu kecil terlihat sebentar, baru membesar
 const REVEAL_MS = 1200
+const QUICK_COUNT_MS = 450 // loading biasa: garis progres
+const QUICK_FADE_MS = 250 // loading biasa: loader memudar
 
+const SEEN_KEY = 'intro-seen'
+
+function hasSeenIntro() {
+  try {
+    return localStorage.getItem(SEEN_KEY) === '1'
+  } catch {
+    return false // localStorage tidak tersedia (mis. mode privat)
+  }
+}
+
+function markIntroSeen() {
+  try {
+    localStorage.setItem(SEEN_KEY, '1')
+  } catch {
+    // abaikan, kunjungan berikutnya memutar intro lagi
+  }
+}
+
+const isQuick = hasSeenIntro()
 const isVisible = ref(true)
 const isExiting = ref(false) // tahap 2: logo zoom
 const isHiding = ref(false) // tahap 3: latar loader memudar
+const isFading = ref(false) // loading biasa: loader memudar
 const count = ref(0)
 
 // Logo mengikuti tema, sama seperti di navbar
@@ -54,16 +80,28 @@ function finish() {
 
 onMounted(() => {
   document.body.style.overflow = 'hidden'
-  root.classList.add('intro-hold')
+  if (!isQuick) root.classList.add('intro-hold')
 
+  const countMs = isQuick ? QUICK_COUNT_MS : COUNT_MS
   const start = performance.now()
   const tick = (now) => {
-    const t = Math.min(1, (now - start) / COUNT_MS)
+    const t = Math.min(1, (now - start) / countMs)
     // Cepat di awal, melambat di akhir
     count.value = Math.round((1 - Math.pow(1 - t, 3)) * 100)
     if (t < 1) frame = requestAnimationFrame(tick)
   }
   frame = requestAnimationFrame(tick)
+
+  if (isQuick) {
+    timers.push(
+      setTimeout(() => {
+        isFading.value = true
+        loaderDone.value = true
+      }, QUICK_COUNT_MS),
+      setTimeout(finish, QUICK_COUNT_MS + QUICK_FADE_MS),
+    )
+    return
+  }
 
   const tZoom = COUNT_MS + 120
   const tHide = tZoom + LOGO_ZOOM_MS
@@ -83,7 +121,10 @@ onMounted(() => {
       root.classList.add('intro-reveal')
       root.classList.remove('intro-hold')
     }, tReveal),
-    setTimeout(finish, tReveal + REVEAL_MS + 60),
+    setTimeout(() => {
+      markIntroSeen()
+      finish()
+    }, tReveal + REVEAL_MS + 60),
   )
 })
 
@@ -96,7 +137,17 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="isVisible" class="loader" :class="{ 'loader--exit': isExiting, 'loader--hide': isHiding }" aria-hidden="true">
+  <div
+    v-if="isVisible"
+    class="loader"
+    :class="{
+      'loader--exit': isExiting,
+      'loader--hide': isHiding,
+      'loader--quick': isQuick,
+      'loader--fade': isFading,
+    }"
+    aria-hidden="true"
+  >
     <div class="loader__center">
       <img :src="logoSrc" alt="" class="loader__logo" draggable="false" />
     </div>
@@ -223,6 +274,21 @@ html.intro-reveal .app-stage {
   background: var(--color-text, #eceef1);
   transform-origin: left center;
   transition: transform 0.12s linear;
+}
+
+/* Loading biasa (sudah pernah berkunjung): logo langsung tampil, tanpa zoom */
+.loader--quick .loader__logo {
+  opacity: 1;
+  animation: none;
+}
+
+.loader--quick {
+  transition: opacity 0.25s ease;
+}
+
+.loader--fade {
+  opacity: 0;
+  pointer-events: none;
 }
 
 @keyframes loader-in {
