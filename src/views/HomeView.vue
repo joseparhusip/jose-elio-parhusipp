@@ -219,9 +219,12 @@ onUnmounted(() => {
       <div class="container">
         <!-- Strip metadata ala sampul jurnal -->
         <div class="hero__strip mono-meta" v-reveal.down>
-          <span>{{ t({ id: 'Portofolio · Edisi', en: 'Portfolio · Edition' }) }} {{ edition }}</span>
+          <span>
+            {{ t({ id: 'Portofolio', en: 'Portfolio' }) }} ·
+            <span class="hero__strip-word">{{ t({ id: 'Edisi', en: 'Edition' }) }}</span>
+            {{ edition }}
+          </span>
           <span class="hero__strip-status">
-            <span class="hero__status-dot" aria-hidden="true"></span>
             {{ t({ id: 'Terbuka untuk kerja', en: 'Open to work' }) }}
           </span>
         </div>
@@ -418,33 +421,14 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--color-rule);
 }
 
+/* Label status: pelat timbul kecil, senada dengan tombol di navbar */
 .hero__strip-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  color: var(--color-text);
-}
-
-.hero__status-dot {
-  position: relative;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-accent);
-}
-
-.hero__status-dot::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 1px solid var(--color-accent);
-  animation: hero-ping 2.4s var(--ease-out) infinite;
-}
-
-@keyframes hero-ping {
-  from { transform: scale(0.6); opacity: 0.9; }
-  to { transform: scale(1.8); opacity: 0; }
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-weight: 600;
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--color-text) 45%, var(--color-bg));
 }
 
 /* ---- Isi utama: nama selebar halaman, lalu dua kolom di bawah garis ---- */
@@ -848,7 +832,6 @@ onUnmounted(() => {
 
 /* ---- Kurangi animasi ---- */
 @media (prefers-reduced-motion: reduce) {
-  .hero__status-dot::after,
   .hero__scroll-line::after,
   .hero__cursor {
     animation: none;
@@ -869,8 +852,26 @@ onUnmounted(() => {
 
 /* ---- HP ---- */
 @media (max-width: 640px) {
+  /* Strip tetap satu baris: kata "Edisi" dilepas supaya status muat di sebelahnya */
+  .hero__strip {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+
+  .hero__strip-word {
+    display: none;
+  }
+
   .hero__title {
     font-size: clamp(3.4rem, 19vw, 5.4rem);
+  }
+
+  @media (max-width: 350px) {
+    .hero__strip {
+      column-gap: 0.75rem;
+      font-size: 0.64rem;
+      letter-spacing: 0.03em;
+    }
   }
 
   .hero__cta {
