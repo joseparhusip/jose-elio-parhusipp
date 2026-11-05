@@ -297,7 +297,7 @@ onUnmounted(() => {
                   <div class="hero__socials">
                     <a
                       href="https://github.com/joseparhusip"
-                      class="hero__social-link"
+                      class="btn-close hero__social-link"
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="GitHub"
@@ -311,7 +311,7 @@ onUnmounted(() => {
 
                     <a
                       href="https://www.linkedin.com/in/joseparhusip/"
-                      class="hero__social-link"
+                      class="btn-close hero__social-link"
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="LinkedIn"
@@ -330,7 +330,7 @@ onUnmounted(() => {
 
                     <a
                       href="https://www.instagram.com/joseparhusip_/"
-                      class="hero__social-link"
+                      class="btn-close hero__social-link"
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Instagram"
@@ -742,36 +742,11 @@ onUnmounted(() => {
 
 .hero__socials {
   display: flex;
+  gap: 0.5rem;
 }
 
 .hero__social-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--color-rule);
-  color: var(--color-text);
-  text-decoration: none;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.hero__social-link + .hero__social-link {
-  margin-left: -1px;
-}
-
-.hero__social-link:first-child {
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-}
-
-.hero__social-link:last-child {
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-}
-
-.hero__social-link:hover {
-  position: relative;
-  border-color: var(--color-text);
-  background: var(--color-surface);
+  --close-size: 42px;
 }
 
 .hero__social-icon {
@@ -916,8 +891,7 @@ onUnmounted(() => {
   }
 
   .hero__social-link {
-    width: 52px;
-    height: 48px;
+    --close-size: 48px;
   }
 
   /* Statistik jadi baris buku besar: label kiri, angka kanan */

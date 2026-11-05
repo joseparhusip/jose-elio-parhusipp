@@ -581,13 +581,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           </div>
 
           <div class="gallery__arrows">
-            <button type="button" class="gallery__arrow" :aria-label="t({ id: 'Proyek sebelumnya', en: 'Previous project' })" @click="prev">
+            <button type="button" class="btn-close gallery__arrow" :aria-label="t({ id: 'Proyek sebelumnya', en: 'Previous project' })" @click="prev">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                   stroke-linejoin="round" d="M19 12H5m6-6-6 6 6 6" />
               </svg>
             </button>
-            <button type="button" class="gallery__arrow" :aria-label="t({ id: 'Proyek berikutnya', en: 'Next project' })" @click="next">
+            <button type="button" class="btn-close gallery__arrow" :aria-label="t({ id: 'Proyek berikutnya', en: 'Next project' })" @click="next">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                   stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
@@ -1144,23 +1144,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .gallery__arrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-rule);
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.gallery__arrow:hover {
-  border-color: var(--color-text);
-  background: var(--color-bg);
+  --close-size: 38px;
 }
 
 /* ---- Info proyek aktif: nomor besar di kiri, isi di kanan ---- */
@@ -1233,26 +1217,23 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .gallery__stack {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 0;
+  gap: 0.4rem;
   list-style: none;
   margin: 1rem 0 0;
   padding: 0;
 }
 
+/* Sama dengan tag di bagian Pengalaman */
 .gallery__chip {
+  padding: 0.28rem 0.6rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  line-height: 1.6;
-  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-text);
   white-space: nowrap;
-}
-
-.gallery__chip + .gallery__chip::before {
-  content: '·';
-  margin: 0 0.6rem;
-  color: var(--color-text-soft);
 }
 
 .gallery__actions {

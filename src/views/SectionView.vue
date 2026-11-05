@@ -11,6 +11,7 @@ const sections = {
   tentang: defineAsyncComponent(() => import('@/components/AboutSection.vue')),
   pengalaman: defineAsyncComponent(() => import('@/components/ExperienceSection.vue')),
   proyek: defineAsyncComponent(() => import('@/components/ProjectsSection.vue')),
+  sertifikat: defineAsyncComponent(() => import('@/components/CertificatesSection.vue')),
   kontak: defineAsyncComponent(() => import('@/components/ContactSection.vue')),
 }
 

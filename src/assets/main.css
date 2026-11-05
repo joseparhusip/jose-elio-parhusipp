@@ -333,6 +333,7 @@ img {
    - (default)          ikut tema, untuk lembar/pop up berlatar halaman
    - .btn-close--dark   latar selalu gelap (lightbox foto/sertifikat)
    - .btn-close--blue   di atas header biru (widget chat)
+   - .btn-close--solid  tombol utama mengambang (buka chat)
    ========================================================= */
 .btn-close {
   --close-size: 44px;
@@ -355,6 +356,7 @@ img {
   border-radius: var(--radius-sm);
   background: var(--close-face);
   color: var(--close-ink);
+  text-decoration: none;
   cursor: pointer;
   box-shadow:
     inset 0 1px 0 var(--close-shine),
@@ -395,6 +397,15 @@ img {
   --close-ink: #fff;
   --close-shine: rgba(255, 255, 255, 0.22);
   --close-shadow: rgba(0, 0, 0, 0.35);
+}
+
+.btn-close--solid {
+  --close-face: var(--color-text);
+  --close-edge: color-mix(in srgb, var(--color-text) 55%, var(--color-bg));
+  --close-line: transparent;
+  --close-line-hover: transparent;
+  --close-ink: var(--color-bg);
+  --close-shine: rgba(255, 255, 255, 0.18);
 }
 
 /* =====================================================

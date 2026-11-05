@@ -1905,7 +1905,7 @@ watch(lang, (next, prev) => {
 
     <button
       type="button"
-      class="chat-widget__fab"
+      class="btn-close btn-close--solid chat-widget__fab"
       :class="{ 'chat-widget__fab--open': chatStore.isOpen }"
       :aria-label="chatStore.isOpen ? t({ id: 'Tutup chat', en: 'Close chat' }) : t({ id: 'Buka chat kontak', en: 'Open contact chat' })"
       @click="toggleWidget"
@@ -1954,28 +1954,8 @@ watch(lang, (next, prev) => {
 
 /* --- Tombol bulat mengambang --- */
 .chat-widget__fab {
+  --close-size: 48px;
   position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-sm);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-bg);
-  background: var(--color-text);
-  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.chat-widget__fab:hover {
-  transform: translateY(-3px);
-  background: var(--color-primary);
-  color: #fff;
-  box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.6);
 }
 
 .chat-widget__fab-icon {
@@ -2587,8 +2567,7 @@ watch(lang, (next, prev) => {
   }
 
   .chat-widget__fab {
-    width: 44px;
-    height: 44px;
+    --close-size: 44px;
   }
 }
 </style>

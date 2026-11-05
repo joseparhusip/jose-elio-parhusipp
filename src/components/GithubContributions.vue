@@ -359,6 +359,7 @@ function hideTooltip() {
 /* ---- Grafik ---- */
 .gh__graph {
   position: relative;
+  container-type: inline-size;
 }
 
 .gh__scroll {
@@ -368,6 +369,8 @@ function hideTooltip() {
 }
 
 .gh__calendar {
+  /* Kotak membesar mengikuti lebar kolom; di layar sempit tetap 11px dan di-scroll */
+  --cell: clamp(11px, calc((100cqw - 3rem - (var(--weeks) - 1) * var(--gap)) / var(--weeks)), 18px);
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: auto auto;

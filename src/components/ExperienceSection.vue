@@ -205,12 +205,6 @@ function splitCompany(company) {
   return rest.length ? { type: first, name: rest.join(' — ') } : { type: '', name: first }
 }
 
-// Panjang "bar durasi" di tiap tab, relatif terhadap peran terlama
-const longest = Math.max(...experiences.map((e) => monthsOf(e.period)))
-function tenureRatio(item) {
-  return Math.max(0.08, monthsOf(item.period) / longest)
-}
-
 const totalMonths = experiences.reduce((sum, e) => sum + monthsOf(e.period), 0)
 const firstYear = Math.min(...experiences.map((e) => Number(e.period.id.split('—')[0].trim().split(/\s+/).pop())))
 
@@ -251,6 +245,14 @@ function onTabKeydown(event) {
     event.preventDefault()
     select(experiences.length - 1, true)
   }
+}
+
+// Tepi kanan baris tab memudar sebagai tanda masih bisa digeser, kecuali sudah di ujung
+const tabsAtEnd = ref(false)
+
+function onTabsScroll() {
+  const list = tablistEl.value
+  tabsAtEnd.value = list.scrollLeft + list.clientWidth >= list.scrollWidth - 4
 }
 
 // Di HP tab berbentuk baris yang bisa digeser; tab aktif digeser ke tengah
@@ -338,10 +340,12 @@ const logoStyle = (item) =>
           <div
             ref="tablistEl"
             class="experience__tabs"
+            :class="{ 'is-end': tabsAtEnd }"
             role="tablist"
             :aria-label="t({ id: 'Daftar pengalaman', en: 'Experience list' })"
             aria-orientation="vertical"
             @keydown="onTabKeydown"
+            @scroll.passive="onTabsScroll"
           >
             <button
               v-for="(item, index) in experiences"
@@ -369,11 +373,6 @@ const logoStyle = (item) =>
               <span class="experience__tab-year">
                 <span v-if="item.current" class="experience__now" aria-hidden="true"></span>
                 {{ yearRange(item.period) }}
-              </span>
-
-              <!-- Garis durasi: makin panjang, makin lama perannya -->
-              <span class="experience__tenure" aria-hidden="true">
-                <span class="experience__tenure-fill" :style="{ '--ratio': tenureRatio(item) }"></span>
               </span>
             </button>
           </div>
@@ -477,7 +476,7 @@ const logoStyle = (item) =>
           <nav class="experience__pager" :aria-label="t({ id: 'Navigasi pengalaman', en: 'Experience navigation' })">
             <button
               type="button"
-              class="experience__pager-btn"
+              class="btn btn--ghost experience__pager-btn"
               :disabled="activeIndex === 0"
               @click="select(activeIndex - 1)"
             >
@@ -492,7 +491,7 @@ const logoStyle = (item) =>
             </span>
             <button
               type="button"
-              class="experience__pager-btn"
+              class="btn btn--ghost experience__pager-btn"
               :disabled="activeIndex === experiences.length - 1"
               @click="select(activeIndex + 1)"
             >
@@ -594,7 +593,7 @@ const logoStyle = (item) =>
   transition: color 0.25s ease, background-color 0.25s ease;
 }
 
-/* Penanda baris aktif: garis warna teks di kiri *
+/* Penanda baris aktif: garis warna teks di kiri */
 .experience__tab::before {
   content: '';
   position: absolute;
@@ -669,31 +668,6 @@ const logoStyle = (item) =>
   font-variant-numeric: tabular-nums;
   color: var(--color-text-soft);
   white-space: nowrap;
-}
-
-/* Garis bawah baris sekaligus bar durasi */
-.experience__tenure {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: var(--color-border);
-}
-
-.experience__tenure-fill {
-  position: absolute;
-  inset: 0;
-  background: var(--color-text-soft);
-  opacity: 0.5;
-  transform: scaleX(var(--ratio));
-  transform-origin: left;
-  transition: background-color 0.3s ease, opacity 0.3s ease;
-}
-
-.experience__tab--active .experience__tenure-fill {
-  background: var(--color-text);
-  opacity: 1;
 }
 
 /* ---- Logo ---- */
@@ -956,29 +930,15 @@ const logoStyle = (item) =>
 }
 
 .experience__pager-btn {
-  display: inline-flex;
-  align-items: center;
   gap: 0.4rem;
   min-height: 40px;
   padding: 0 0.9rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-rule);
-  background: transparent;
-  font-family: var(--font-body);
   font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--color-text);
-  cursor: pointer;
-  transition: border-color 0.2s ease, opacity 0.2s ease;
-}
-
-.experience__pager-btn:hover:not(:disabled) {
-  border-color: var(--color-text);
 }
 
 .experience__pager-btn:disabled {
   opacity: 0.35;
-  cursor: default;
+  pointer-events: none;
 }
 
 .experience__pager-count {
@@ -1052,6 +1012,11 @@ const logoStyle = (item) =>
     display: none;
   }
 
+  .experience__tabs:not(.is-end) {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 3.5rem), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 3.5rem), transparent);
+  }
+
   .experience__tab {
     flex: 0 0 auto;
     grid-template-columns: auto auto;
@@ -1110,14 +1075,19 @@ const logoStyle = (item) =>
     justify-self: end;
     font-size: 0.64rem;
   }
-
-  /* Bar durasi tidak relevan di baris horizontal */
-  .experience__tenure {
-    display: none;
-  }
 }
 
 @media (max-width: 480px) {
+  /* Status turun ke baris sendiri, tanpa titik pemisah di awal baris */
+  .experience__current {
+    flex-basis: 100%;
+    margin-top: 0.25rem;
+  }
+
+  .experience__meta > .experience__current::before {
+    display: none;
+  }
+
   .experience__logo {
     width: 56px;
     height: 40px;

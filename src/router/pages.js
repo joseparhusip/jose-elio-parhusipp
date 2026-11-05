@@ -71,6 +71,21 @@ export const pages = [
     },
   },
   {
+    path: '/sertifikat',
+    name: 'sertifikat',
+    sectionId: 'sertifikat',
+    label: 'Sertifikat',
+    title: 'Sertifikat — Jose Elio Parhusip',
+    description:
+      'Sertifikat dan pelatihan Jose Elio Parhusip: SAP, bootcamp karier IT, program P2MW, dan kursus pengembangan web.',
+    en: {
+      label: 'Certificates',
+      title: 'Certificates — Jose Elio Parhusip',
+      description:
+        'Certificates and training of Jose Elio Parhusip: SAP, an IT career bootcamp, the P2MW program, and a web development course.',
+    },
+  },
+  {
     path: '/kontak',
     name: 'kontak',
     sectionId: 'kontak',

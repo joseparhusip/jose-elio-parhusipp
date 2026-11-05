@@ -2,9 +2,6 @@
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { useChatWidgetStore } from '../stores/chatWidget'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
@@ -19,11 +16,12 @@ function openChat() {
   chatStore.open()
 }
 
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
+// Penanda peta: titik biru buatan sendiri (gaya di .contact__pin)
+const pinIcon = L.divIcon({
+  className: 'contact__pin',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+  popupAnchor: [0, -10],
 })
 
 // Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
@@ -86,6 +84,16 @@ const contactInfo = [
     // Klik item ini membuka widget chat (lihat openChat), bukan mailto.
     action: openChat,
   },
+  {
+    label: 'LinkedIn',
+    value: 'linkedin.com/in/joseparhusip',
+    href: 'https://www.linkedin.com/in/joseparhusip/',
+  },
+  {
+    label: 'GitHub',
+    value: 'github.com/joseparhusip',
+    href: 'https://github.com/joseparhusip',
+  },
 ]
 
 const mapLocations = [
@@ -128,7 +136,9 @@ onMounted(() => {
   }).addTo(mapInstance)
 
   const markers = mapLocations.map((loc) =>
-    L.marker([loc.lat, loc.lng]).addTo(mapInstance).bindPopup(loc.name),
+    L.marker([loc.lat, loc.lng], { icon: pinIcon })
+      .addTo(mapInstance)
+      .bindPopup(loc.name, { closeButton: false }),
   )
   mapMarkers.push(...markers)
 
@@ -199,7 +209,7 @@ onBeforeUnmount(() => {
                 v-for="item in contactInfo"
                 :key="item.label"
                 class="contact__item"
-                :class="{ 'contact__item--action': item.action }"
+                :class="{ 'contact__item--action': item.action || item.href }"
               >
                 <span class="contact__item-label">{{ item.label }}</span>
                 <button
@@ -210,9 +220,18 @@ onBeforeUnmount(() => {
                 >
                   {{ item.value }}
                 </button>
+                <a
+                  v-else-if="item.href"
+                  :href="item.href"
+                  class="contact__item-value contact__item-value--btn"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ item.value }}
+                </a>
                 <span v-else class="contact__item-value">{{ item.value }}</span>
                 <svg
-                  v-if="item.action"
+                  v-if="item.action || item.href"
                   class="contact__item-arrow"
                   viewBox="0 0 24 24"
                   width="18"
@@ -246,7 +265,7 @@ onBeforeUnmount(() => {
                 v-for="(loc, index) in mapLocations"
                 :key="loc.name"
                 type="button"
-                class="contact__place"
+                class="btn btn--ghost contact__place"
                 @click="focusLocation(index)"
               >
                 <span class="contact__place-num">0{{ index + 1 }}</span>
@@ -366,6 +385,7 @@ onBeforeUnmount(() => {
   background: none;
   text-align: left;
   font-weight: 600;
+  text-decoration: none;
   cursor: pointer;
   transition: color 0.2s ease;
 }
@@ -420,13 +440,79 @@ onBeforeUnmount(() => {
 .contact__map {
   flex: 1;
   width: 100%;
-  min-height: 320px;
+  min-height: 260px;
   z-index: 0;
+  /* Tema gelap: peta dibalik jadi gelap. Tema terang: hitam-putih biasa. */
+  --map-tiles: grayscale(1) invert(1) brightness(0.82) contrast(0.92);
+  background: var(--color-surface);
 }
 
-/* Peta dibuat hitam-putih supaya menyatu dengan palet; penanda bawaan Leaflet sudah biru */
+:root[data-theme='light'] .contact__map {
+  --map-tiles: grayscale(1) contrast(0.95);
+}
+
 .contact__map :deep(.leaflet-tile-pane) {
-  filter: grayscale(1) contrast(0.95);
+  filter: var(--map-tiles);
+}
+
+/* Kontrol, popup, & atribusi Leaflet mengikuti palet situs */
+.contact__map :deep(.leaflet-bar) {
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.contact__map :deep(.leaflet-bar a) {
+  border-bottom-color: var(--color-rule);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.contact__map :deep(.leaflet-bar a:hover) {
+  background: var(--color-surface-soft);
+}
+
+.contact__map :deep(.leaflet-bar a.leaflet-disabled) {
+  background: var(--color-surface);
+  color: var(--color-rule);
+}
+
+.contact__map :deep(.leaflet-popup-content-wrapper),
+.contact__map :deep(.leaflet-popup-tip) {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.6);
+}
+
+.contact__map :deep(.leaflet-popup-content-wrapper) {
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-sm);
+}
+
+.contact__map :deep(.leaflet-popup-content) {
+  margin: 0.45rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.contact__map :deep(.leaflet-control-attribution) {
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  color: var(--color-text-soft);
+}
+
+.contact__map :deep(.leaflet-control-attribution a) {
+  color: var(--color-text);
+}
+
+.contact__map :deep(.contact__pin) {
+  box-sizing: border-box;
+  border: 3px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 1.5px var(--color-primary);
 }
 
 .contact__map :deep(img) {
@@ -448,26 +534,16 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-rule);
-  background: transparent;
+  min-height: 34px;
+  padding: 0 0.75rem;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text);
-  cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
 }
 
 .contact__place-num {
   color: var(--color-text-soft);
-}
-
-.contact__place:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
 }
 
 /* ---------------------------------------------------------
@@ -511,10 +587,6 @@ onBeforeUnmount(() => {
 @media (max-width: 900px) {
   .contact__grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .contact__map {
-    min-height: 260px;
   }
 }
 

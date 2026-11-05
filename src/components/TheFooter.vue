@@ -17,11 +17,17 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// Tombol kembali ke atas: melayang di layar, hanya muncul setelah scroll ke bawah
+// Tombol kembali ke atas: melayang di layar, hanya muncul setelah scroll ke bawah.
+// Di HP hanya saat sedang scroll ke atas, supaya tidak menutupi isi saat membaca.
 const showTopBtn = ref(false)
+let lastScrollY = 0
 
 function handleScroll() {
-  showTopBtn.value = window.scrollY > 400
+  const y = window.scrollY
+  if (Math.abs(y - lastScrollY) < 8) return
+  const isPhone = window.innerWidth <= 640
+  showTopBtn.value = y > 400 && (!isPhone || y < lastScrollY)
+  lastScrollY = y
 }
 
 onMounted(() => {
@@ -108,7 +114,7 @@ function preventImageAction(event) {
   <Transition name="top-btn-fade">
     <button
       v-if="showTopBtn"
-      class="top-btn"
+      class="btn-close top-btn"
       type="button"
       @click="scrollToTop"
       :aria-label="t({ id: 'Kembali ke atas', en: 'Back to top' })"
@@ -319,32 +325,13 @@ function preventImageAction(event) {
 
 /* ---- Tombol melayang kembali ke atas ---- */
 .top-btn {
+  --close-size: 46px;
   position: fixed;
   right: 1.5rem;
   /* Digeser ke atas biar gak numpuk sama bubble ChatWidget yang juga
      fixed di pojok kanan bawah (right/bottom 1.5rem, tinggi 58px). */
   bottom: 6rem;
   z-index: 40;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-rule);
-  background: var(--color-surface);
-  color: var(--color-text);
-  cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.top-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  transform: translateY(-2px);
 }
 
 .top-btn__icon {
@@ -415,10 +402,9 @@ function preventImageAction(event) {
   }
 
   .top-btn {
+    --close-size: 44px;
     right: 1rem;
     bottom: 5rem;
-    width: 44px;
-    height: 44px;
   }
 }
 </style>
