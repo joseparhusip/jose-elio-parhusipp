@@ -11,10 +11,12 @@ import udemyImg from './img-sertifikat/udemy-codeigniter-2023.jpg'
 /* ---------------------------------------------------------
    Sertifikat: daftar bergaris seperti arsip dokumen (bukan grid kartu).
    - Desktop: baris di kiri, satu bingkai pratinjau di kanan yang ikut
-     berganti saat baris disorot/difokus. Klik baris atau bingkai untuk
+     berganti saat baris disorot/difokus. Klik gambar di bingkai untuk
      melihat dokumen penuh (lightbox).
    - HP: bingkai pratinjau disembunyikan; baris yang dipilih membuka
-     gambarnya langsung di bawah baris itu (akordeon).
+     gambarnya langsung di bawah baris itu (akordeon). Klik gambarnya
+     untuk melihat dokumen penuh.
+   Klik baris hanya memilih sertifikat, tidak membuka lightbox.
    Urutan: terbaru di atas.
 --------------------------------------------------------- */
 const certificates = [
@@ -67,6 +69,7 @@ const certificates = [
       en: 'A 21.5-hour course on building a complete online store with shipping cost calculation.',
     },
     ref: 'UC-eebd53d3-c6d2-4898-92a8-e439588435b3',
+    url: 'https://ude.my/UC-eebd53d3-c6d2-4898-92a8-e439588435b3',
     image: udemyImg,
   },
 ]
@@ -147,10 +150,9 @@ function preventImageAction(event) {
               class="certs__row"
               :aria-expanded="active === index"
               :aria-controls="`cert-${index}`"
-              :data-cursor="t({ id: 'Lihat', en: 'View' })"
               @mouseenter="active = index"
               @focus="active = index"
-              @click="active === index ? openLightbox(index) : (active = index)"
+              @click="active = index"
             >
               <span class="certs__num">{{ String(index + 1).padStart(2, '0') }}</span>
               <span class="certs__main">
@@ -182,6 +184,19 @@ function preventImageAction(event) {
                     @dragstart.prevent="preventImageAction"
                   />
                 </button>
+                <a
+                  v-if="cert.url"
+                  :href="cert.url"
+                  class="btn btn--ghost certs__link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ t({ id: 'Lihat di Udemy', en: 'View on Udemy' }) }}
+                  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                    <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                      stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
+                  </svg>
+                </a>
               </div>
             </div>
           </li>
@@ -219,6 +234,19 @@ function preventImageAction(event) {
                 <dd>{{ activeCert.ref }}</dd>
               </div>
             </dl>
+            <a
+              v-if="activeCert.url"
+              :href="activeCert.url"
+              class="btn btn--ghost certs__link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ t({ id: 'Lihat di Udemy', en: 'View on Udemy' }) }}
+              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                  stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
+              </svg>
+            </a>
           </div>
         </aside>
       </div>
@@ -521,6 +549,15 @@ function preventImageAction(event) {
   line-height: 1.65;
   color: var(--color-text-soft);
   text-wrap: pretty;
+}
+
+.certs__link {
+  gap: 0.45rem;
+  min-height: 40px;
+  margin-top: 1rem;
+  padding: 0 0.9rem;
+  font-size: 0.82rem;
+  text-decoration: none;
 }
 
 .certs__meta {
