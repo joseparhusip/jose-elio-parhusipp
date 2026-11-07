@@ -27,7 +27,7 @@ import {
   WebGLRenderer,
 } from 'three'
 import { useTheme } from '@/composables/useTheme'
-import { t } from '@/composables/useLang'
+import { lang, t } from '@/composables/useLang'
 import photo from './img-lanyard/foto-jose.jpg'
 
 /* ---------------------------------------------------------
@@ -41,9 +41,13 @@ import photo from './img-lanyard/foto-jose.jpg'
    - Hanya berjalan saat terlihat. Kalau pengguna memilih kurangi animasi:
      ayunan otomatis dimatikan, kartu hanya bergerak saat ditarik sendiri.
      Kalau WebGL tidak ada: tampil kartu diam (.lanyard--static).
+   - Ketuk/klik (tanpa menggeser) membalik kartu ke sisi belakang (info
+     singkat); menarik hanya mengayun dan tidak mengubah sisi. Sisi
+     belakang kembali ke depan sendiri setelah 8 detik atau saat kartu
+     keluar layar.
 --------------------------------------------------------- */
-const CARD_W = 168
-const CARD_H = 278
+const CARD_W = 184
+const CARD_H = 350
 const CARD_DEPTH = 4
 const CARD_BEVEL = 0.8
 const ROPE_LENGTH = 92
@@ -101,30 +105,40 @@ function drawCard(canvas, image) {
   const serif = cssVar('--font-serif')
   const mono = cssVar('--font-mono')
   const pad = 14
+  const innerW = CARD_W - pad * 2
 
   ctx.fillStyle = face
   ctx.fillRect(0, 0, CARD_W, CARD_H)
+  ctx.textBaseline = 'alphabetic'
 
   // Lubang pengait
   ctx.fillStyle = hole
   roundRect(ctx, CARD_W / 2 - 13, 8, 26, 6, 3)
   ctx.fill()
 
+  // Kepala kartu: monogram & keterangan
+  ctx.textAlign = 'left'
+  ctx.font = `italic 400 13px ${serif}`
+  ctx.fillStyle = blue
+  ctx.fillText('JP', pad, 28)
+  ctx.textAlign = 'right'
+  ctx.font = `500 5.8px ${mono}`
+  ctx.fillStyle = muted
+  ctx.fillText(`PORTFOLIO · ${new Date().getFullYear()}`, CARD_W - pad, 27)
+
   // Area foto: mengikuti rasio foto (tegak), jadi foto tampil utuh
-  ctx.textBaseline = 'alphabetic'
-  const photoY = 22
-  const photoW = CARD_W - pad * 2
-  const photoH = 187
+  const photoY = 35
+  const photoH = 209
   ctx.save()
-  roundRect(ctx, pad, photoY, photoW, photoH, 5)
+  roundRect(ctx, pad, photoY, innerW, photoH, 5)
   ctx.clip()
   ctx.fillStyle = soft
-  ctx.fillRect(pad, photoY, photoW, photoH)
+  ctx.fillRect(pad, photoY, innerW, photoH)
   if (image) {
-    const ratio = Math.max(photoW / image.width, photoH / image.height)
+    const ratio = Math.max(innerW / image.width, photoH / image.height)
     const w = image.width * ratio
     const h = image.height * ratio
-    ctx.drawImage(image, pad + (photoW - w) / 2, photoY + (photoH - h) / 2, w, h)
+    ctx.drawImage(image, pad + (innerW - w) / 2, photoY + (photoH - h) / 2, w, h)
   } else {
     ctx.textAlign = 'center'
     ctx.font = `italic 400 62px ${serif}`
@@ -144,32 +158,174 @@ function drawCard(canvas, image) {
     ctx.font = font
     return ctx.measureText(text).width
   }
-  let size = 20
-  while (widthOf(firstFont(size), first) + widthOf(lastFont(size), last) > photoW) size -= 0.25
+  let size = 22
+  while (widthOf(firstFont(size), first) + widthOf(lastFont(size), last) > innerW) size -= 0.25
   const firstWidth = widthOf(firstFont(size), first)
   ctx.font = firstFont(size)
   ctx.fillStyle = ink
-  ctx.fillText(first, pad, 229)
+  ctx.fillText(first, pad, 268)
   ctx.font = lastFont(size)
   ctx.fillStyle = blue
-  ctx.fillText(last, pad + firstWidth, 229)
+  ctx.fillText(last, pad + firstWidth, 268)
 
-  ctx.font = `500 6.2px ${mono}`
+  ctx.font = `500 6.4px ${mono}`
   ctx.fillStyle = muted
-  ctx.fillText('FULL STACK DEVELOPER', pad, 243)
+  ctx.fillText('FULL STACK DEVELOPER', pad, 282)
 
-  // Baris bawah
+  // Baris info dua kolom
   ctx.strokeStyle = line
   ctx.lineWidth = 0.6
   ctx.beginPath()
-  ctx.moveTo(pad, 252)
-  ctx.lineTo(CARD_W - pad, 252)
+  ctx.moveTo(pad, 291)
+  ctx.lineTo(CARD_W - pad, 291)
   ctx.stroke()
+  const col2 = pad + innerW * 0.42
+  ctx.font = `500 5.2px ${mono}`
   ctx.fillStyle = muted
-  ctx.fillText('BANDUNG', pad, 266)
-  ctx.textAlign = 'right'
+  ctx.fillText('BASE', pad, 303)
+  ctx.fillText('WEB', col2, 303)
+  ctx.font = `600 6.6px ${mono}`
   ctx.fillStyle = ink
-  ctx.fillText('JOSEPARHUSIP.COM', CARD_W - pad, 266)
+  ctx.fillText('BANDUNG, ID', pad, 314)
+  ctx.fillText('JOSEPARHUSIP.COM', col2, 314)
+
+  // Pita bawah biru: status + garis kode ala kartu staf
+  const bandY = 324
+  ctx.fillStyle = blue
+  ctx.fillRect(0, bandY, CARD_W, CARD_H - bandY)
+  ctx.font = `600 6.4px ${mono}`
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillText('OPEN TO WORK', pad, bandY + 16)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
+  const code = 'JOSEPARHUSIP'
+  let x = CARD_W - pad
+  for (let i = code.length - 1; i >= 0 && x > CARD_W * 0.55; i--) {
+    const c = code.charCodeAt(i)
+    const bar = 0.6 + (c % 3) * 0.55
+    x -= bar
+    ctx.fillRect(x, bandY + 7, bar, 12)
+    x -= 0.8 + (c % 2) * 0.9
+  }
+}
+
+// Sisi belakang: ringkasan singkat seperti bagian belakang kartu ID
+function drawBack(canvas) {
+  const s = TEXTURE_SCALE
+  canvas.width = CARD_W * s
+  canvas.height = CARD_H * s
+  const ctx = canvas.getContext('2d')
+  ctx.scale(s, s)
+
+  const { face, ink, muted, blue, line, hole } = theme.value === 'light' ? CARD_DARK : CARD_LIGHT
+  const heading = cssVar('--font-heading')
+  const serif = cssVar('--font-serif')
+  const mono = cssVar('--font-mono')
+  const pad = 14
+  const innerW = CARD_W - pad * 2
+  const en = lang.value === 'en'
+
+  ctx.fillStyle = face
+  ctx.fillRect(0, 0, CARD_W, CARD_H)
+  ctx.textBaseline = 'alphabetic'
+
+  ctx.fillStyle = hole
+  roundRect(ctx, CARD_W / 2 - 13, 8, 26, 6, 3)
+  ctx.fill()
+
+  ctx.textAlign = 'left'
+  ctx.font = `italic 400 13px ${serif}`
+  ctx.fillStyle = blue
+  ctx.fillText('JP', pad, 28)
+  ctx.textAlign = 'right'
+  ctx.font = `500 5.8px ${mono}`
+  ctx.fillStyle = muted
+  ctx.fillText(`ID · ${new Date().getFullYear()}`, CARD_W - pad, 27)
+  ctx.textAlign = 'left'
+
+  // Teks utama diperkecil sampai muat satu baris
+  const fitted = (text, weight, max) => {
+    let size = max
+    do {
+      ctx.font = `${weight} ${size}px ${heading}`
+      size -= 0.25
+    } while (ctx.measureText(text).width > innerW && size > 6)
+  }
+  const rule = (y) => {
+    ctx.strokeStyle = line
+    ctx.lineWidth = 0.6
+    ctx.beginPath()
+    ctx.moveTo(pad, y)
+    ctx.lineTo(CARD_W - pad, y)
+    ctx.stroke()
+  }
+  const section = (y, label, value, sub) => {
+    ctx.font = `500 5.4px ${mono}`
+    ctx.fillStyle = muted
+    ctx.fillText(label, pad, y)
+    fitted(value, 700, 13)
+    ctx.fillStyle = ink
+    ctx.fillText(value, pad, y + 15)
+    if (sub) {
+      ctx.font = `500 6px ${mono}`
+      ctx.fillStyle = muted
+      ctx.fillText(sub, pad, y + 27)
+    }
+    rule(sub ? y + 37 : y + 25)
+  }
+
+  section(52, en ? 'NOW' : 'SEKARANG', 'Back End Developer', en ? 'PT SPKD · CONTRACT' : 'PT SPKD · KONTRAK')
+  section(102, en ? 'EDUCATION' : 'PENDIDIKAN', en ? 'Bachelor of Digital Business' : 'S1 Bisnis Digital', 'ULBI · 2026')
+  section(152, en ? 'FOCUS' : 'FOKUS', 'Web · Mobile · Data · AI')
+
+  // Stack utama sebagai label kecil bergaris
+  ctx.font = `500 5.4px ${mono}`
+  ctx.fillStyle = muted
+  ctx.fillText(en ? 'CORE STACK' : 'STACK UTAMA', pad, 190)
+  ctx.font = `600 6.4px ${mono}`
+  let x = pad
+  let y = 196
+  for (const tech of ['Go', 'Vue.js', 'React', 'Flutter', 'PostgreSQL']) {
+    const w = ctx.measureText(tech.toUpperCase()).width + 10
+    if (x + w > CARD_W - pad) {
+      x = pad
+      y += 17
+    }
+    ctx.strokeStyle = line
+    ctx.lineWidth = 0.7
+    roundRect(ctx, x, y, w, 13, 3)
+    ctx.stroke()
+    ctx.fillStyle = ink
+    ctx.fillText(tech.toUpperCase(), x + 5, y + 9)
+    x += w + 4
+  }
+
+  // Seperti tulisan di belakang kartu ID asli
+  ctx.font = `italic 400 12.5px ${serif}`
+  ctx.fillStyle = blue
+  ctx.fillText(en ? 'Found this card?' : 'Menemukan kartu ini?', pad, 280)
+  ctx.font = `600 6.6px ${mono}`
+  ctx.fillStyle = ink
+  ctx.fillText('JOSEPARHUSIP7@GMAIL.COM', pad, 294)
+
+  const bandY = 324
+  ctx.fillStyle = blue
+  ctx.fillRect(0, bandY, CARD_W, CARD_H - bandY)
+  ctx.font = `600 6.4px ${mono}`
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillText(en ? 'TAP TO FLIP' : 'KETUK UNTUK MEMBALIK', pad, bandY + 16)
+  // Ikon panah memutar
+  const cx = CARD_W - pad - 5
+  const cy = bandY + 13
+  ctx.strokeStyle = '#FFFFFF'
+  ctx.lineWidth = 1.1
+  ctx.beginPath()
+  ctx.arc(cx, cy, 4, Math.PI * 0.15, Math.PI * 1.75)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(cx + 3.6, cy - 3.6)
+  ctx.lineTo(cx + 4.2, cy - 0.6)
+  ctx.lineTo(cx + 1.2, cy - 1.4)
+  ctx.stroke()
 }
 
 function drawStrap(canvas) {
@@ -249,6 +405,12 @@ let yawVelocity = 0
 let tilt = 0
 let time = 0
 let grab = null // { along, target: { x, y } }
+let tap = null // { x, y, time } saat jari/kursor ditekan, untuk membedakan ketuk vs tarik
+const flipped = ref(false)
+let flipAngle = 0
+let flipVelocity = 0
+let flipTimer = 0
+const FLIP_BACK_MS = 8000
 const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 function resetPoints() {
@@ -331,6 +493,16 @@ function stepPhysics() {
   yawVelocity *= 0.92
   yaw = Math.max(-0.7, Math.min(0.7, yaw + yawVelocity))
   tilt += ((bottom.y - bottom.py) * 0.012 - tilt) * 0.08
+
+  // Balik kartu: pegas menuju 0 (depan) atau π (belakang), sedikit memantul
+  const flipTarget = flipped.value ? Math.PI : 0
+  if (calm) {
+    flipAngle += (flipTarget - flipAngle) * 0.3
+  } else {
+    flipVelocity += (flipTarget - flipAngle) * 0.05
+    flipVelocity *= 0.8
+    flipAngle += flipVelocity
+  }
 }
 
 /* ---- Three.js ---- */
@@ -341,6 +513,8 @@ let cardGroup = null
 let cardMesh = null
 let cardTexture = null
 let cardMaterial = null
+let backTexture = null
+let shadowMesh = null
 let glareTexture = null
 let glareMaterial = null
 let shadowTexture = null
@@ -349,6 +523,7 @@ let strapTexture = null
 let strapPositions = null
 let strapUvs = null
 const textureCanvas = document.createElement('canvas')
+const backCanvas = document.createElement('canvas')
 const strapCanvas = document.createElement('canvas')
 
 function cardShape() {
@@ -428,11 +603,23 @@ function buildScene() {
   // Permukaan tanpa pencahayaan supaya warna foto & teks tampil apa adanya;
   // kesan 3D datang dari tepi, kilau, dan bayangan
   cardMaterial = new MeshBasicMaterial({ map: cardTexture })
+  backTexture = new CanvasTexture(backCanvas)
+  backTexture.colorSpace = SRGBColorSpace
+  backTexture.generateMipmaps = false
+  backTexture.minFilter = LinearFilter
   const edge = new MeshStandardMaterial({ color: 0xc4c9d0, metalness: 0.35, roughness: 0.3 })
 
+  // Badan kartu hanya untuk tepi; muka depan & belakang permukaan sendiri
   cardGroup = new Group()
-  cardMesh = new Mesh(cardGeometry(), [cardMaterial, edge])
+  cardMesh = new Mesh(cardGeometry(), [new MeshBasicMaterial({ visible: false }), edge])
   cardGroup.add(cardMesh)
+  const faceZ = CARD_DEPTH / 2 + CARD_BEVEL
+  const front = new Mesh(fitUv(new ShapeGeometry(cardShape(), 10)), cardMaterial)
+  front.position.z = faceZ
+  const back = new Mesh(fitUv(new ShapeGeometry(cardShape(), 10)), new MeshBasicMaterial({ map: backTexture }))
+  back.rotation.y = Math.PI
+  back.position.z = -faceZ
+  cardMesh.add(front, back)
 
   const glareCanvas = document.createElement('canvas')
   drawGlare(glareCanvas)
@@ -443,20 +630,26 @@ function buildScene() {
     opacity: 0,
     blending: AdditiveBlending,
     depthWrite: false,
+    // Tidak diuji kedalaman: kilau menempel di muka kartu dan bisa "berebut"
+    // dengan permukaannya (garis-garis). Kilau satu sisi, jadi tidak tembus.
+    depthTest: false,
   })
   const glare = new Mesh(fitUv(new ShapeGeometry(cardShape(), 10)), glareMaterial)
-  glare.position.z = CARD_DEPTH / 2 + CARD_BEVEL + 0.05
-  cardMesh.add(glare)
+  glare.position.z = faceZ + 0.05
+  const glareBack = glare.clone()
+  glareBack.rotation.y = Math.PI
+  glareBack.position.z = -faceZ - 0.05
+  cardMesh.add(glare, glareBack)
 
   const shadowCanvas = document.createElement('canvas')
   drawShadow(shadowCanvas)
   shadowTexture = new CanvasTexture(shadowCanvas)
-  const shadow = new Mesh(
+  shadowMesh = new Mesh(
     new PlaneGeometry(CARD_W * 1.6, CARD_H * (400 / 280)),
     new MeshBasicMaterial({ map: shadowTexture, transparent: true, opacity: 0.45, depthWrite: false }),
   )
-  shadow.position.set(5, -8, -10)
-  cardMesh.add(shadow)
+  shadowMesh.position.set(5, -8, -10)
+  cardMesh.add(shadowMesh)
 
   // Pengait logam di ujung tali
   const metal = new MeshStandardMaterial({ color: 0xc9ced6, metalness: 0.55, roughness: 0.32 })
@@ -568,10 +761,13 @@ function render() {
   cardGroup.rotation.z = angle
   cardGroup.scale.setScalar(scale)
   cardMesh.position.y = -CARD_H / 2 + 11
-  cardMesh.rotation.y = yaw
+  cardMesh.rotation.y = flipAngle + yaw
   cardMesh.rotation.x = tilt
-  // Kilau menyapu saat kartu berputar & berayun, hilang saat diam
-  const motion = Math.abs(yaw) * 1.5 + Math.abs(angle) * 1.1
+  // Bayangan selalu di belakang sisi yang menghadap layar
+  const facing = Math.cos(flipAngle + yaw) >= 0 ? 1 : -1
+  shadowMesh.position.set(5 * facing, -8, -10 * facing)
+  // Kilau menyapu saat kartu berputar, berayun, atau dibalik; hilang saat diam
+  const motion = Math.abs(yaw) * 1.5 + Math.abs(angle) * 1.1 + Math.abs(Math.sin(flipAngle)) * 1.2
   glareTexture.offset.x = 1.05 - motion
   glareMaterial.opacity = Math.min(0.32, motion * 0.8)
 
@@ -620,7 +816,11 @@ function measure() {
 
   camera.aspect = width / height
   const fov = (camera.fov * Math.PI) / 180
-  camera.position.set(0, 0, height / 2 / Math.tan(fov / 2))
+  const distance = height / 2 / Math.tan(fov / 2)
+  camera.position.set(0, 0, distance)
+  // Rentang kedalaman sempit di sekitar kartu = ketelitian kedalaman lebih tinggi
+  camera.near = Math.max(1, distance - 600)
+  camera.far = distance + 600
   camera.updateProjectionMatrix()
 
   resetPoints()
@@ -645,17 +845,41 @@ function onPointerDown(event) {
   const dy = bottom.y - ring.y
   const along = ((target.x - ring.x) * dx + (target.y - ring.y) * dy) / (dx * dx + dy * dy)
   grab = { along: Math.max(0, Math.min(1, along)), target }
+  tap = { x: event.clientX, y: event.clientY, time: performance.now() }
   isGrabbing.value = true
   emit('grab')
 }
 
 function onPointerMove(event) {
   if (grab) grab.target = pointerPosition(event)
+  // Sudah bergeser: ini tarikan, bukan ketukan
+  if (tap && Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 6) tap = null
 }
 
 function onPointerUp() {
+  if (tap && performance.now() - tap.time < 450) toggleFlip()
+  tap = null
   grab = null
   isGrabbing.value = false
+}
+
+// Dibatalkan browser (mis. gestur sistem): bukan ketukan
+function onPointerCancel() {
+  tap = null
+  onPointerUp()
+}
+
+function toggleFlip() {
+  flipped.value = !flipped.value
+  clearTimeout(flipTimer)
+  if (flipped.value) flipTimer = setTimeout(() => (flipped.value = false), FLIP_BACK_MS)
+}
+
+function resetFlip() {
+  clearTimeout(flipTimer)
+  flipped.value = false
+  flipAngle = 0
+  flipVelocity = 0
 }
 
 /* ---- Putaran animasi: hanya saat terlihat ---- */
@@ -690,14 +914,18 @@ function stop() {
 
 function paintTextures() {
   drawCard(textureCanvas, photoImage)
+  drawBack(backCanvas)
   drawStrap(strapCanvas)
   if (cardTexture) cardTexture.needsUpdate = true
+  if (backTexture) backTexture.needsUpdate = true
   if (strapTexture) strapTexture.needsUpdate = true
   if (staticEl.value) drawCard(staticEl.value, photoImage)
 }
 
 // Warna kartu mengikuti tema (tunggu atribut data-theme diterapkan)
 watch(theme, () => setTimeout(paintTextures))
+// Teks sisi belakang mengikuti bahasa
+watch(lang, paintTextures)
 
 onMounted(async () => {
   const fonts = ['--font-heading', '--font-mono'].map((name) =>
@@ -725,14 +953,21 @@ onMounted(async () => {
 
   resizeObserver = new ResizeObserver(measure)
   resizeObserver.observe(wrapEl.value)
-  observer = new IntersectionObserver((entries) => (entries[0].isIntersecting ? start() : stop()), {
-    rootMargin: '120px',
-  })
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting) return start()
+      stop()
+      // Keluar layar: kartu kembali ke depan
+      resetFlip()
+    },
+    { rootMargin: '120px' },
+  )
   observer.observe(wrapEl.value)
 })
 
 onBeforeUnmount(() => {
   stop()
+  clearTimeout(flipTimer)
   observer?.disconnect()
   resizeObserver?.disconnect()
   if (!scene) return
@@ -742,6 +977,7 @@ onBeforeUnmount(() => {
     materials.forEach((material) => material?.dispose())
   })
   cardTexture.dispose()
+  backTexture.dispose()
   strapTexture.dispose()
   glareTexture.dispose()
   shadowTexture.dispose()
@@ -754,7 +990,7 @@ onBeforeUnmount(() => {
     ref="wrapEl"
     class="lanyard"
     :class="{ 'lanyard--static': isStatic }"
-    role="img"
+    role="group"
     :aria-label="t({ id: 'Kartu identitas Jose Elio Parhusip', en: 'Jose Elio Parhusip ID card' })"
   >
     <template v-if="isStatic">
@@ -762,16 +998,22 @@ onBeforeUnmount(() => {
       <canvas ref="staticEl" class="lanyard__static-card"></canvas>
     </template>
     <template v-else>
-      <canvas ref="canvasEl" class="lanyard__canvas"></canvas>
+      <canvas ref="canvasEl" class="lanyard__canvas" aria-hidden="true"></canvas>
       <div
         ref="hitEl"
         class="lanyard__hit"
         :class="{ 'is-grabbing': isGrabbing }"
-        :data-cursor="t({ id: 'Tarik', en: 'Drag' })"
+        role="button"
+        tabindex="0"
+        :aria-pressed="flipped"
+        :aria-label="t({ id: 'Balik kartu untuk melihat info singkat', en: 'Flip the card to see a short profile' })"
+        :data-cursor="t({ id: 'Klik · Tarik', en: 'Click · Drag' })"
+        @keydown.enter.prevent="toggleFlip"
+        @keydown.space.prevent="toggleFlip"
         @pointerdown="onPointerDown"
         @pointermove="onPointerMove"
         @pointerup="onPointerUp"
-        @pointercancel="onPointerUp"
+        @pointercancel="onPointerCancel"
         @dragstart.prevent
       ></div>
     </template>

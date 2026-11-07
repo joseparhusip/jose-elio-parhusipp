@@ -258,7 +258,7 @@ onUnmounted(() => lanyardObserver?.disconnect())
                 <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                   stroke-linejoin="round" d="M8 8l-4 4 4 4M16 8l4 4-4 4M4 12h16" />
               </svg>
-              {{ t({ id: 'Tarik kartunya', en: 'Drag the card' }) }}
+              {{ t({ id: 'Ketuk untuk membalik · Tarik untuk mengayun', en: 'Tap to flip · Drag to swing' }) }}
             </p>
           </div>
         </div>
@@ -446,7 +446,7 @@ onUnmounted(() => lanyardObserver?.disconnect())
 /* ---- Manifesto ---- */
 .about__head {
   margin-bottom: 0;
-  min-height: 24rem;
+  min-height: 28.5rem;
 }
 
 /* Kartu tergantung dari garis atas section, di sisi kanan kolom label */
@@ -459,8 +459,8 @@ onUnmounted(() => lanyardObserver?.disconnect())
   top: -1.1rem;
   right: 0;
   z-index: 3;
-  width: min(184px, 72%);
-  height: 375px;
+  width: min(200px, 80%);
+  height: 455px;
 }
 
 /* Tablet: kolom label sempit, tali dimulai di bawah label supaya tidak menabraknya */
@@ -483,13 +483,12 @@ onUnmounted(() => lanyardObserver?.disconnect())
 
   /* HP: kartu di antara label dan judul, sedikit lebih besar supaya terbaca */
   .about__lanyard {
-    --lanyard-max-scale: 1.12;
     position: relative;
     top: 0;
     right: auto;
     align-self: center;
-    width: 210px;
-    height: 455px;
+    width: 200px;
+    height: 480px;
     margin-bottom: 0.75rem;
   }
 
