@@ -576,8 +576,8 @@ async function answerConversation(intent, body) {
   if (intent.type === 'location') {
     await botSay(
       t({
-        id: 'Jose berbasis di Jawa Barat, tepatnya Bandung dan Bekasi. Kerja kontraknya sekarang di Jakarta Selatan.',
-        en: 'Jose is based in West Java, specifically Bandung and Bekasi. His current contract role is in South Jakarta.',
+        id: 'Jose berbasis di Bekasi, Jawa Barat. Kerja kontraknya sekarang di Jakarta Selatan.',
+        en: 'Jose is based in Bekasi, West Java. His current contract role is in South Jakarta.',
       }),
       500,
     )
@@ -956,8 +956,8 @@ async function answerConversation(intent, body) {
   if (intent.type === 'botHome') {
     await botSay(
       t({
-        id: 'Aku "tinggal" di website ini, hehe. Kalau Jose sendiri, dia berbasis di Bandung dan Bekasi, Jawa Barat.',
-        en: 'I "live" on this website. Jose himself is based in Bandung and Bekasi, West Java.',
+        id: 'Aku "tinggal" di website ini, hehe. Kalau Jose sendiri, dia berbasis di Bekasi, Jawa Barat.',
+        en: 'I "live" on this website. Jose himself is based in Bekasi, West Java.',
       }),
       450,
     )

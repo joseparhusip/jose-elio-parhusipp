@@ -84,11 +84,11 @@ function button(href, text) {
 const SHELL_COPY = {
   id: {
     portfolioLink: 'Lihat portofolio',
-    footer: 'Dikirim otomatis dari chat kontak di portofolio Jose. Bandung, Indonesia.',
+    footer: 'Dikirim otomatis dari chat kontak di portofolio Jose. Bekasi, Indonesia.',
   },
   en: {
     portfolioLink: 'View portfolio',
-    footer: "Sent automatically from the contact chat on Jose's portfolio. Bandung, Indonesia.",
+    footer: "Sent automatically from the contact chat on Jose's portfolio. Bekasi, Indonesia.",
   },
 }
 

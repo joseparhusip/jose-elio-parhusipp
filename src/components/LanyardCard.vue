@@ -186,7 +186,7 @@ function drawCard(canvas, image) {
   ctx.fillText('WEB', col2, 303)
   ctx.font = `600 6.6px ${mono}`
   ctx.fillStyle = ink
-  ctx.fillText('BANDUNG, ID', pad, 314)
+  ctx.fillText('BEKASI, ID', pad, 314)
   ctx.fillText('JOSEPARHUSIP.COM', col2, 314)
 
   // Pita bawah biru: status + garis kode ala kartu staf
