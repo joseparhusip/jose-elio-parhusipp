@@ -4,7 +4,7 @@ import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
 import { lang, t } from '@/composables/useLang'
 import sapImg from './img-sertifikat/sap01-edugate-2025.jpg'
-import smartpathImg from './img-sertifikat/smartpath-bootcamp-2024.png'
+import smartpathImg from './img-sertifikat/smartpath-bootcamp-2024.webp'
 import p2mwImg from './img-sertifikat/p2mw-2023.jpg'
 import udemyImg from './img-sertifikat/udemy-codeigniter-2023.jpg'
 

@@ -18,19 +18,19 @@ import tailwindIcon from './icons/icons-about/Tailwind_CSS_Logo.svg'
 import vueIcon from './icons/icons-about/Vue.js_Logo_2.svg'
 
 // Thumbnail proyek
-import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.png'
+import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.webp'
 import mobileJecThumb from './img-proyek/img-jec/IMG-JEC-1.jpeg'
-import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.png'
-import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.png'
-import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.png'
-import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.png'
-import medcredixThumb from './img-proyek/img-medcredix/img-medcredix-risk-radar.png'
-import simrsThumb from './img-proyek/img-simrs/img-simrs-pasien.png'
-import medcredixLogin from './img-proyek/img-medcredix/img-medcredix-login.png'
-import medcredixPortalEnv from './img-proyek/img-medcredix/img-medcredix-portal-lingkungan.png'
-import medcredixPortalApi from './img-proyek/img-medcredix/img-medcredix-portal-api.png'
-import simrsSpriForm from './img-proyek/img-simrs/img-simrs-spri-form.png'
-import simrsSpriPreview from './img-proyek/img-simrs/img-simrs-spri-preview.png'
+import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.webp'
+import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.webp'
+import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.webp'
+import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.webp'
+import medcredixThumb from './img-proyek/img-medcredix/img-medcredix-risk-radar.webp'
+import simrsThumb from './img-proyek/img-simrs/img-simrs-pasien.webp'
+import medcredixLogin from './img-proyek/img-medcredix/img-medcredix-login.webp'
+import medcredixPortalEnv from './img-proyek/img-medcredix/img-medcredix-portal-lingkungan.webp'
+import medcredixPortalApi from './img-proyek/img-medcredix/img-medcredix-portal-api.webp'
+import simrsSpriForm from './img-proyek/img-simrs/img-simrs-spri-form.webp'
+import simrsSpriPreview from './img-proyek/img-simrs/img-simrs-spri-preview.webp'
 
 // Link tombol "Lihat proyek lainnya" di kanan atas
 const moreProjectsHref = 'https://github.com/joseparhusip?tab=repositories'
@@ -209,7 +209,7 @@ const projects = [
         'Built a team profile module with a visual structure (tree layout) using reusable components.',
       ],
     },
-    // Nama file gambarnya tertukar di folder: img-toko-kelontong.png berisi screenshot Secura Kost
+    // Nama file gambarnya tertukar di folder: img-toko-kelontong.webp berisi screenshot Secura Kost
     thumb: tokoKelontongThumb,
     // Disamakan dengan deskripsi (Vue.js + Tailwind CSS)
     techStack: [
@@ -242,7 +242,7 @@ const projects = [
         'Created supporting information pages (FAQ, how to order, privacy policy, terms & conditions, contact us).',
       ],
     },
-    // Nama file gambarnya tertukar di folder: img-secura-kost.png berisi screenshot Toko Kelontong
+    // Nama file gambarnya tertukar di folder: img-secura-kost.webp berisi screenshot Toko Kelontong
     thumb: securaKostThumb,
     // Disamakan dengan deskripsi (Vue.js + Tailwind CSS)
     techStack: [

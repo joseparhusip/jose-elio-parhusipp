@@ -171,7 +171,7 @@ onUnmounted(() => {
     <nav class="navbar__inner" :aria-label="t({ id: 'Navigasi utama', en: 'Main navigation' })">
       <a :href="homeLink.path" class="navbar__logo" :aria-label="t(homeLink.label)" @click="onLinkClick($event, homeLink)">
         <img
-          :src="theme === 'light' ? '/logo-navbar-sebelum-scroll.png' : '/logo-navbar-footer.png'"
+          :src="theme === 'light' ? '/logo-navbar-sebelum-scroll.webp' : '/logo-navbar-footer.webp'"
           alt="Jose Elio Parhusip"
           class="navbar__logo-img"
           draggable="false"

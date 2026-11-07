@@ -55,7 +55,7 @@ const count = ref(0)
 // Logo mengikuti tema, sama seperti di navbar
 const { theme } = useTheme()
 const logoSrc = computed(() =>
-  theme.value === 'light' ? '/logo-navbar-sebelum-scroll.png' : '/logo-navbar-footer.png',
+  theme.value === 'light' ? '/logo-navbar-sebelum-scroll.webp' : '/logo-navbar-footer.webp',
 )
 
 const root = document.documentElement

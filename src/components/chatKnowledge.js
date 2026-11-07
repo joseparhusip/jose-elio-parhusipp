@@ -18,14 +18,14 @@
 // Thumbnail proyek, sumbernya sama persis dengan yang dipakai ProjectsSection.vue
 // (satu folder yang sama), supaya card proyek di chat kelihatan sama seperti
 // di bagian "Proyek" pada halaman utama.
-import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.png'
+import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.webp'
 import mobileJecThumb from './img-proyek/img-jec/IMG-JEC-1.jpeg'
-import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.png'
-import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.png'
-import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.png'
-import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.png'
-import medcredixThumb from './img-proyek/img-medcredix/img-medcredix-risk-radar.png'
-import simrsThumb from './img-proyek/img-simrs/img-simrs-pasien.png'
+import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.webp'
+import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.webp'
+import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.webp'
+import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.webp'
+import medcredixThumb from './img-proyek/img-medcredix/img-medcredix-risk-radar.webp'
+import simrsThumb from './img-proyek/img-simrs/img-simrs-pasien.webp'
 
 export const PROFILE = {
   fullName: 'Jose Elio Parhusip, S.Bns.',
