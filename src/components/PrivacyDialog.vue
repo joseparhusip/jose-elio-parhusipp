@@ -196,7 +196,10 @@ watch(privacyOpen, async (open) => {
         >
           <header class="privacy__bar">
             <div class="privacy__meta">
-              <span class="mono-meta">{{ t({ id: 'Dokumen · Privasi', en: 'Document · Privacy' }) }}</span>
+              <!-- Di HP awalan "Dokumen ·" disembunyikan supaya tanggal muat di sebelah tombol tutup -->
+              <span class="mono-meta privacy__label">
+                <span class="privacy__label-prefix">{{ t({ id: 'Dokumen · ', en: 'Document · ' }) }}</span>{{ t({ id: 'Privasi', en: 'Privacy' }) }}
+              </span>
               <span class="mono-meta privacy__date">
                 {{ t({ id: 'Diperbarui', en: 'Updated' }) }} <time :datetime="UPDATED.iso">{{ t(UPDATED.label) }}</time>
               </span>
@@ -472,7 +475,7 @@ watch(privacyOpen, async (open) => {
   border-bottom: 1px solid var(--color-rule);
 }
 
-/* Desktop: label di kiri, tanggal di kanan; HP: tanggal di bawah label */
+/* Label di kiri, tanggal di kanan dekat tombol tutup */
 .privacy__meta {
   display: flex;
   flex: 1;
@@ -906,13 +909,18 @@ watch(privacyOpen, async (open) => {
   }
 
   .privacy__meta {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
   }
 
+  .privacy__label-prefix {
+    display: none;
+  }
+
+  .privacy__label,
   .privacy__date {
-    font-size: 0.64rem;
-    opacity: 0.85;
+    font-size: 0.66rem;
+    white-space: nowrap;
   }
 
   .glance {
