@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
 import { lang, t } from '@/composables/useLang'
@@ -211,6 +211,29 @@ function preventImageAction(event) {
   event.preventDefault()
   return false
 }
+
+// Kartu lanyard 3D: Three.js baru dimuat saat bagian ini hampir terlihat,
+// supaya tidak ikut memperberat loading awal
+const LanyardCard = defineAsyncComponent(() => import('./LanyardCard.vue'))
+const lanyardSlot = ref(null)
+const showLanyard = ref(false)
+// Petunjuk "Tarik kartunya" (HP), hilang setelah kartu pertama kali ditarik
+const lanyardTouched = ref(false)
+let lanyardObserver = null
+
+onMounted(() => {
+  lanyardObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries[0].isIntersecting) return
+      showLanyard.value = true
+      lanyardObserver.disconnect()
+    },
+    { rootMargin: '100px' },
+  )
+  lanyardObserver.observe(lanyardSlot.value)
+})
+
+onUnmounted(() => lanyardObserver?.disconnect())
 </script>
 
 <template>
@@ -223,6 +246,21 @@ function preventImageAction(event) {
           <span class="section-label" v-reveal
             ><span class="section-label__num">01</span>{{ t({ id: 'Tentang Saya', en: 'About Me' }) }}</span
           >
+          <div ref="lanyardSlot" class="about__lanyard">
+            <LanyardCard v-if="showLanyard" @grab="lanyardTouched = true" />
+            <p
+              v-if="showLanyard"
+              class="about__lanyard-hint mono-meta"
+              :class="{ 'is-hidden': lanyardTouched }"
+              aria-hidden="true"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14">
+                <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" d="M8 8l-4 4 4 4M16 8l4 4-4 4M4 12h16" />
+              </svg>
+              {{ t({ id: 'Tarik kartunya', en: 'Drag the card' }) }}
+            </p>
+          </div>
         </div>
         <div class="section-head__main">
           <h2 :key="lang" class="section-title about__manifesto" v-type="'tentang'">
@@ -408,6 +446,69 @@ function preventImageAction(event) {
 /* ---- Manifesto ---- */
 .about__head {
   margin-bottom: 0;
+  min-height: 24rem;
+}
+
+/* Kartu tergantung dari garis atas section, di sisi kanan kolom label */
+.about__head .section-head__meta {
+  position: relative;
+}
+
+.about__lanyard {
+  position: absolute;
+  top: -1.1rem;
+  right: 0;
+  z-index: 3;
+  width: min(184px, 72%);
+  height: 375px;
+}
+
+/* Tablet: kolom label sempit, tali dimulai di bawah label supaya tidak menabraknya */
+@media (max-width: 1000px) {
+  .about__lanyard {
+    top: 2rem;
+    width: 100%;
+  }
+}
+
+/* Petunjuk tarik: hanya di HP (di desktop sudah ada label kursor "Tarik") */
+.about__lanyard-hint {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .about__head {
+    min-height: 0;
+  }
+
+  /* HP: kartu di antara label dan judul, sedikit lebih besar supaya terbaca */
+  .about__lanyard {
+    --lanyard-max-scale: 1.12;
+    position: relative;
+    top: 0;
+    right: auto;
+    align-self: center;
+    width: 210px;
+    height: 455px;
+    margin-bottom: 0.75rem;
+  }
+
+  .about__lanyard-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    white-space: nowrap;
+    translate: -50% 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .about__lanyard-hint.is-hidden {
+    opacity: 0;
+  }
 }
 
 .about__manifesto {
