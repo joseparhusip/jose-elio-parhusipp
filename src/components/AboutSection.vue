@@ -34,14 +34,17 @@ import pandasIcon from './icons/icons-about/Pandas-logo.svg'
 const highlights = [
   {
     title: { id: 'full-stack & mobile', en: 'full-stack & mobile apps' },
+    verb: { id: 'Membangun', en: 'Build' },
     keywords: ['Vue', 'React', 'Flutter', 'Node.js'],
   },
   {
     title: { id: 'analitis', en: 'analytically' },
+    verb: { id: 'Berpikir', en: 'Think' },
     keywords: ['ERD', 'UML', 'Flowchart'],
   },
   {
     title: { id: 'kolaboratif', en: 'collaboratively' },
+    verb: { id: 'Bekerja', en: 'Work' },
     keywords: [{ id: 'Tim lintas peran', en: 'Cross-functional teams' }, { id: 'Organisasi', en: 'Organizations' }],
   },
 ]
@@ -256,9 +259,9 @@ onUnmounted(() => lanyardObserver?.disconnect())
             >
               <svg viewBox="0 0 24 24" width="14" height="14">
                 <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  stroke-linejoin="round" d="M8 8l-4 4 4 4M16 8l4 4-4 4M4 12h16" />
+                  stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" />
               </svg>
-              {{ t({ id: 'Ketuk untuk membalik · Tarik untuk mengayun', en: 'Tap to flip · Drag to swing' }) }}
+              {{ t({ id: 'Ketuk kartu untuk membalik', en: 'Tap the card to flip' }) }}
             </p>
           </div>
         </div>
@@ -323,8 +326,11 @@ onUnmounted(() => lanyardObserver?.disconnect())
               @mouseenter="activeHighlight = index"
               @mouseleave="activeHighlight = null"
             >
-              <span class="about__note-num">{{ index + 1 }}</span>
-              {{ item.keywords.map(t).join(' · ') }}
+              <span class="about__note-num">{{ String(index + 1).padStart(2, '0') }}</span>
+              <span class="about__note-title" :class="{ 'serif-accent': index === 1 }">{{ t(item.verb) }}</span>
+              <ul class="about__note-list">
+                <li v-for="keyword in item.keywords" :key="t(keyword)">{{ t(keyword) }}</li>
+              </ul>
             </li>
           </ol>
         </div>
@@ -446,7 +452,7 @@ onUnmounted(() => lanyardObserver?.disconnect())
 /* ---- Manifesto ---- */
 .about__head {
   margin-bottom: 0;
-  min-height: 28.5rem;
+  min-height: 32rem;
 }
 
 /* Kartu tergantung dari garis atas section, di sisi kanan kolom label */
@@ -459,8 +465,10 @@ onUnmounted(() => lanyardObserver?.disconnect())
   top: -1.1rem;
   right: 0;
   z-index: 3;
-  width: min(200px, 80%);
-  height: 455px;
+  /* Kartu sedikit lebih besar dari ukuran dasarnya (lihat LanyardCard.vue) */
+  --lanyard-max-scale: 1.12;
+  width: min(224px, 84%);
+  height: 505px;
 }
 
 /* Tablet: kolom label sempit, tali dimulai di bawah label supaya tidak menabraknya */
@@ -477,19 +485,55 @@ onUnmounted(() => lanyardObserver?.disconnect())
 }
 
 @media (max-width: 760px) {
+  /* HP: urutan dibuat label -> judul -> kartu -> poin 01-03, supaya judul
+     langsung terbaca dan kartu menjadi "jeda" visual sebelum poin */
   .about__head {
+    display: flex;
+    flex-direction: column;
     min-height: 0;
   }
 
-  /* HP: kartu di antara label dan judul, sedikit lebih besar supaya terbaca */
+  .about__head .section-head__meta,
+  .about__head .section-head__main {
+    display: contents;
+  }
+
+  .about__head .section-label {
+    order: 1;
+  }
+
+  .about__manifesto {
+    order: 2;
+  }
+
   .about__lanyard {
+    order: 3;
+  }
+
+  .about__notes {
+    order: 4;
+  }
+
+  /* Kartu tergantung dari garis tipis selebar konten, sedikit lebih besar supaya terbaca */
+  .about__lanyard {
+    --lanyard-max-scale: 1.08;
     position: relative;
     top: 0;
     right: auto;
     align-self: center;
-    width: 200px;
-    height: 480px;
-    margin-bottom: 0.75rem;
+    width: 216px;
+    height: 510px;
+    margin-top: clamp(2rem, 8vw, 2.75rem);
+  }
+
+  .about__lanyard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: calc(100vw - 2 * var(--gutter));
+    border-top: 1px solid var(--color-rule);
+    translate: -50% 0;
   }
 
   .about__lanyard-hint {
@@ -499,8 +543,11 @@ onUnmounted(() => lanyardObserver?.disconnect())
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
+    width: max-content;
     margin: 0;
-    white-space: nowrap;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--color-rule);
+    border-radius: 999px;
     translate: -50% 0;
     transition: opacity 0.4s ease;
   }
@@ -539,37 +586,69 @@ onUnmounted(() => lanyardObserver?.disconnect())
 }
 
 /* Catatan kaki: nomor kecil + kata kunci mono */
-/* Lebar tiap catatan mengikuti isinya (tidak dibagi rata) supaya kata kunci
-   tetap satu baris; kalau layar sempit, catatan pindah utuh ke baris baru */
+/* Catatan kaki manifesto: tiga kolom bernomor (kata kerja + kata kunci),
+   dipisah garis tipis seperti kolom majalah */
 .about__notes {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.75rem 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: clamp(2rem, 4vw, 2.75rem) 0 0;
-  padding: 1rem 0 0;
+  padding: 0;
   border-top: 1px solid var(--color-rule);
   list-style: none;
 }
 
 .about__note {
-  white-space: nowrap;
+  padding: 1.1rem 1.25rem 0.25rem;
+  border-left: 1px solid var(--color-rule);
+  transition: color 0.25s ease;
+}
+
+.about__note:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.about__note-num {
+  display: block;
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  line-height: 1.7;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--color-text-soft);
   transition: color 0.25s ease;
 }
 
-.about__note-num {
-  margin-right: 0.5rem;
+.about__note-title {
+  display: block;
+  margin-top: 0.55rem;
+  font-family: var(--font-heading);
+  font-size: clamp(1.3rem, 2vw, 1.65rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   color: var(--color-text);
+  transition: color 0.25s ease;
 }
 
-.about__note.is-active,
-.about__note.is-active .about__note-num {
+.about__note-list {
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+/* Kolom kedua: serif miring biru, sama seperti kata "analitis" di judul */
+.about__note-title.serif-accent {
+  font-weight: 400;
+  color: var(--color-primary);
+}
+
+.about__note.is-active .about__note-num,
+.about__note.is-active .about__note-title {
   color: var(--color-primary);
 }
 
@@ -833,16 +912,37 @@ onUnmounted(() => lanyardObserver?.disconnect())
 
 /* ---- Responsif ---- */
 /* Tablet: ketiga catatan tidak muat sejajar, jadi ditumpuk rapi */
-@media (max-width: 1100px) {
-  .about__notes {
-    flex-direction: column;
-  }
-}
-
 @media (max-width: 640px) {
 
-  .about__note {
-    white-space: normal;
+  /* HP: tiap catatan jadi satu baris: nomor | kata kerja + kata kunci */
+  .about__notes {
+    grid-template-columns: 1fr;
+  }
+
+  .about__note,
+  .about__note:first-child {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    padding: 0.9rem 0;
+    border-left: 0;
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  .about__note-num {
+    grid-row: 1 / span 2;
+    padding-top: 0.35rem;
+  }
+
+  .about__note-title {
+    margin-top: 0;
+    font-size: 1.25rem;
+  }
+
+  .about__note-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1rem;
+    margin-top: 0.35rem;
   }
 
   .about__tools {
