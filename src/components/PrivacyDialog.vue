@@ -195,10 +195,12 @@ watch(privacyOpen, async (open) => {
           aria-labelledby="privacy-title"
         >
           <header class="privacy__bar">
-            <span class="mono-meta">{{ t({ id: 'Dokumen · Privasi', en: 'Document · Privacy' }) }}</span>
-            <span class="mono-meta privacy__date">
-              {{ t({ id: 'Diperbarui', en: 'Updated' }) }} <time :datetime="UPDATED.iso">{{ t(UPDATED.label) }}</time>
-            </span>
+            <div class="privacy__meta">
+              <span class="mono-meta">{{ t({ id: 'Dokumen · Privasi', en: 'Document · Privacy' }) }}</span>
+              <span class="mono-meta privacy__date">
+                {{ t({ id: 'Diperbarui', en: 'Updated' }) }} <time :datetime="UPDATED.iso">{{ t(UPDATED.label) }}</time>
+              </span>
+            </div>
             <button
               ref="closeBtn"
               type="button"
@@ -470,8 +472,15 @@ watch(privacyOpen, async (open) => {
   border-bottom: 1px solid var(--color-rule);
 }
 
-.privacy__date {
-  margin-left: auto;
+/* Desktop: label di kiri, tanggal di kanan; HP: tanggal di bawah label */
+.privacy__meta {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.2rem 1rem;
+  min-width: 0;
 }
 
 .privacy__close {
@@ -896,12 +905,14 @@ watch(privacyOpen, async (open) => {
     border-radius: var(--radius) var(--radius) 0 0;
   }
 
-  .privacy__date {
-    display: none;
+  .privacy__meta {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .privacy__bar > .mono-meta:first-child {
-    margin-right: auto;
+  .privacy__date {
+    font-size: 0.64rem;
+    opacity: 0.85;
   }
 
   .glance {
