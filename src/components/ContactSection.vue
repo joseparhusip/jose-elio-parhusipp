@@ -67,25 +67,6 @@ onBeforeUnmount(() => {
   slideObserver?.disconnect()
 })
 
-const contactInfo = [
-  {
-    label: 'Email',
-    value: 'joseparhusip7@gmail.com',
-    // Klik item ini membuka widget chat (lihat openChat), bukan mailto.
-    action: openChat,
-  },
-  {
-    label: 'LinkedIn',
-    value: 'linkedin.com/in/joseparhusip',
-    href: 'https://www.linkedin.com/in/joseparhusip/',
-  },
-  {
-    label: 'GitHub',
-    value: 'github.com/joseparhusip',
-    href: 'https://github.com/joseparhusip',
-  },
-]
-
 const mapLocations = [
   { name: 'Bandung', lat: -6.9175, lng: 107.6191 },
   { name: 'Bekasi', lat: -6.2383, lng: 106.9756 },
@@ -199,7 +180,7 @@ onBeforeUnmount(() => {
       </header>
 
       <div class="contact__grid">
-        <!-- Kiri: ajakan chat + daftar kontak -->
+        <!-- Kiri: ajakan chat (tautan sosial sudah ada di footer) -->
         <div ref="formWrap" class="contact__col" :class="{ 'is-in': formIn }">
           <div class="contact__cta">
             <span class="contact__status mono-meta">
@@ -223,45 +204,6 @@ onBeforeUnmount(() => {
               </button>
             </div>
 
-            <ul class="contact__list" v-reveal.stagger="{ delay: 450, step: 90 }">
-              <li
-                v-for="item in contactInfo"
-                :key="item.label"
-                class="contact__item"
-                :class="{ 'contact__item--action': item.action || item.href }"
-              >
-                <span class="contact__item-label">{{ item.label }}</span>
-                <button
-                  v-if="item.action"
-                  type="button"
-                  class="contact__item-value contact__item-value--btn"
-                  @click="item.action"
-                >
-                  {{ item.value }}
-                </button>
-                <a
-                  v-else-if="item.href"
-                  :href="item.href"
-                  class="contact__item-value contact__item-value--btn"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {{ item.value }}
-                </a>
-                <span v-else class="contact__item-value">{{ item.value }}</span>
-                <svg
-                  v-if="item.action || item.href"
-                  class="contact__item-arrow"
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  aria-hidden="true"
-                >
-                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
-                </svg>
-              </li>
-            </ul>
           </div>
         </div>
 
@@ -358,77 +300,6 @@ onBeforeUnmount(() => {
 
 .contact__cta-actions {
   margin-top: 1.8rem;
-}
-
-/* Daftar kontak: baris bergaris, label mono | nilai | panah */
-.contact__list {
-  list-style: none;
-  margin: auto 0 0;
-  padding: 2.5rem 0 0;
-}
-
-.contact__item {
-  position: relative;
-  display: grid;
-  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: 1rem;
-  padding: 1rem 0;
-  border-top: 1px solid var(--color-rule);
-}
-
-.contact__item:last-child {
-  border-bottom: 1px solid var(--color-rule);
-}
-
-.contact__item-label {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-text-soft);
-}
-
-.contact__item-value {
-  font-family: var(--font-body);
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--color-text);
-  overflow-wrap: break-word;
-}
-
-.contact__item-value--btn {
-  padding: 0;
-  margin: 0;
-  border: 0;
-  background: none;
-  text-align: left;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-/* Seluruh baris email bisa diklik (area sentuh lebih besar di HP) */
-.contact__item-value--btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-}
-
-.contact__item--action:hover .contact__item-value--btn {
-  color: var(--color-primary);
-}
-
-.contact__item-arrow {
-  align-self: center;
-  color: var(--color-text-soft);
-  transition: color 0.2s ease, transform 0.3s var(--ease-out);
-}
-
-.contact__item--action:hover .contact__item-arrow {
-  color: var(--color-primary);
-  transform: translate(2px, -2px);
 }
 
 /* ---- Peta ---- */
@@ -612,16 +483,6 @@ onBeforeUnmount(() => {
 @media (max-width: 480px) {
   .contact__chat-btn {
     width: 100%;
-  }
-
-  .contact__item {
-    grid-template-columns: 5rem minmax(0, 1fr) auto;
-    gap: 0.75rem;
-  }
-
-  .contact__item-value {
-    font-size: 0.9rem;
-    overflow-wrap: anywhere;
   }
 
   .contact__map {
