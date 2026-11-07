@@ -901,8 +901,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .gallery__slide--active {
   cursor: zoom-in;
   border-color: transparent;
-  /* Pendaran lembut berganti warna mengikuti palet (lihat gallery-glow) */
-  animation: gallery-glow 6s linear infinite;
+  /* Pendaran lembut warna palet. Sengaja diam (tidak berganti warna):
+     animasi box-shadow dihitung ulang tiap frame dan memberatkan HP. */
+  box-shadow: 0 0 34px -6px color-mix(in srgb, var(--rgb-1) var(--rgb-glow), transparent);
 }
 
 /* ---- Garis warna berputar di slide aktif ----
@@ -954,19 +955,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 @keyframes gallery-rgb {
   to {
     --gallery-angle: 360deg;
-  }
-}
-
-@keyframes gallery-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 34px -6px color-mix(in srgb, var(--rgb-1) var(--rgb-glow), transparent);
-  }
-  33% {
-    box-shadow: 0 0 34px -6px color-mix(in srgb, var(--rgb-3) var(--rgb-glow), transparent);
-  }
-  66% {
-    box-shadow: 0 0 34px -6px color-mix(in srgb, var(--rgb-2) var(--rgb-glow), transparent);
   }
 }
 

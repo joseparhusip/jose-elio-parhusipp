@@ -17,6 +17,10 @@
      v-reveal="{ delay: 120, onReveal: () => (sudahMuncul = true) }"
        onReveal dipanggil saat elemen mulai muncul, untuk animasi khusus
        di komponen (mis. galeri yang "terbuka" seperti kipas).
+     v-reveal.intro        (untuk layar pertama) saat intro zoom kunjungan
+       pertama diputar, elemen langsung tampil tanpa animasi. Animasinya
+       memang tidak terlihat karena berjalan di balik intro, dan teks yang
+       langsung tampil membuat halaman dinilai lebih cepat (LCP).
 
    Kenapa pakai Web Animations API (el.animate), bukan class CSS?
    - Animasi berjalan di atas style komponen, jadi TIDAK bentrok dengan
@@ -39,7 +43,7 @@
    di layar pertama benar-benar terlihat dan tidak "habis" di balik tirai loader.
 --------------------------------------------------------- */
 import { watch } from 'vue'
-import { loaderDone } from '@/composables/useLoaderState'
+import { loaderDone, playsFullIntro } from '@/composables/useLoaderState'
 
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 const LOADER_FALLBACK_MS = 4500
@@ -159,9 +163,11 @@ function onScrollSettled() {
   clearTimeout(scrollIdle)
   scrollIdle = setTimeout(() => {
     const limit = window.innerHeight
+    const due = []
     pending.forEach((_, el) => {
-      if (el.getBoundingClientRect().top < limit) play(el)
+      if (el.getBoundingClientRect().top < limit) due.push(el)
     })
+    due.forEach(play)
   }, 160)
 }
 
@@ -204,7 +210,8 @@ export const vReveal = {
   mounted(el, binding) {
     const opts = optionsOf(binding.value)
 
-    if (!canAnimate) {
+    const skipForIntro = binding.modifiers.intro && playsFullIntro && !loaderDone.value
+    if (!canAnimate || skipForIntro) {
       // Tanpa animasi: semua langsung tampil, callback langsung dipanggil
       if (typeof opts.onReveal === 'function') opts.onReveal()
       return

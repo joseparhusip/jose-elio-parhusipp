@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { loaderDone } from '@/composables/useLoaderState'
+import { loaderDone, hasSeenIntro, INTRO_SEEN_KEY } from '@/composables/useLoaderState'
 import { useTheme } from '@/composables/useTheme'
 
 /* ---------------------------------------------------------
@@ -27,19 +27,9 @@ const REVEAL_MS = 1200
 const QUICK_COUNT_MS = 450 // loading biasa: garis progres
 const QUICK_FADE_MS = 250 // loading biasa: loader memudar
 
-const SEEN_KEY = 'intro-seen'
-
-function hasSeenIntro() {
-  try {
-    return localStorage.getItem(SEEN_KEY) === '1'
-  } catch {
-    return false // localStorage tidak tersedia (mis. mode privat)
-  }
-}
-
 function markIntroSeen() {
   try {
-    localStorage.setItem(SEEN_KEY, '1')
+    localStorage.setItem(INTRO_SEEN_KEY, '1')
   } catch {
     // abaikan, kunjungan berikutnya memutar intro lagi
   }
@@ -149,7 +139,7 @@ onUnmounted(() => {
     aria-hidden="true"
   >
     <div class="loader__center">
-      <img :src="logoSrc" alt="" class="loader__logo" draggable="false" />
+      <img :src="logoSrc" alt="" class="loader__logo" width="512" height="512" draggable="false" />
     </div>
 
     <!-- Garis progres pendek di bawah logo -->

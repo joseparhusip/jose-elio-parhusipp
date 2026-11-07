@@ -802,21 +802,30 @@ const logoStyle = (item) =>
   color: var(--color-accent);
 }
 
-/* Titik berdenyut untuk pekerjaan yang masih berjalan */
+/* Titik berdenyut untuk pekerjaan yang masih berjalan. Denyutnya lingkaran
+   terpisah yang membesar & memudar (transform + opacity: ringan untuk GPU). */
 .experience__now {
+  position: relative;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--color-accent);
+}
+
+.experience__now::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--color-accent);
+  opacity: 0.6;
   animation: experience-now 2s ease-out infinite;
 }
 
 @keyframes experience-now {
-  0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 60%, transparent);
-  }
-  100% {
-    box-shadow: 0 0 0 6px transparent;
+  to {
+    transform: scale(3);
+    opacity: 0;
   }
 }
 
@@ -965,7 +974,7 @@ const logoStyle = (item) =>
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .experience__now,
+  .experience__now::after,
   .experience__point {
     animation: none;
   }

@@ -53,7 +53,7 @@ function preventImageAction(event) {
       <div v-reveal.stagger="{ delay: 60, step: 90 }" class="footer__grid">
         <div class="footer__brand">
           <a :href="navLinks[0].path" class="footer__logo" :aria-label="t({ id: 'Kembali ke beranda', en: 'Back to home' })" @click="onNavClick($event, navLinks[0])">
-            <img src="/logo-navbar-footer.webp" alt="Jose Elio Parhusip" class="footer__logo-img" draggable="false" />
+            <img src="/logo-navbar-footer.webp" alt="Jose Elio Parhusip" class="footer__logo-img" width="512" height="512" draggable="false" />
           </a>
           <p class="footer__statement">
             <template v-if="lang === 'en'">

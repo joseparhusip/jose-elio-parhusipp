@@ -218,7 +218,7 @@ onUnmounted(() => {
 
       <div class="container">
         <!-- Strip metadata ala sampul jurnal -->
-        <div class="hero__strip mono-meta" v-reveal.down>
+        <div class="hero__strip mono-meta" v-reveal.down.intro>
           <span>
             {{ t({ id: 'Portofolio', en: 'Portfolio' }) }} ·
             <span class="hero__strip-word">{{ t({ id: 'Edisi', en: 'Edition' }) }}</span>
@@ -233,15 +233,15 @@ onUnmounted(() => {
         <div class="hero__inner">
             <!-- Nama tersibak per baris, baris kedua menyusul -->
             <h1 class="hero__title">
-              <span v-reveal.clip="90" class="hero__title-line">Jose Elio</span>
-              <span v-reveal.clip="190" class="hero__title-line hero__title-line--accent"
+              <span v-reveal.clip.intro="90" class="hero__title-line">Jose Elio</span>
+              <span v-reveal.clip.intro="190" class="hero__title-line hero__title-line--accent"
                 >Parhusip<span class="hero__title-dot">.</span></span
               >
             </h1>
 
             <div class="hero__bottom">
               <div class="hero__intro">
-                <p class="hero__role" v-reveal="300">
+                <p class="hero__role" v-reveal.intro="300">
                   <!-- Baris label: "Saya seorang" + nomor peran yang sedang tampil -->
                   <span class="hero__role-head" aria-hidden="true">
                     <span class="hero__role-prefix">{{ t({ id: 'Saya seorang', en: 'I am a' }) }}</span>
@@ -259,13 +259,13 @@ onUnmounted(() => {
                     ><span class="hero__cursor"></span>
                   </span>
                 </p>
-                <p class="hero__lead" v-reveal="380">
+                <p class="hero__lead" v-reveal.intro="380">
                   {{ t({ id: 'Mengubah data, desain, dan kode jadi produk yang benar-benar dipakai.', en: 'Turning data, design, and code into products people actually use.' }) }}
                 </p>
               </div>
 
               <div class="hero__cta">
-                <div class="hero__actions" v-reveal.stagger="{ delay: 460, step: 90 }">
+                <div class="hero__actions" v-reveal.stagger.intro="{ delay: 460, step: 90 }">
                   <a href="#proyek" class="btn btn--primary hero__btn">
                     {{ t({ id: 'Lihat Proyek', en: 'View Projects' }) }}
                     <svg viewBox="0 0 24 24" class="hero__btn-arrow" aria-hidden="true">
@@ -296,7 +296,7 @@ onUnmounted(() => {
                   </a>
                 </div>
 
-                <div class="hero__meta" v-reveal="620">
+                <div class="hero__meta" v-reveal.intro="620">
                   <div class="hero__socials">
                     <a
                       href="https://github.com/joseparhusip"
@@ -356,7 +356,7 @@ onUnmounted(() => {
             </div>
         </div>
 
-        <dl ref="statsEl" class="hero__stats" v-reveal.stagger="{ delay: 200, step: 110 }">
+        <dl ref="statsEl" class="hero__stats" v-reveal.stagger.intro="{ delay: 200, step: 110 }">
           <div v-for="(item, index) in stats" :key="item.value" class="hero__stat">
             <dt class="hero__stat-label mono-meta">
               <span class="hero__stat-num">0{{ index + 1 }}</span>

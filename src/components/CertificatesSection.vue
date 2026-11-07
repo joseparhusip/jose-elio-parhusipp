@@ -31,6 +31,7 @@ const certificates = [
     },
     ref: 'ID 550181560',
     image: sapImg,
+    size: [528, 800],
   },
   {
     title: 'Career Planning for IT/Computer',
@@ -43,6 +44,7 @@ const certificates = [
     },
     ref: '170/SP/I/2024',
     image: smartpathImg,
+    size: [2000, 1414],
   },
   {
     title: { id: 'Peserta P2MW 2023', en: 'P2MW 2023 Participant' },
@@ -55,6 +57,7 @@ const certificates = [
     },
     ref: '7358/E2/DT.01.03/2023',
     image: p2mwImg,
+    size: [1241, 1755],
   },
   {
     title: {
@@ -71,6 +74,7 @@ const certificates = [
     ref: 'UC-eebd53d3-c6d2-4898-92a8-e439588435b3',
     url: 'https://ude.my/UC-eebd53d3-c6d2-4898-92a8-e439588435b3',
     image: udemyImg,
+    size: [1600, 1190],
   },
 ]
 
@@ -178,6 +182,8 @@ function preventImageAction(event) {
                 >
                   <img
                     :src="cert.image"
+                    :width="cert.size[0]"
+                    :height="cert.size[1]"
                     :alt="t({ id: `Sertifikat ${t(cert.title)}`, en: `Certificate: ${t(cert.title)}` })"
                     loading="lazy"
                     draggable="false"
@@ -217,6 +223,8 @@ function preventImageAction(event) {
               <span :key="activeCert.ref" class="certs__card">
                 <img
                   :src="activeCert.image"
+                  :width="activeCert.size[0]"
+                  :height="activeCert.size[1]"
                   :alt="t({ id: `Sertifikat ${t(activeCert.title)}`, en: `Certificate: ${t(activeCert.title)}` })"
                   class="certs__frame-img"
                   draggable="false"
@@ -285,6 +293,8 @@ function preventImageAction(event) {
           <img
             :key="certificates[lightbox].ref"
             :src="certificates[lightbox].image"
+            :width="certificates[lightbox].size[0]"
+            :height="certificates[lightbox].size[1]"
             :alt="t({ id: `Sertifikat ${t(certificates[lightbox].title)}`, en: `Certificate: ${t(certificates[lightbox].title)}` })"
             class="cert-lightbox__img"
             draggable="false"

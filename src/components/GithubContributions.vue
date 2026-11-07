@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { lang, t } from '@/composables/useLang'
 
@@ -66,7 +66,23 @@ async function load(key) {
   }
 }
 
-onMounted(() => load('last'))
+// Data baru diambil saat grafik hampir terlihat, bukan saat halaman dibuka
+const rootEl = ref(null)
+let loadObserver = null
+
+onMounted(() => {
+  loadObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries[0].isIntersecting) return
+      loadObserver.disconnect()
+      load('last')
+    },
+    { rootMargin: '400px' },
+  )
+  loadObserver.observe(rootEl.value)
+})
+
+onBeforeUnmount(() => loadObserver?.disconnect())
 
 // Susun hari ke dalam kolom minggu (Minggu di baris pertama, seperti GitHub)
 const weeks = computed(() => {
@@ -155,7 +171,7 @@ function hideTooltip() {
 </script>
 
 <template>
-  <div v-reveal="120" class="gh">
+  <div ref="rootEl" v-reveal="120" class="gh">
     <div class="gh__head">
       <div class="gh__title">
         <h3 class="gh__heading"><span class="gh__heading-num">03.1</span> {{ t({ id: 'Aktivitas GitHub', en: 'GitHub activity' }) }}</h3>

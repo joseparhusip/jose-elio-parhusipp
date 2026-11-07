@@ -1,18 +1,45 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import TheLoader from './components/TheLoader.vue'
 import TheNavbar from './components/TheNavbar.vue'
 import TheFooter from './components/TheFooter.vue'
-import ChatWidget from './components/ChatWidget.vue'
 import ScrollProgress from './components/ScrollProgress.vue'
 import CustomCursor from './components/CustomCursor.vue'
 import OfflineScreen from './components/OfflineScreen.vue'
-import PrivacyDialog from './components/PrivacyDialog.vue'
+import { useChatWidgetStore } from './stores/chatWidget'
+import { privacyOpen } from './composables/usePrivacy'
 
 // Halaman pemberitahuan (404) tampil penuh: tanpa navbar, footer, & chat
 const route = useRoute()
 const isNotice = computed(() => Boolean(route.meta.notFound))
+
+/* Widget chat & pop up privasi tidak dibutuhkan di layar pertama, jadi
+   kodenya dipisah dan baru dimuat belakangan (halaman awal lebih ringan).
+   - Chat: dimuat saat browser senggang, atau langsung saat diminta
+     (mis. tombol "Mulai Chat" diklik sebelum widget sempat dimuat).
+   - Privasi: baru dimuat saat pertama kali dibuka. */
+const ChatWidget = defineAsyncComponent(() => import('./components/ChatWidget.vue'))
+const PrivacyDialog = defineAsyncComponent(() => import('./components/PrivacyDialog.vue'))
+
+const chatStore = useChatWidgetStore()
+const chatReady = ref(false)
+const privacyReady = ref(false)
+
+watch(
+  () => chatStore.isOpen,
+  (open) => {
+    if (open) chatReady.value = true
+  },
+)
+watch(privacyOpen, (open) => {
+  if (open) privacyReady.value = true
+})
+
+onMounted(() => {
+  const whenIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 2000))
+  whenIdle(() => (chatReady.value = true), { timeout: 4000 })
+})
 </script>
 
 <template>
@@ -25,9 +52,9 @@ const isNotice = computed(() => Boolean(route.meta.notFound))
     <TheFooter v-if="!isNotice" />
   </div>
   <!-- Widget chat mengambang, tampil di semua halaman kecuali pemberitahuan -->
-  <ChatWidget v-if="!isNotice" />
+  <ChatWidget v-if="!isNotice && chatReady" />
   <!-- Pop up kebijakan privasi (dibuka dari footer) -->
-  <PrivacyDialog />
+  <PrivacyDialog v-if="privacyReady" />
   <!-- Layar "Koneksi terputus" saat internet hilang -->
   <OfflineScreen />
   <!-- Kursor custom (hanya perangkat dengan mouse) -->

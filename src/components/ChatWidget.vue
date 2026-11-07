@@ -1682,6 +1682,8 @@ function toggleWidget() {
 
 // Restore riwayat chat (kalau ada) atau mulai percakapan baru begitu widget
 // dibuka pertama kali, dan fokuskan input supaya user bisa langsung ngetik.
+// immediate: widget dimuat belakangan (App.vue), jadi bisa saja chat sudah
+// diminta terbuka sebelum komponen ini sempat dipasang.
 watch(
   () => chatStore.isOpen,
   (open) => {
@@ -1689,6 +1691,7 @@ watch(
     if (messages.value.length === 0) restoreOrStartConversation()
     nextTick(() => chatInputEl.value?.focus())
   },
+  { immediate: true },
 )
 
 // Simpan otomatis ke localStorage setiap kali ada perubahan pada percakapan

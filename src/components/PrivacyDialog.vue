@@ -101,12 +101,12 @@ watch(privacyOpen, async (open) => {
   } else {
     lastFocus?.focus?.({ preventScroll: true })
   }
-})
+}, { immediate: true })
 </script>
 
 <template>
   <Teleport to="body">
-    <Transition name="privacy" :duration="{ enter: 460, leave: 260 }">
+    <Transition name="privacy" appear :duration="{ enter: 460, leave: 260 }">
       <div v-if="privacyOpen" class="privacy" @keydown="onKeydown">
         <div class="privacy__backdrop" aria-hidden="true" @click="closePrivacy"></div>
 

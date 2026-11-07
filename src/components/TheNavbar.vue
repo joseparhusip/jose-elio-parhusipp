@@ -174,6 +174,8 @@ onUnmounted(() => {
           :src="theme === 'light' ? '/logo-navbar-sebelum-scroll.webp' : '/logo-navbar-footer.webp'"
           alt="Jose Elio Parhusip"
           class="navbar__logo-img"
+          width="512"
+          height="512"
           draggable="false"
         />
       </a>

@@ -1,7 +1,5 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import { useChatWidgetStore } from '../stores/chatWidget'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
@@ -15,14 +13,6 @@ const chatStore = useChatWidgetStore()
 function openChat() {
   chatStore.open()
 }
-
-// Penanda peta: titik biru buatan sendiri (gaya di .contact__pin)
-const pinIcon = L.divIcon({
-  className: 'contact__pin',
-  iconSize: [16, 16],
-  iconAnchor: [8, 8],
-  popupAnchor: [0, -10],
-})
 
 // Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
 function preventImageAction(event) {
@@ -111,14 +101,29 @@ function focusLocation(index) {
   mapMarkers[index]?.openPopup()
 }
 
-// Batas wilayah Jawa Barat: peta tidak bisa digeser atau di-zoom out
-// sampai keluar provinsi (apalagi keluar Indonesia).
-const WEST_JAVA_BOUNDS = L.latLngBounds([-8.05, 105.75], [-5.6, 108.95])
-
 const mapContainer = ref(null)
 let mapInstance = null
+let mapObserver = null
+let unmounted = false
 
-onMounted(() => {
+/* Peta (Leaflet + gambar peta OpenStreetMap) baru dimuat saat bagian Kontak
+   hampir terlihat, supaya tidak memperberat halaman di awal. */
+async function initMap() {
+  const [{ default: L }] = await Promise.all([import('leaflet'), import('leaflet/dist/leaflet.css')])
+  if (unmounted || !mapContainer.value) return
+
+  // Batas wilayah Jawa Barat: peta tidak bisa digeser atau di-zoom out
+  // sampai keluar provinsi (apalagi keluar Indonesia).
+  const WEST_JAVA_BOUNDS = L.latLngBounds([-8.05, 105.75], [-5.6, 108.95])
+
+  // Penanda peta: titik biru buatan sendiri (gaya di .contact__pin)
+  const pinIcon = L.divIcon({
+    className: 'contact__pin',
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    popupAnchor: [0, -10],
+  })
+
   mapInstance = L.map(mapContainer.value, {
     scrollWheelZoom: false,
     maxBounds: WEST_JAVA_BOUNDS,
@@ -145,9 +150,23 @@ onMounted(() => {
   const group = L.featureGroup(markers)
   mapInstance.fitBounds(group.getBounds().pad(0.5))
   mapInstance.setMaxBounds(WEST_JAVA_BOUNDS)
+}
+
+onMounted(() => {
+  mapObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries[0].isIntersecting) return
+      mapObserver.disconnect()
+      initMap()
+    },
+    { rootMargin: '400px' },
+  )
+  mapObserver.observe(mapContainer.value)
 })
 
 onBeforeUnmount(() => {
+  unmounted = true
+  mapObserver?.disconnect()
   mapMarkers.length = 0
   if (mapInstance) {
     mapInstance.remove()
