@@ -459,6 +459,16 @@ html.privacy-open {
   overflow: hidden;
 }
 
+/* Layar offline & halaman pemberitahuan (404): satu layar penuh, tidak
+   bisa di-scroll sama sekali (termasuk tarik-scroll di HP) */
+html.offline-open,
+html.notice-page,
+html.offline-open body,
+html.notice-page body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

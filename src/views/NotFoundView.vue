@@ -60,10 +60,12 @@ const wantedPath = computed(() => {
 </template>
 
 <style scoped>
+/* Tepat satu layar, tidak bisa di-scroll (lihat html.notice-page di main.css) */
 .notfound {
   box-sizing: border-box; /* padding termasuk dalam 100vh, jadi pas satu layar */
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
   padding: clamp(1.25rem, 3vw, 2rem) 0;
 }
@@ -148,10 +150,11 @@ const wantedPath = computed(() => {
     text-align: center;
   }
 
+  /* Kartu mengecil di layar pendek supaya teks tetap muat satu layar */
   .notfound__hang {
     --lanyard-max-scale: 0.92;
-    width: min(200px, 70%);
-    height: 470px;
+    width: min(200px, 70%, 21dvh);
+    height: min(470px, 56dvh);
   }
 
   .notfound__text {

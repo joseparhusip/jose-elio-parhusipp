@@ -36,6 +36,11 @@ watch(privacyOpen, (open) => {
   if (open) privacyReady.value = true
 })
 
+// Halaman pemberitahuan dikunci satu layar (lihat html.notice-page di main.css)
+watch(isNotice, (notice) => document.documentElement.classList.toggle('notice-page', notice), {
+  immediate: true,
+})
+
 onMounted(() => {
   const whenIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 2000))
   whenIdle(() => (chatReady.value = true), { timeout: 4000 })

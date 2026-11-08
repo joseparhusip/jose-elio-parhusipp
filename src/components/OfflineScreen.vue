@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { lang, t } from '@/composables/useLang'
 
 /* ---------------------------------------------------------
@@ -11,6 +11,9 @@ import { lang, t } from '@/composables/useLang'
    (seolah tombol diklik sendiri). Isian di tombol menunjukkan sisa waktu
    sampai percobaan berikutnya; saat memeriksa, tombol menampilkan
    animasi loading.
+
+   Selama tampil: latar polos (halaman di belakang tidak terlihat) dan
+   halaman tidak bisa di-scroll (html.offline-open di main.css).
 
    Catatan: ini hanya bekerja kalau situs sudah sempat terbuka. Kalau
    pengunjung membuka situs dalam keadaan offline sejak awal, browser
@@ -74,6 +77,9 @@ async function retry() {
   }, wait)
 }
 
+// Kunci scroll halaman selama layar ini tampil
+watch(state, (value) => document.documentElement.classList.toggle('offline-open', value !== 'online'))
+
 onMounted(() => {
   if (!navigator.onLine) goOffline()
   window.addEventListener('offline', goOffline)
@@ -85,6 +91,7 @@ onUnmounted(() => {
   stopCountdown()
   window.removeEventListener('offline', goOffline)
   window.removeEventListener('online', goOnline)
+  document.documentElement.classList.remove('offline-open')
 })
 </script>
 
@@ -180,9 +187,11 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 1.25rem;
-  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* Latar polos: halaman di belakang tidak terlihat sama sekali */
+  background: var(--color-bg);
+  /* Geser jari di atas layar ini tidak menggulir apa pun */
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .offline__card {
