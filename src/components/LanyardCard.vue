@@ -48,8 +48,9 @@ import photo from './img-lanyard/foto-jose.jpg'
 --------------------------------------------------------- */
 const CARD_W = 184
 const CARD_H = 350
-const CARD_DEPTH = 4
-const CARD_BEVEL = 0.8
+// Tebal kartu (tidak memengaruhi panjang & lebar)
+const CARD_DEPTH = 9
+const CARD_BEVEL = 1.4
 const ROPE_LENGTH = 92
 const ROPE_SEGMENTS = 8
 const STRAP_WIDTH = 15
@@ -648,7 +649,7 @@ function buildScene() {
     new PlaneGeometry(CARD_W * 1.6, CARD_H * (400 / 280)),
     new MeshBasicMaterial({ map: shadowTexture, transparent: true, opacity: 0.45, depthWrite: false }),
   )
-  shadowMesh.position.set(5, -8, -10)
+  shadowMesh.position.set(5, -8, -14)
   cardMesh.add(shadowMesh)
 
   // Pengait logam di ujung tali
@@ -765,7 +766,7 @@ function render() {
   cardMesh.rotation.x = tilt
   // Bayangan selalu di belakang sisi yang menghadap layar
   const facing = Math.cos(flipAngle + yaw) >= 0 ? 1 : -1
-  shadowMesh.position.set(5 * facing, -8, -10 * facing)
+  shadowMesh.position.set(5 * facing, -8, -14 * facing)
   // Kilau menyapu saat kartu berputar, berayun, atau dibalik; hilang saat diam
   const motion = Math.abs(yaw) * 1.5 + Math.abs(angle) * 1.1 + Math.abs(Math.sin(flipAngle)) * 1.2
   glareTexture.offset.x = 1.05 - motion
