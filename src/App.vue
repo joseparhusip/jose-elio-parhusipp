@@ -7,6 +7,7 @@ import TheFooter from './components/TheFooter.vue'
 import ScrollProgress from './components/ScrollProgress.vue'
 import CustomCursor from './components/CustomCursor.vue'
 import OfflineScreen from './components/OfflineScreen.vue'
+import UpdateToast from './components/UpdateToast.vue'
 import { useChatWidgetStore } from './stores/chatWidget'
 import { privacyOpen } from './composables/usePrivacy'
 
@@ -62,6 +63,8 @@ onMounted(() => {
   <PrivacyDialog v-if="privacyReady" />
   <!-- Layar "Koneksi terputus" saat internet hilang -->
   <OfflineScreen />
+  <!-- Notifikasi "Versi baru tersedia" setelah deploy baru -->
+  <UpdateToast />
   <!-- Kursor custom (hanya perangkat dengan mouse) -->
   <CustomCursor />
 </template>
