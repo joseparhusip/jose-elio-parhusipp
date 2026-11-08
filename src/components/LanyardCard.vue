@@ -45,6 +45,9 @@ import photo from './img-lanyard/foto-jose.jpg'
      singkat); menarik hanya mengayun dan tidak mengubah sisi. Sisi
      belakang kembali ke depan sendiri setelah 8 detik atau saat kartu
      keluar layar.
+   - variant="notfound" (halaman 404): kartu "rusak" yang tergantung dari
+     lubang di sudut kiri atas, jadi menggantung miring. Tidak bisa dibalik;
+     ketukan hanya mendorong kartu berayun.
 --------------------------------------------------------- */
 const CARD_W = 184
 const CARD_H = 350
@@ -75,8 +78,21 @@ const CARD_DARK = {
   hole: '#F4F4F1',
 }
 
+const props = defineProps({
+  variant: { type: String, default: 'id' },
+  // Alamat yang dicari (hanya varian notfound)
+  path: { type: String, default: '' },
+})
 const { theme } = useTheme()
 const emit = defineEmits(['grab'])
+const isNotFound = props.variant === 'notfound'
+// Varian 404: lubang pengait di sudut kiri atas (koordinat kartu, px dari kiri/atas)
+const CORNER_HOLE = { x: 24, y: 13 }
+// Jarak lubang ke titik tengah kartu & sudut miringnya saat tergantung diam
+const CORNER_DX = CARD_W / 2 - CORNER_HOLE.x
+const CORNER_DY = CARD_H / 2 - CORNER_HOLE.y
+const CORNER_REACH = Math.hypot(CORNER_DX, CORNER_DY)
+const CORNER_TILT = -Math.atan2(CORNER_DX, CORNER_DY)
 
 const wrapEl = ref(null)
 const canvasEl = ref(null)
@@ -207,6 +223,154 @@ function drawCard(canvas, image) {
     ctx.fillRect(x, bandY + 7, bar, 12)
     x -= 0.8 + (c % 2) * 0.9
   }
+}
+
+// Kartu 404: kartu ID yang "rusak": lubang tengah sobek, fotonya hilang
+function drawNotFound(canvas) {
+  const s = TEXTURE_SCALE
+  canvas.width = CARD_W * s
+  canvas.height = CARD_H * s
+  const ctx = canvas.getContext('2d')
+  ctx.scale(s, s)
+
+  const { face, soft, ink, muted, blue, line, hole } = theme.value === 'light' ? CARD_DARK : CARD_LIGHT
+  const heading = cssVar('--font-heading')
+  const serif = cssVar('--font-serif')
+  const mono = cssVar('--font-mono')
+  const pad = 14
+  const innerW = CARD_W - pad * 2
+  const en = lang.value === 'en'
+  const mid = CARD_W / 2
+
+  ctx.fillStyle = face
+  ctx.fillRect(0, 0, CARD_W, CARD_H)
+  ctx.textBaseline = 'alphabetic'
+
+  // Lubang tengah yang sobek sampai tepi atas (sebab kartu jatuh miring)
+  ctx.fillStyle = hole
+  ctx.beginPath()
+  ctx.moveTo(mid - 13, 0)
+  ctx.lineTo(mid - 12, 9)
+  ctx.lineTo(mid - 4, 14)
+  ctx.lineTo(mid + 6, 12.5)
+  ctx.lineTo(mid + 13, 8)
+  ctx.lineTo(mid + 9, 0)
+  ctx.closePath()
+  ctx.fill()
+  // Retakan halus dari sobekan
+  ctx.strokeStyle = muted
+  ctx.lineWidth = 0.5
+  ctx.beginPath()
+  ctx.moveTo(mid + 6, 12.5)
+  ctx.lineTo(mid + 10, 18)
+  ctx.lineTo(mid + 8, 22)
+  ctx.lineTo(mid + 13, 27)
+  ctx.moveTo(mid - 4, 14)
+  ctx.lineTo(mid - 7, 19)
+  ctx.stroke()
+
+  // Lubang pengganti di sudut: tempat kartu kini tergantung
+  ctx.fillStyle = hole
+  ctx.beginPath()
+  ctx.arc(CORNER_HOLE.x, CORNER_HOLE.y, 4.2, 0, Math.PI * 2)
+  ctx.fill()
+
+  ctx.textAlign = 'right'
+  ctx.font = `500 5.8px ${mono}`
+  ctx.fillStyle = muted
+  ctx.fillText('ERROR · 404', CARD_W - pad, 27)
+
+  // Bingkai foto kosong: fotonya "tidak ditemukan"
+  const photoY = 35
+  const photoH = 209
+  ctx.fillStyle = soft
+  roundRect(ctx, pad, photoY, innerW, photoH, 5)
+  ctx.fill()
+  ctx.save()
+  ctx.setLineDash([3, 2.5])
+  ctx.strokeStyle = line
+  ctx.lineWidth = 0.8
+  roundRect(ctx, pad + 6, photoY + 6, innerW - 12, photoH - 12, 3)
+  ctx.stroke()
+  ctx.restore()
+
+  // "404" besar, "0" miring biru seperti di halaman
+  ctx.textAlign = 'left'
+  ctx.font = `800 54px ${heading}`
+  const four = ctx.measureText('4').width
+  ctx.font = `italic 400 62px ${serif}`
+  const zero = ctx.measureText('0').width
+  const startX = mid - (four * 2 + zero) / 2
+  const baseY = photoY + photoH / 2 + 18
+  ctx.font = `800 54px ${heading}`
+  ctx.fillStyle = ink
+  ctx.fillText('4', startX, baseY)
+  ctx.fillText('4', startX + four + zero, baseY)
+  ctx.font = `italic 400 62px ${serif}`
+  ctx.fillStyle = blue
+  ctx.fillText('0', startX + four, baseY)
+
+  ctx.textAlign = 'center'
+  ctx.font = `500 5.6px ${mono}`
+  ctx.fillStyle = muted
+  ctx.fillText(en ? 'PHOTO NOT FOUND' : 'FOTO TIDAK DITEMUKAN', mid, photoY + photoH - 16)
+
+  // Judul satu baris, senada dengan kartu asli
+  ctx.textAlign = 'left'
+  const first = en ? 'Page ' : 'Halaman '
+  const last = en ? 'not found' : 'tersesat'
+  const firstFont = (size) => `700 ${size}px ${heading}`
+  const lastFont = (size) => `italic 400 ${size * 1.1}px ${serif}`
+  const widthOf = (font, text) => {
+    ctx.font = font
+    return ctx.measureText(text).width
+  }
+  let size = 22
+  while (widthOf(firstFont(size), first) + widthOf(lastFont(size), last) > innerW) size -= 0.25
+  const firstWidth = widthOf(firstFont(size), first)
+  ctx.font = firstFont(size)
+  ctx.fillStyle = ink
+  ctx.fillText(first, pad, 268)
+  ctx.font = lastFont(size)
+  ctx.fillStyle = blue
+  ctx.fillText(last, pad + firstWidth, 268)
+
+  ctx.font = `500 6.4px ${mono}`
+  ctx.fillStyle = muted
+  ctx.fillText('HTTP 404 · NOT FOUND', pad, 282)
+
+  ctx.strokeStyle = line
+  ctx.lineWidth = 0.6
+  ctx.beginPath()
+  ctx.moveTo(pad, 291)
+  ctx.lineTo(CARD_W - pad, 291)
+  ctx.stroke()
+
+  // Alamat yang dicari, dipotong kalau terlalu panjang
+  ctx.font = `500 5.2px ${mono}`
+  ctx.fillStyle = muted
+  ctx.fillText(en ? 'PATH' : 'ALAMAT', pad, 303)
+  ctx.font = `600 6.6px ${mono}`
+  ctx.fillStyle = ink
+  let path = (props.path || '/').toUpperCase()
+  if (ctx.measureText(path).width > innerW) {
+    while (path.length > 1 && ctx.measureText(`${path}…`).width > innerW) path = path.slice(0, -1)
+    path += '…'
+  }
+  ctx.fillText(path, pad, 314)
+
+  const bandY = 324
+  ctx.fillStyle = blue
+  ctx.fillRect(0, bandY, CARD_W, CARD_H - bandY)
+  ctx.font = `600 6.4px ${mono}`
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillText(en ? 'LOST · INVALID PASS' : 'HILANG · TIDAK BERLAKU', pad, bandY + 16)
+}
+
+// Sisi depan sesuai varian
+function drawFront(canvas, image) {
+  if (isNotFound) drawNotFound(canvas)
+  else drawCard(canvas, image)
 }
 
 // Sisi belakang: ringkasan singkat seperti bagian belakang kartu ID
@@ -380,6 +544,7 @@ function drawShadow(canvas) {
 let photoImage = null
 
 function loadPhoto() {
+  if (isNotFound) return Promise.resolve(null)
   return new Promise((resolve) => {
     const img = new Image()
     img.onload = () => resolve(img)
@@ -483,7 +648,8 @@ function stepPhysics() {
   }
 
   // Dinding kiri-kanan: kartu tidak boleh keluar dari canvas (terpotong)
-  const margin = (CARD_W * scale) / 2 + 6
+  // (kartu 404 menggantung miring, jadi lebih lebar)
+  const margin = (isNotFound ? 152 : CARD_W / 2) * scale + 6
   for (const p of [ring, bottom]) {
     p.x = Math.max(margin, Math.min(width - margin, p.x))
   }
@@ -496,7 +662,7 @@ function stepPhysics() {
   tilt += ((bottom.y - bottom.py) * 0.012 - tilt) * 0.08
 
   // Balik kartu: pegas menuju 0 (depan) atau π (belakang), sedikit memantul
-  const flipTarget = flipped.value ? Math.PI : 0
+  const flipTarget = flipped.value && !isNotFound ? Math.PI : 0
   if (calm) {
     flipAngle += (flipTarget - flipAngle) * 0.3
   } else {
@@ -512,6 +678,7 @@ let scene = null
 let camera = null
 let cardGroup = null
 let cardMesh = null
+let pivot = null
 let cardTexture = null
 let cardMaterial = null
 let backTexture = null
@@ -613,7 +780,10 @@ function buildScene() {
   // Badan kartu hanya untuk tepi; muka depan & belakang permukaan sendiri
   cardGroup = new Group()
   cardMesh = new Mesh(cardGeometry(), [new MeshBasicMaterial({ visible: false }), edge])
-  cardGroup.add(cardMesh)
+  // Poros di lubang pengait: kartu 404 diputar di sekitar lubang sudutnya
+  pivot = new Group()
+  pivot.add(cardMesh)
+  cardGroup.add(pivot)
   const faceZ = CARD_DEPTH / 2 + CARD_BEVEL
   const front = new Mesh(fitUv(new ShapeGeometry(cardShape(), 10)), cardMaterial)
   front.position.z = faceZ
@@ -761,7 +931,12 @@ function render() {
   cardGroup.position.set(toWorldX(ring.x), toWorldY(ring.y), 0)
   cardGroup.rotation.z = angle
   cardGroup.scale.setScalar(scale)
-  cardMesh.position.y = -CARD_H / 2 + 11
+  if (isNotFound) {
+    pivot.rotation.z = CORNER_TILT
+    cardMesh.position.set(CORNER_DX, -CORNER_DY, 0)
+  } else {
+    cardMesh.position.y = -CARD_H / 2 + 11
+  }
   cardMesh.rotation.y = flipAngle + yaw
   cardMesh.rotation.x = tilt
   // Bayangan selalu di belakang sisi yang menghadap layar
@@ -781,11 +956,12 @@ function render() {
   // Area tarik mengikuti kartu
   if (hitEl.value) {
     const w = CARD_W * scale
-    const h = cardLength
-    const center = rotate(0, h / 2 - 11 * scale)
+    const h = CARD_H * scale
+    const center = isNotFound ? rotate(0, CORNER_REACH * scale) : rotate(0, h / 2 - 11 * scale)
+    const turn = isNotFound ? angle + CORNER_TILT : angle
     hitEl.value.style.width = `${w}px`
     hitEl.value.style.height = `${h}px`
-    hitEl.value.style.transform = `translate(${canvasLeft + center.x - w / 2}px, ${center.y - h / 2}px) rotate(${-angle}rad)`
+    hitEl.value.style.transform = `translate(${canvasLeft + center.x - w / 2}px, ${center.y - h / 2}px) rotate(${-turn}rad)`
   }
 }
 
@@ -858,7 +1034,10 @@ function onPointerMove(event) {
 }
 
 function onPointerUp() {
-  if (tap && performance.now() - tap.time < 450) toggleFlip()
+  if (tap && performance.now() - tap.time < 450) {
+    if (isNotFound) nudge()
+    else toggleFlip()
+  }
   tap = null
   grab = null
   isGrabbing.value = false
@@ -868,6 +1047,12 @@ function onPointerUp() {
 function onPointerCancel() {
   tap = null
   onPointerUp()
+}
+
+// Kartu 404: ketukan mendorong kartu supaya berayun
+function nudge() {
+  const bottom = points[ROPE_SEGMENTS + 1]
+  bottom.px -= (Math.random() < 0.5 ? -1 : 1) * 14 * scale
 }
 
 function toggleFlip() {
@@ -914,19 +1099,20 @@ function stop() {
 }
 
 function paintTextures() {
-  drawCard(textureCanvas, photoImage)
+  drawFront(textureCanvas, photoImage)
   drawBack(backCanvas)
   drawStrap(strapCanvas)
   if (cardTexture) cardTexture.needsUpdate = true
   if (backTexture) backTexture.needsUpdate = true
   if (strapTexture) strapTexture.needsUpdate = true
-  if (staticEl.value) drawCard(staticEl.value, photoImage)
+  if (staticEl.value) drawFront(staticEl.value, photoImage)
 }
 
 // Warna kartu mengikuti tema (tunggu atribut data-theme diterapkan)
 watch(theme, () => setTimeout(paintTextures))
 // Teks sisi belakang mengikuti bahasa
 watch(lang, paintTextures)
+watch(() => props.path, paintTextures)
 
 onMounted(async () => {
   const fonts = ['--font-heading', '--font-mono'].map((name) =>
@@ -991,8 +1177,9 @@ onBeforeUnmount(() => {
     ref="wrapEl"
     class="lanyard"
     :class="{ 'lanyard--static': isStatic }"
-    role="group"
-    :aria-label="t({ id: 'Kartu identitas Jose Elio Parhusip', en: 'Jose Elio Parhusip ID card' })"
+    :role="isNotFound ? undefined : 'group'"
+    :aria-hidden="isNotFound ? 'true' : undefined"
+    :aria-label="isNotFound ? undefined : t({ id: 'Kartu identitas Jose Elio Parhusip', en: 'Jose Elio Parhusip ID card' })"
   >
     <template v-if="isStatic">
       <span class="lanyard__static-strap" aria-hidden="true"></span>
@@ -1000,7 +1187,21 @@ onBeforeUnmount(() => {
     </template>
     <template v-else>
       <canvas ref="canvasEl" class="lanyard__canvas" aria-hidden="true"></canvas>
+      <!-- Kartu 404 hanya hiasan: tidak bisa difokus, hanya bisa ditarik -->
       <div
+        v-if="isNotFound"
+        ref="hitEl"
+        class="lanyard__hit"
+        :class="{ 'is-grabbing': isGrabbing }"
+        :data-cursor="t({ id: 'Tarik', en: 'Drag' })"
+        @pointerdown="onPointerDown"
+        @pointermove="onPointerMove"
+        @pointerup="onPointerUp"
+        @pointercancel="onPointerCancel"
+        @dragstart.prevent
+      ></div>
+      <div
+        v-else
         ref="hitEl"
         class="lanyard__hit"
         :class="{ 'is-grabbing': isGrabbing }"

@@ -1,8 +1,11 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { vReveal } from '@/directives/reveal'
 import { lang } from '@/composables/useLang'
+
+// Kartu 3D (Three.js) dimuat terpisah supaya teks halaman tampil lebih dulu
+const LanyardCard = defineAsyncComponent(() => import('@/components/LanyardCard.vue'))
 
 /* ---------------------------------------------------------
    Halaman 404: alamat yang dibuka tidak ada.
@@ -10,9 +13,9 @@ import { lang } from '@/composables/useLang'
    dist/404.html dengan status 404 asli (lihat scripts/prerender-pages.js),
    lalu aplikasi menampilkan halaman ini. Saat pindah halaman di dalam
    aplikasi, router yang mengarahkan ke sini (rute "catch-all").
-   Tampil penuh satu layar sebagai halaman pemberitahuan (hanya angka dan
-   pesan, dengan tautan teks ke beranda). Navbar, footer, & chat
-   disembunyikan di App.vue.
+   Tampil penuh satu layar sebagai halaman pemberitahuan: kartu ID 3D
+   yang "rusak" tergantung miring dari atas layar, pesan, dan tautan teks
+   ke beranda. Navbar, footer, & chat disembunyikan di App.vue.
 --------------------------------------------------------- */
 const route = useRoute()
 
@@ -27,10 +30,10 @@ const wantedPath = computed(() => {
   <main class="notfound">
     <div class="container">
       <div class="notfound__body">
-        <!-- Angka besar: "0" di tengah miring biru, senada dengan "Parhusip." -->
-        <p v-reveal.clip="60" class="notfound__code" aria-hidden="true">
-          4<span class="notfound__code-mid">0</span>4
-        </p>
+        <!-- Kartu 404 tergantung dari tepi atas layar (hiasan, bisa ditarik) -->
+        <div class="notfound__hang">
+          <LanyardCard variant="notfound" :path="wantedPath" />
+        </div>
 
         <div class="notfound__text">
           <h1 v-reveal.clip="140" class="notfound__title">
@@ -72,34 +75,24 @@ const wantedPath = computed(() => {
   width: 100%;
 }
 
-/* Angka besar di kiri, teks di kanan */
+/* Kartu di kiri, teks di kanan */
 .notfound__body {
+  --top-gap: clamp(1.25rem, 3vw, 2rem);
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(1.5rem, 5vw, 4.5rem);
   align-items: center;
-  align-content: center;
-  padding: clamp(2rem, 5vw, 3rem) 0;
 }
 
-
-.notfound__code {
-  margin: 0;
-  font-family: var(--font-heading);
-  font-size: clamp(7rem, 24vw, 20rem);
-  font-weight: 800;
-  line-height: 0.8;
-  letter-spacing: -0.04em;
-  color: var(--color-text);
-  user-select: none;
-}
-
-.notfound__code-mid {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  color: var(--color-primary);
+/* Slot kartu: mulai dari tepi atas layar supaya tali terlihat tergantung
+   dari "langit-langit" */
+.notfound__hang {
+  --lanyard-max-scale: 1.22;
+  align-self: start;
+  width: min(250px, 100%);
+  height: 640px;
+  margin: calc(-1 * var(--top-gap)) auto 0;
 }
 
 .notfound__text {
@@ -149,9 +142,20 @@ const wantedPath = computed(() => {
 @media (max-width: 860px) {
   .notfound__body {
     grid-template-columns: 1fr;
-    align-content: center;
+    align-content: start;
     justify-items: center;
+    gap: 0;
     text-align: center;
+  }
+
+  .notfound__hang {
+    --lanyard-max-scale: 0.92;
+    width: min(200px, 70%);
+    height: 470px;
+  }
+
+  .notfound__text {
+    padding-bottom: 1rem;
   }
 
   /* Kalimat alamat rata kanan-kiri; baris terakhir tetap di tengah */

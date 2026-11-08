@@ -1,7 +1,10 @@
 <script setup>
-import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { lang, t } from '@/composables/useLang'
+
+// Versi 3D (Three.js) baru diunduh saat dipakai
+const GithubSkyline = defineAsyncComponent(() => import('./GithubSkyline.vue'))
 
 /* ---------------------------------------------------------
    Grafik kontribusi GitHub (seperti di halaman profil).
@@ -168,6 +171,37 @@ function showTooltip(event, day) {
 function hideTooltip() {
   tooltip.value = null
 }
+
+/* ---- Tampilan 2D / 3D ---- */
+function hasWebGL() {
+  try {
+    const canvas = document.createElement('canvas')
+    return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'))
+  } catch {
+    return false
+  }
+}
+const canUse3d = ref(false)
+const view = ref('2d')
+
+onMounted(() => {
+  canUse3d.value = hasWebGL()
+  if (canUse3d.value) view.value = '3d'
+})
+
+function setView(value) {
+  view.value = value
+  hideTooltip()
+}
+
+function onSkylineHover(info) {
+  tooltip.value = info
+}
+
+function onSkylineUnsupported() {
+  canUse3d.value = false
+  view.value = '2d'
+}
 </script>
 
 <template>
@@ -203,6 +237,14 @@ function hideTooltip() {
         <p>{{ t({ id: 'Coba muat ulang halaman, atau lihat langsung di profil GitHub saya.', en: 'Try reloading the page, or view my GitHub profile directly.' }) }}</p>
         <button type="button" class="gh__retry" @click="load(activeRange)">{{ t({ id: 'Coba lagi', en: 'Try again' }) }}</button>
       </div>
+
+      <GithubSkyline
+        v-else-if="view === '3d' && status === 'ready'"
+        :weeks="weeks"
+        :label="heading"
+        @hover="onSkylineHover"
+        @unsupported="onSkylineUnsupported"
+      />
 
       <div v-else ref="scrollEl" class="gh__scroll">
         <div class="gh__calendar" :style="{ '--weeks': weeks.length || 53 }">
@@ -261,10 +303,25 @@ function hideTooltip() {
             stroke-linejoin="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
         </svg>
       </a>
+      <div class="gh__foot-end">
+      <div v-if="canUse3d" class="gh__view" role="group" :aria-label="t({ id: 'Tampilan grafik', en: 'Graph view' })">
+        <button
+          v-for="option in ['2d', '3d']"
+          :key="option"
+          type="button"
+          class="gh__view-btn"
+          :class="{ 'is-active': view === option }"
+          :aria-pressed="view === option"
+          @click="setView(option)"
+        >
+          {{ option.toUpperCase() }}
+        </button>
+      </div>
       <div class="gh__legend" aria-hidden="true">
         <span>{{ t({ id: 'Sedikit', en: 'Less' }) }}</span>
         <span v-for="lv in 5" :key="lv" class="gh__cell" :class="`lv-${lv - 1}`"></span>
         <span>{{ t({ id: 'Banyak', en: 'More' }) }}</span>
+      </div>
       </div>
     </div>
   </div>
@@ -532,6 +589,62 @@ function hideTooltip() {
 
 .gh__link:hover {
   color: var(--color-primary);
+}
+
+.gh__foot-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+
+/* Tombol 2D/3D: sakelar kecil bergaya tombol 3D */
+.gh__view {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-soft);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+.gh__view-btn {
+  min-width: 2.6rem;
+  min-height: 30px;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--color-text-soft);
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gh__view-btn:hover {
+  color: var(--color-text);
+}
+
+.gh__view-btn.is-active {
+  background: var(--btn-ghost-face), var(--color-surface);
+  color: var(--color-text);
+  box-shadow:
+    inset 0 1px 0 var(--btn-highlight),
+    0 2px 0 var(--btn-ghost-edge),
+    0 7px 12px -7px var(--btn-ghost-shadow);
+  transform: translateY(-1px);
+}
+
+.gh__view-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 0 0 var(--color-rule);
+}
+
+.gh__view-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .gh__legend {

@@ -109,6 +109,53 @@ function onKeydown(event) {
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
+// ---- Kertas miring mengikuti kursor (hanya mouse, bukan HP) ----
+const tiltEl = ref(null)
+const tilting = ref(false)
+let canTilt = false
+let tiltFrame = 0
+let tiltTarget = null
+
+onMounted(() => {
+  canTilt =
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+})
+
+function onTiltMove(event) {
+  if (!canTilt || !tiltEl.value) return
+  const rect = tiltEl.value.getBoundingClientRect()
+  tiltTarget = {
+    x: Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
+    y: Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height)),
+  }
+  tilting.value = true
+  if (!tiltFrame) tiltFrame = requestAnimationFrame(applyTilt)
+}
+
+function applyTilt() {
+  tiltFrame = 0
+  if (!tiltTarget || !tiltEl.value) return
+  const { x, y } = tiltTarget
+  const style = tiltEl.value.style
+  style.setProperty('--rx', `${((0.5 - y) * 14).toFixed(2)}deg`)
+  style.setProperty('--ry', `${((x - 0.5) * 18).toFixed(2)}deg`)
+  style.setProperty('--gx', `${(x * 100).toFixed(1)}%`)
+  style.setProperty('--gy', `${(y * 100).toFixed(1)}%`)
+}
+
+function onTiltLeave() {
+  cancelAnimationFrame(tiltFrame)
+  tiltFrame = 0
+  tiltTarget = null
+  tilting.value = false
+  const style = tiltEl.value?.style
+  if (!style) return
+  ;['--rx', '--ry', '--gx', '--gy'].forEach((name) => style.removeProperty(name))
+}
+
+onUnmounted(() => cancelAnimationFrame(tiltFrame))
+
 // Proteksi gambar: cegah klik kanan & drag, sama seperti gambar proyek
 function preventImageAction(event) {
   event.preventDefault()
@@ -213,14 +260,21 @@ function preventImageAction(event) {
           <button
             type="button"
             class="certs__frame"
+            :class="{ 'is-tilting': tilting }"
             :data-cursor="t({ id: 'Perbesar', en: 'Enlarge' })"
             :aria-label="t({ id: `Perbesar sertifikat ${t(activeCert.title)}`, en: `Enlarge certificate: ${t(activeCert.title)}` })"
             @click="openLightbox(active)"
             @contextmenu.prevent="preventImageAction"
+            @pointermove="onTiltMove"
+            @pointerleave="onTiltLeave"
           >
+            <span ref="tiltEl" class="certs__tilt">
             <Transition name="cert-fade" mode="out-in">
               <!-- Kartu membungkus pas gambar (tegak/mendatar), garis warna di tepinya -->
               <span :key="activeCert.ref" class="certs__card">
+                <!-- Dua lembar kertas di belakang: kesan tumpukan dokumen -->
+                <span class="certs__sheet certs__sheet--1" aria-hidden="true"></span>
+                <span class="certs__sheet certs__sheet--2" aria-hidden="true"></span>
                 <img
                   :src="activeCert.image"
                   :width="activeCert.size[0]"
@@ -230,8 +284,10 @@ function preventImageAction(event) {
                   draggable="false"
                   @dragstart.prevent="preventImageAction"
                 />
+                <span class="certs__glare" aria-hidden="true"></span>
               </span>
             </Transition>
+            </span>
           </button>
 
           <div class="certs__caption">
@@ -530,12 +586,82 @@ function preventImageAction(event) {
   cursor: zoom-in;
 }
 
+/* Kertas miring: sudut diisi JS lewat --rx/--ry, titik kilau lewat --gx/--gy */
+.certs__tilt {
+  display: inline-block;
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.7s var(--ease-out);
+  will-change: transform;
+}
+
+.certs__frame.is-tilting .certs__tilt {
+  transition-duration: 0.12s;
+}
+
+/* Lembar di belakang kartu, sedikit miring seperti tumpukan kertas */
+.certs__sheet {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border-radius: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: transform 0.7s var(--ease-out);
+  pointer-events: none;
+}
+
+.certs__sheet--1 {
+  transform: translate(6px, 7px) rotate(1.6deg);
+}
+
+.certs__sheet--2 {
+  z-index: -3;
+  background: var(--color-surface-soft);
+  transform: translate(-5px, 11px) rotate(-2.2deg);
+}
+
+.certs__frame.is-tilting .certs__sheet--1 {
+  transform: translate(10px, 12px) rotate(2.4deg);
+}
+
+.certs__frame.is-tilting .certs__sheet--2 {
+  transform: translate(-9px, 17px) rotate(-3.2deg);
+}
+
+/* Kilau cahaya di permukaan kertas */
+.certs__glare {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--gx, 50%) var(--gy, 0%),
+    rgba(255, 255, 255, 0.34),
+    rgba(255, 255, 255, 0.08) 32%,
+    transparent 60%
+  );
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.certs__frame.is-tilting .certs__glare {
+  opacity: 1;
+}
+
+/* Kartu terangkat: bayangan lebih panjang saat dimiringkan */
+.certs__frame.is-tilting .certs__card {
+  box-shadow: 0 28px 48px -26px rgba(0, 0, 0, 0.55);
+}
+
 /* Kartu: jarak tipis antara gambar dan garis warna */
 .certs__card {
   display: block;
   padding: 7px;
   border-radius: var(--radius);
   background: var(--color-surface-soft);
+  transition: box-shadow 0.5s var(--ease-out);
 }
 
 .certs__frame-img {
