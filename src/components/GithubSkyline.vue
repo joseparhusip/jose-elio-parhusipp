@@ -43,7 +43,7 @@ const { theme } = useTheme()
 const wrapEl = ref(null)
 const canvasEl = ref(null)
 const isDragging = ref(false)
-const zoomed = ref(false)
+const zoomed = ref(window.innerWidth < 640)
 const zoomHint = ref(false)
 
 const STEP = 1.25 // jarak antar balok
@@ -63,7 +63,12 @@ const dummy = new Object3D()
 const tmpColor = new Color()
 
 // Sudut kamera (diubah saat ditarik)
-let azimuth = window.innerWidth < 640 ? -0.78 : -0.24
+// HP: setahun penuh terlalu kecil di layar sempit, jadi tampilan awal
+// langsung diperbesar & fokus ke bulan-bulan terbaru (ujung kanan)
+const isNarrow = window.innerWidth < 640
+const START_AZIMUTH = isNarrow ? -0.55 : -0.24
+const START_ZOOM = isNarrow ? 2.4 : 1
+let azimuth = START_AZIMUTH
 let polar = 0.98
 let growStart = 0
 let frame = 0
@@ -72,8 +77,8 @@ let hovered = -1
 // Zoom & geser (satuan ruang pandang kamera)
 const MIN_ZOOM = 1
 const MAX_ZOOM = 6
-let zoom = 1
-let panX = 0
+let zoom = START_ZOOM
+let panX = START_ZOOM > 1 ? Infinity : 0 // Infinity = mentok ke kanan
 let panY = 0
 let zoomAnim = null // { target, nx, ny }
 let fit = { cx: 0, cy: 0, halfH: 1, minX: 0, maxX: 0, minY: 0, maxY: 0 }
@@ -230,7 +235,12 @@ function zoomBy(factor) {
 function resetView() {
   zoomAnim = null
   applyZoom(1)
-  azimuth = window.innerWidth < 640 ? -0.78 : -0.24
+  if (START_ZOOM > 1) {
+    zoom = START_ZOOM
+    panX = Infinity
+    zoomed.value = true
+  }
+  azimuth = START_AZIMUTH
   polar = 0.98
   emit('hover', null)
   requestRender()
@@ -513,11 +523,12 @@ onBeforeUnmount(() => {
   cursor: grabbing;
 }
 
-/* Saat diperbesar, jari dipakai untuk menggeser grafik */
+/* Saat diperbesar: tarik untuk menggeser grafik. Di HP geser ke samping
+   menggeser grafik, geser atas/bawah tetap men-scroll halaman. */
 .skyline.is-zoomed .skyline__canvas {
   cursor: move;
-  touch-action: none;
 }
+
 
 .skyline__zoom {
   position: absolute;
@@ -600,5 +611,17 @@ onBeforeUnmount(() => {
 .skyline-hint-enter-from,
 .skyline-hint-leave-to {
   opacity: 0;
+}
+
+@media (max-width: 640px) {
+  .skyline {
+    height: 280px;
+  }
+
+  /* HP: tombol zoom di kanan bawah supaya tidak menutupi balok terbaru */
+  .skyline__zoom {
+    top: auto;
+    bottom: 0.25rem;
+  }
 }
 </style>
