@@ -7,7 +7,7 @@ import { lang, t } from '@/composables/useLang'
    (event offline dari browser) dan menutup sendiri saat tersambung
    lagi, didahului pesan singkat "Tersambung kembali".
    Tombol "Coba lagi" memeriksa koneksi dengan memanggil situs sendiri.
-   Selama offline, pemeriksaan juga berjalan OTOMATIS setiap 10 detik
+   Selama offline, pemeriksaan juga berjalan OTOMATIS setiap 5 detik
    (seolah tombol diklik sendiri). Isian di tombol menunjukkan sisa waktu
    sampai percobaan berikutnya; saat memeriksa, tombol menampilkan
    animasi loading.
@@ -19,7 +19,7 @@ import { lang, t } from '@/composables/useLang'
    pengunjung membuka situs dalam keadaan offline sejak awal, browser
    yang menampilkan halaman offline-nya sendiri.
 --------------------------------------------------------- */
-const RETRY_SECONDS = 10
+const RETRY_SECONDS = 5
 const MIN_CHECK_MS = 1200 // animasi loading terlihat minimal selama ini
 
 const state = ref('online') // online | offline | back
