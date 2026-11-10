@@ -895,22 +895,28 @@ onUnmounted(() => {
     --close-size: 48px;
   }
 
-  /* Statistik jadi baris buku besar: label kiri, angka kanan */
+  /* Statistik: tiga kolom berdampingan, angka besar di atas & label kecil
+     di bawahnya (mata tidak perlu melompat dari kiri ke kanan) */
   .hero__stats {
-    grid-template-columns: 1fr;
-    border-bottom: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .hero__stat {
-    flex-direction: row;
-    align-items: center;
-    padding: 0.9rem 0;
-    border-left: 0;
-    border-bottom: 1px solid var(--color-rule);
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    padding: 1rem 0.75rem 1.1rem;
+  }
+
+  .hero__stat-label {
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.6rem;
+    line-height: 1.45;
   }
 
   .hero__stat-value {
-    font-size: 2.6rem;
+    font-size: clamp(2.2rem, 11vw, 2.8rem);
   }
 
   .hero__scroll {

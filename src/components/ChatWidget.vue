@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useChatWidgetStore } from '../stores/chatWidget'
 import { lang, t } from '@/composables/useLang'
 import * as kbId from './chatKnowledge'
@@ -99,6 +99,28 @@ function pushMessage(from, text, type = 'text', items = null) {
   messages.value.push({ id: msgId, from, text, type, items })
   nextTick(scrollToBottom)
 }
+
+/* ---- HP: tombol chat menyingkir saat halaman di-scroll ke bawah ----
+   Supaya tidak menutupi isi yang sedang dibaca. Muncul lagi saat scroll
+   ke atas, di bagian paling atas, atau saat sampai di dasar halaman. */
+const fabTucked = ref(false)
+let lastScrollY = 0
+
+function onPageScroll() {
+  const y = window.scrollY
+  const delta = y - lastScrollY
+  if (Math.abs(delta) < 8) return
+  const nearEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 160
+  fabTucked.value = delta > 0 && y > 240 && !nearEnd && !chatStore.isOpen
+  lastScrollY = y
+}
+
+onMounted(() => {
+  lastScrollY = window.scrollY
+  window.addEventListener('scroll', onPageScroll, { passive: true })
+})
+
+onBeforeUnmount(() => window.removeEventListener('scroll', onPageScroll))
 
 function scrollToBottom() {
   messagesEnd.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -1909,7 +1931,7 @@ watch(lang, (next, prev) => {
     <button
       type="button"
       class="btn-close btn-close--solid chat-widget__fab"
-      :class="{ 'chat-widget__fab--open': chatStore.isOpen }"
+      :class="{ 'chat-widget__fab--open': chatStore.isOpen, 'chat-widget__fab--tucked': fabTucked }"
       :aria-label="chatStore.isOpen ? t({ id: 'Tutup chat', en: 'Close chat' }) : t({ id: 'Buka chat kontak', en: 'Open contact chat' })"
       @click="toggleWidget"
     >
@@ -1959,6 +1981,23 @@ watch(lang, (next, prev) => {
 .chat-widget__fab {
   --close-size: 48px;
   position: relative;
+  /* `translate` terpisah dari `transform` efek tekan tombol 3D */
+  transition:
+    transform 0.18s var(--ease-out),
+    box-shadow 0.18s var(--ease-out),
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    translate 0.35s var(--ease-out),
+    opacity 0.25s ease;
+}
+
+/* HP & tablet: menyingkir ke bawah layar saat scroll ke bawah */
+@media (max-width: 760px) {
+  .chat-widget__fab--tucked {
+    translate: 0 calc(100% + 1.5rem);
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .chat-widget__fab-icon {

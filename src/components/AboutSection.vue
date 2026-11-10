@@ -671,8 +671,9 @@ onUnmounted(() => lanyardObserver?.disconnect())
 }
 
 /* ---- Tools ---- */
+/* Jarak secukupnya: tinggi kepala (32rem) sudah memberi ruang untuk kartu */
 .about__stack {
-  margin-top: clamp(4rem, 8vw, 6rem);
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
 }
 
 .about__block-head--stack {

@@ -1094,8 +1094,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 .gallery__dot {
   position: relative;
-  flex: 1;
+  flex: 1 1 0;
   max-width: 64px;
+  transition: flex-grow 0.4s var(--ease-out), max-width 0.4s var(--ease-out);
   height: 22px;
   padding: 0;
   border: 0;
@@ -1111,16 +1112,25 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   top: 50%;
   height: 2px;
   margin-top: -1px;
+  border-radius: 2px;
   background: var(--color-rule);
-  transition: background 0.25s ease;
+  transition: background 0.25s ease, height 0.25s ease, margin 0.25s ease;
 }
 
 .gallery__dot:hover::before {
   background: var(--color-text-soft);
 }
 
+/* Proyek aktif: garis lebih panjang, tebal, & biru supaya jelas posisinya */
+.gallery__dot--active {
+  flex-grow: 2.4;
+  max-width: 128px;
+}
+
 .gallery__dot--active::before {
-  background: var(--color-text);
+  height: 4px;
+  margin-top: -2px;
+  background: var(--color-primary);
 }
 
 .gallery__arrows {

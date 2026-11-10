@@ -454,6 +454,15 @@ html.privacy-open .top-btn {
   pointer-events: none;
 }
 
+/* Beranda: dua bagian berlatar sama yang bersebelahan cukup dipisah garis
+   judul bagian, jadi jarak atasnya dipersempit (tidak dobel padding).
+   Bagian Proyek berlatar beda, jadi tetap berjarak penuh. */
+main > .hero + .about,
+main > .about + .experience,
+main > .certs + .contact {
+  padding-top: var(--section-y-tight);
+}
+
 /* Pop up privasi terbuka: halaman di belakang tidak ikut ter-scroll */
 html.privacy-open {
   overflow: hidden;

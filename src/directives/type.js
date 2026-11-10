@@ -26,6 +26,10 @@ import { loaderDone } from '@/composables/useLoaderState'
 --------------------------------------------------------- */
 
 const CHAR_MS = 32 // jeda per huruf
+// Judul panjang (mis. manifesto di Tentang) diketik lebih cepat supaya
+// selesai paling lama ~1,1 detik: pengunjung yang scroll cepat tidak sempat
+// melihat kalimat terpotong.
+const MAX_TOTAL_MS = 1100
 const START_DELAY = 120
 const typedKeys = new Set()
 
@@ -75,11 +79,12 @@ function finish(state) {
 
 function run(el, state) {
   const total = state.parts.reduce((sum, p) => sum + p.full.length, 0)
+  const charMs = Math.min(CHAR_MS, MAX_TOTAL_MS / Math.max(1, total))
   let start = 0
 
   const tick = (now) => {
     if (!start) start = now
-    const shown = Math.min(total, Math.floor((now - start) / CHAR_MS))
+    const shown = Math.min(total, Math.floor((now - start) / charMs))
     let left = shown
 
     for (const p of state.parts) {

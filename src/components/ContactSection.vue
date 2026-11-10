@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useChatWidgetStore } from '../stores/chatWidget'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
@@ -67,6 +67,47 @@ onBeforeUnmount(() => {
   slideObserver?.disconnect()
 })
 
+/* ---- Jam lokal Bekasi (WIB), berjalan langsung ----
+   Memberi gambaran kapan pesan kemungkinan dibaca, tanpa teks panjang. */
+const now = ref(new Date())
+let clockTimer = 0
+
+const clockParts = computed(() => {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Jakarta',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(now.value)
+  const get = (type) => parts.find((part) => part.type === type)?.value ?? '00'
+  return { hour: get('hour'), minute: get('minute') }
+})
+
+// Bagian hari di Bekasi: pagi / siang / sore / malam
+const dayPart = computed(() => {
+  const hour = Number(clockParts.value.hour)
+  if (hour >= 4 && hour < 11) return { id: 'Pagi', en: 'Morning' }
+  if (hour >= 11 && hour < 15) return { id: 'Siang', en: 'Afternoon' }
+  if (hour >= 15 && hour < 18) return { id: 'Sore', en: 'Evening' }
+  return { id: 'Malam', en: 'Night' }
+})
+
+const clockIso = computed(() => now.value.toISOString())
+
+onMounted(() => {
+  // Diperbarui tiap 15 detik: cukup untuk jam menit, ringan untuk baterai
+  clockTimer = setInterval(() => (now.value = new Date()), 15000)
+})
+
+onBeforeUnmount(() => clearInterval(clockTimer))
+
+// Info singkat di bawah jam
+const facts = [
+  { label: { id: 'Basis', en: 'Based in' }, value: { id: 'Bekasi, Jawa Barat', en: 'Bekasi, West Java' } },
+  { label: { id: 'Saat ini', en: 'Currently' }, value: 'Back End Developer · SPKD' },
+  { label: { id: 'Bahasa', en: 'Languages' }, value: { id: 'Indonesia · Inggris', en: 'Indonesian · English' } },
+]
+
 const mapLocations = [
   { name: 'Bandung', lat: -6.9175, lng: 107.6191 },
   { name: 'Bekasi', lat: -6.2383, lng: 106.9756 },
@@ -97,12 +138,14 @@ async function initMap() {
   // sampai keluar provinsi (apalagi keluar Indonesia).
   const WEST_JAVA_BOUNDS = L.latLngBounds([-8.05, 105.75], [-5.6, 108.95])
 
-  // Penanda peta: titik biru buatan sendiri (gaya di .contact__pin)
+  // Penanda peta: pin biru buatan sendiri (gaya di .contact__pin). Ujung
+  // bawah pin tepat di lokasi, kepalanya di atas, jadi nama kota tidak tertutup.
   const pinIcon = L.divIcon({
     className: 'contact__pin',
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
-    popupAnchor: [0, -10],
+    html: '<span class="contact__pin-head"></span>',
+    iconSize: [18, 26],
+    iconAnchor: [9, 26],
+    popupAnchor: [0, -26],
   })
 
   mapInstance = L.map(mapContainer.value, {
@@ -184,9 +227,29 @@ onBeforeUnmount(() => {
         <div ref="formWrap" class="contact__col" :class="{ 'is-in': formIn }">
           <div class="contact__cta">
             <span class="contact__status mono-meta">
-              <span class="contact__status-dot" aria-hidden="true"></span>
               {{ t({ id: 'Terbuka untuk kerja & kolaborasi', en: 'Open to work & collaboration' }) }}
             </span>
+
+            <!-- Jam lokal Bekasi -->
+            <div class="contact__clock">
+              <p class="contact__clock-label mono-meta">
+                {{ t({ id: 'Waktu lokal', en: 'Local time' }) }} · Bekasi
+              </p>
+              <p class="contact__clock-row">
+                <time class="contact__clock-time" :datetime="clockIso">
+                  {{ clockParts.hour }}<span class="contact__clock-colon" aria-hidden="true">:</span>{{ clockParts.minute }}
+                </time>
+                <span class="contact__clock-zone serif-accent">WIB</span>
+                <span class="contact__clock-part mono-meta">{{ t(dayPart) }}</span>
+              </p>
+            </div>
+
+            <dl class="contact__facts">
+              <div v-for="fact in facts" :key="t(fact.label)" class="contact__fact">
+                <dt class="mono-meta">{{ t(fact.label) }}</dt>
+                <dd>{{ t(fact.value) }}</dd>
+              </div>
+            </dl>
 
             <div class="contact__cta-actions">
               <button type="button" class="btn btn--primary contact__chat-btn" @click="openChat">
@@ -277,29 +340,99 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 
+/* Label status: lencana solid, senada dengan "Terbuka untuk kerja" di beranda */
 .contact__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
+  align-self: flex-start;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-weight: 600;
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--color-text) 45%, var(--color-bg));
+}
+
+/* ---- Jam lokal ---- */
+.contact__clock {
+  margin-top: 2rem;
+}
+
+.contact__clock-label {
+  margin: 0;
+}
+
+.contact__clock-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.8rem;
+  margin: 0.5rem 0 0;
+}
+
+.contact__clock-time {
+  font-family: var(--font-heading);
+  font-size: clamp(3.4rem, 7vw, 5rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
   color: var(--color-text);
 }
 
-.contact__status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: contact-blink 2.4s ease-in-out infinite;
+/* Titik dua berkedip pelan, seperti jam digital */
+.contact__clock-colon {
+  display: inline-block;
+  margin: 0 0.02em;
+  animation: contact-colon 2s steps(1, end) infinite;
 }
 
-@keyframes contact-blink {
+@keyframes contact-colon {
   50% {
-    opacity: 0.35;
+    opacity: 0.25;
   }
 }
 
+.contact__clock-zone {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  color: var(--color-primary);
+}
+
+.contact__clock-part {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  color: var(--color-text);
+}
+
+/* ---- Info singkat: baris bergaris seperti buku catatan ---- */
+.contact__facts {
+  margin: 1.8rem 0 0;
+  border-top: 1px solid var(--color-rule);
+}
+
+.contact__fact {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.contact__fact dt {
+  margin: 0;
+}
+
+.contact__fact dd {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* Tombol chat di dasar kolom: sejajar dengan bawah kartu peta */
 .contact__cta-actions {
-  margin-top: 1.8rem;
+  margin-top: auto;
+  padding-top: 1.8rem;
 }
 
 /* ---- Peta ---- */
@@ -397,12 +530,36 @@ onBeforeUnmount(() => {
   color: var(--color-text);
 }
 
+/* Pin: kepala bulat biru + tangkai tipis; ujung tangkai = lokasi */
 .contact__map :deep(.contact__pin) {
+  background: none;
+  border: 0;
+}
+
+.contact__map :deep(.contact__pin-head) {
+  position: absolute;
+  top: 0;
+  left: 0;
   box-sizing: border-box;
+  width: 18px;
+  height: 18px;
   border: 3px solid var(--color-surface);
   border-radius: 50%;
   background: var(--color-primary);
-  box-shadow: 0 0 0 1.5px var(--color-primary);
+  box-shadow:
+    0 0 0 1.5px var(--color-primary),
+    0 4px 8px -2px rgba(0, 0, 0, 0.45);
+}
+
+.contact__map :deep(.contact__pin)::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 17px;
+  width: 2px;
+  height: 9px;
+  border-radius: 1px;
+  background: var(--color-primary);
 }
 
 .contact__map :deep(img) {
@@ -468,7 +625,7 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .contact__status-dot {
+  .contact__clock-colon {
     animation: none;
   }
 }
@@ -483,6 +640,10 @@ onBeforeUnmount(() => {
 @media (max-width: 480px) {
   .contact__chat-btn {
     width: 100%;
+  }
+
+  .contact__fact {
+    grid-template-columns: 6rem minmax(0, 1fr);
   }
 
   .contact__map {
