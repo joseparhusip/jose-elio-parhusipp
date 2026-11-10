@@ -483,9 +483,7 @@ html.notice-page body {
     scroll-behavior: auto;
   }
 
-  .scroll-progress {
-    display: none;
-  }
+  /* Garis progres scroll tetap tampil: ia penunjuk posisi, bukan dekorasi */
 
   *,
   *::before,
@@ -493,6 +491,12 @@ html.notice-page body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* v-reveal: elemen yang animasinya belum disiapkan (masih jauh dari layar)
+   disembunyikan dulu. Atribut dilepas tepat saat animasinya dibuat. */
+[data-reveal-wait] {
+  opacity: 0 !important;
 }
 
 /* ---- Efek mengetik judul (directive v-type) ---- */

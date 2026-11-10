@@ -509,7 +509,9 @@ function onSkylineUnsupported() {
 .lv-3 { background: color-mix(in srgb, var(--color-accent) 80%, var(--color-surface-soft)); }
 .lv-4 { background: var(--color-accent); }
 
-.gh__graph.is-loading .gh__cell {
+/* Kedip "memuat": satu animasi untuk seluruh grid (bukan 371 kotak satu per
+   satu), jauh lebih ringan, terutama di HP */
+.gh__graph.is-loading .gh__grid {
   animation: gh-pulse 1.4s ease-in-out infinite;
 }
 
@@ -663,7 +665,7 @@ function onSkylineUnsupported() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gh__graph.is-loading .gh__cell {
+  .gh__graph.is-loading .gh__grid {
     animation: none;
   }
 }

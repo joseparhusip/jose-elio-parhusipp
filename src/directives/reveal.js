@@ -36,8 +36,16 @@
      arah kiri/kanan diganti naik (biar tidak ada geser horizontal),
      blur dimatikan (berat untuk GPU HP).
    - "Kurangi animasi" aktif (mis. Windows: Settings > Accessibility >
-     Visual effects > Animation effects = Off): elemen tetap muncul halus
-     tapi hanya fade, tanpa gerak, supaya tetap nyaman untuk yang sensitif gerak.
+     Visual effects > Animation effects = Off): tetap ada efek, tapi sangat
+     halus: fade + naik 8px saja, pelan, tanpa geser samping/zoom/blur.
+     Gerak sekecil ini nyaman untuk yang sensitif gerak, dan situs tidak
+     terasa "datar" di laptop Windows yang mematikan efek animasi.
+   - Jenis perangkat dibaca ulang saat layar diputar / jendela di-resize,
+     jadi elemen berikutnya memakai setelan yang sesuai ukuran terbaru.
+   - Hemat untuk HP kelas bawah: animasi baru disiapkan saat elemen
+     mendekati layar (sekitar 2 layar sebelumnya), bukan ratusan sekaligus
+     saat halaman dibuka. Sambil menunggu, elemen disembunyikan lewat
+     atribut data-reveal-wait (lihat main.css).
 
    Animasi baru dimulai setelah loader (TheLoader) selesai, supaya animasi
    di layar pertama benar-benar terlihat dan tidak "habis" di balik tirai loader.
@@ -56,16 +64,29 @@ const canAnimate =
   typeof Element.prototype.animate === 'function'
 const reduceMotion = hasWindow && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-function deviceConfig() {
-  if (reduceMotion) return { device: 'reduced', dist: 0, side: 0, dur: 500, delayScale: 0.4, step: 40 }
+function readDeviceConfig() {
+  if (reduceMotion) return { device: 'reduced', dist: 8, side: 0, dur: 700, delayScale: 0.5, step: 45 }
   const w = window.innerWidth
   if (w <= 640) return { device: 'phone', dist: 18, side: 0, dur: 620, delayScale: 0.6, step: 55 }
   if (w <= 960) return { device: 'tablet', dist: 24, side: 28, dur: 760, delayScale: 0.8, step: 65 }
   return { device: 'desktop', dist: 30, side: 44, dur: 880, delayScale: 1, step: 80 }
 }
 
+// Disimpan, dibaca ulang hanya setelah ukuran layar berubah (putar tablet, resize)
+let cachedConfig = null
+function deviceConfig() {
+  if (!cachedConfig) cachedConfig = readDeviceConfig()
+  return cachedConfig
+}
+if (hasWindow) {
+  const reset = () => (cachedConfig = null)
+  window.addEventListener('resize', reset, { passive: true })
+  window.addEventListener('orientationchange', reset, { passive: true })
+}
+
 function keyframesFor(variant, c) {
-  if (c.device === 'reduced') return [{ opacity: 0 }, { opacity: 1 }]
+  // Kurangi animasi: semua jenis jadi fade + naik sedikit
+  if (c.device === 'reduced') return [{ opacity: 0, translate: `0 ${c.dist}px` }, { opacity: 1, translate: '0 0' }]
 
   // Di HP gerak samping diganti naik supaya tidak memicu scroll horizontal
   if (c.device === 'phone' && (variant === 'left' || variant === 'right')) variant = 'up'
@@ -171,6 +192,29 @@ function onScrollSettled() {
   }, 160)
 }
 
+/* ---- Siapkan animasi hanya saat elemen mendekati layar ---- */
+const WAIT_ATTR = 'data-reveal-wait'
+const lazy = new Map() // elemen -> fungsi penyiap animasinya
+let prepObserver = null
+
+function getPrepObserver() {
+  if (prepObserver) return prepObserver
+  prepObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting && entry.boundingClientRect.bottom >= 0) return
+        prepObserver.unobserve(entry.target)
+        const arm = lazy.get(entry.target)
+        lazy.delete(entry.target)
+        arm?.()
+      })
+    },
+    // Dua layar sebelum (dan sesudah) elemen terlihat
+    { rootMargin: '200% 0px 200% 0px' },
+  )
+  return prepObserver
+}
+
 /* ---- Tunggu loader selesai baru mulai mengamati ---- */
 let started = false
 const waiting = new Set()
@@ -217,31 +261,46 @@ export const vReveal = {
       return
     }
 
-    const c = deviceConfig()
     const variant = variantOf(binding.modifiers)
     const baseDelay = opts.delay ?? 0
-    let anims
+    const targets = () => (binding.modifiers.stagger ? Array.from(el.children) : [el])
 
-    if (typeof opts.onReveal === 'function') {
-      callbacks.set(el, { fn: opts.onReveal, delay: Math.round(baseDelay * c.delayScale) })
-    }
-
-    if (binding.modifiers.stagger) {
+    // Membuat animasinya (ditahan tersembunyi) lalu mendaftar ke antrian tampil
+    const arm = () => {
+      const c = deviceConfig()
+      if (typeof opts.onReveal === 'function') {
+        callbacks.set(el, { fn: opts.onReveal, delay: Math.round(baseDelay * c.delayScale) })
+      }
       const step = opts.step ?? c.step
-      anims = Array.from(el.children).map((child, i) =>
-        prepare(child, variant, baseDelay + i * step, c, opts.duration),
-      )
-    } else {
-      anims = [prepare(el, variant, baseDelay, c, opts.duration)]
+      const anims = targets().map((target, i) => {
+        // Animasi dibuat dulu, baru penanda tunggu dilepas: tidak ada kedip
+        const anim = prepare(target, variant, baseDelay + (binding.modifiers.stagger ? i * step : 0), c, opts.duration)
+        target.removeAttribute(WAIT_ATTR)
+        return anim
+      })
+      pending.set(el, anims)
+      if (started) requestAnimationFrame(() => requestAnimationFrame(() => startObserving(el)))
+      else waiting.add(el)
     }
 
-    pending.set(el, anims)
+    // Dekat layar (atau sudah terlewat): siapkan sekarang seperti biasa
+    const rect = el.getBoundingClientRect()
+    if (rect.top < window.innerHeight * 2.5) {
+      arm()
+      return
+    }
 
-    if (started) requestAnimationFrame(() => requestAnimationFrame(() => startObserving(el)))
-    else waiting.add(el)
+    // Jauh di bawah: sembunyikan dulu, siapkan saat mendekati layar
+    targets().forEach((target) => target.setAttribute(WAIT_ATTR, ''))
+    lazy.set(el, arm)
+    getPrepObserver().observe(el)
   },
 
   unmounted(el) {
+    if (lazy.has(el)) {
+      lazy.delete(el)
+      prepObserver?.unobserve(el)
+    }
     const anims = pending.get(el)
     anims?.forEach((a) => a.cancel())
     pending.delete(el)
