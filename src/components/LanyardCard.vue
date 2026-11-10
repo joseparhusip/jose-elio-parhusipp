@@ -438,7 +438,7 @@ function drawBack(canvas) {
     rule(sub ? y + 37 : y + 25)
   }
 
-  section(52, en ? 'NOW' : 'SEKARANG', 'Back End Developer', en ? 'PT SPKD · CONTRACT' : 'PT SPKD · KONTRAK')
+  section(52, en ? 'NOW' : 'SEKARANG', 'Back End Developer', 'PT SPKD · FREELANCE')
   section(102, en ? 'EDUCATION' : 'PENDIDIKAN', en ? 'Bachelor of Digital Business' : 'S1 Bisnis Digital', 'ULBI · 2026')
   section(152, en ? 'FOCUS' : 'FOKUS', 'Web · Mobile · Data · AI')
 

@@ -392,7 +392,7 @@ function preventImageAction(event) {
 
 // Domain demo ditampilkan di "address bar" mockup browser
 function hostLabel(project) {
-  return project.internal ? t({ id: 'Proyek internal', en: 'Internal project' }) : demoHost(project.demoHref)
+  return project.internal ? t({ id: 'Proyek freelance', en: 'Freelance project' }) : demoHost(project.demoHref)
 }
 
 function demoHost(url) {
@@ -649,8 +649,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                     <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                       stroke-linejoin="round" d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" />
                   </svg>
-                  <template v-if="lang === 'en'">Internal project · no public demo or code</template>
-                  <template v-else>Proyek internal · tanpa demo &amp; kode publik</template>
+                  <template v-if="lang === 'en'">Freelance project · no public demo or code</template>
+                  <template v-else>Proyek freelance · tanpa demo &amp; kode publik</template>
                 </span>
                 <a
                   v-if="!activeProject.internal"

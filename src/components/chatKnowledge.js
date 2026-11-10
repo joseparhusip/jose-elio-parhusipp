@@ -38,7 +38,7 @@ export const PROFILE = {
 // Jawaban siap pakai untuk intent "about" (siapa Jose / tentang Jose). HTML.
 export const ABOUT_HTML = [
   '<p>Kenalin, ini <strong>Jose Elio Parhusip, S.Bns.</strong>!</p>',
-  '<p>Lulusan S1 Bisnis Digital dari Universitas Logistik dan Bisnis Internasional (ULBI), Bandung. Saat ini bekerja sebagai <em>Back End Developer</em> (kontrak) di PT Sistem Pelayanan Kesehatan dan Data (SPKD), membangun <em>backend</em> MedCredix dengan Go.</p>',
+  '<p>Lulusan S1 Bisnis Digital dari Universitas Logistik dan Bisnis Internasional (ULBI), Bandung. Saat ini bekerja sebagai <em>Back End Developer</em> (<em>freelance</em>) untuk PT Sistem Pelayanan Kesehatan dan Data (SPKD), membangun <em>backend</em> MedCredix dengan Go.</p>',
   '<p>Punya minat besar di web, mobile, data, dan AI. Terbiasa membangun aplikasi <em>end-to-end</em> dengan React.js, Vue.js, Node.js, PHP, MySQL, dan PostgreSQL, mulai dari pemodelan sistem (UML, ERD, Flowchart), sistem <em>e-commerce</em> dengan integrasi Midtrans dan RajaOngkir, sampai visualisasi data dengan Python dan Streamlit. Di sisi mobile, mengembangkan aplikasi dengan Flutter dan Dart. Bersertifikasi SAP.</p>',
   '<ul class="chat-widget__highlight-list">',
   '<li><strong><em>Full-stack</em> dan mobile:</strong> terbiasa membangun aplikasi <em>end-to-end</em>, dari <em>frontend</em>, <em>backend</em>, sampai basis data, untuk web maupun mobile dengan Flutter.</li>',
@@ -86,7 +86,7 @@ export const EXPERIENCES = [
   {
     period: 'Oktober 2026 sampai sekarang',
     role: '<em>Back End Developer</em>',
-    company: 'Kontrak di PT Sistem Pelayanan Kesehatan dan Data (SPKD), Jakarta Selatan',
+    company: 'Freelance untuk PT Sistem Pelayanan Kesehatan dan Data (SPKD), Jakarta Selatan',
     summary:
       'Mengerjakan <em>backend</em> MedCredix, platform multi-rumah sakit untuk menilai kesiapan kredensial RS secara otomatis dari data operasional RS. Membangun 44 <em>endpoint</em> REST API dengan Go (Gin), GORM, dan PostgreSQL; login JWT dan hak akses per peran; mesin skoring kesiapan RS untuk dashboard, risiko, dan peringatan dini; alur verifikasi kredensial dan dokumen tenaga medis; integrasi SIMRS lewat 24 <em>resource</em> FHIR; direktori RS Kemenkes, data wilayah, validasi kode faskes BPJS; serta <em>audit trail</em> dan laporan.',
     tags: ['Go', 'Gin', 'PostgreSQL'],
@@ -151,12 +151,12 @@ export function buildExperienceListHtml() {
 }
 
 // title tetap nama proyek asli (nama diri, tidak diterjemahkan). summary berisi HTML.
-// internal: true = proyek kantor, tanpa link demo maupun repo.
+// internal: true = proyek freelance untuk klien, tanpa link demo maupun repo.
 export const PROJECTS = [
   {
     title: 'MedCredix',
     summary:
-      'Proyek internal di PT SPKD: <em>backend</em> platform kesiapan kredensial multi-rumah sakit (Go, Gin, PostgreSQL) dengan mesin skoring kesiapan RS, keamanan JWT dan RBAC, alur kredensial tenaga medis, serta integrasi SIMRS lewat FHIR.',
+      'Proyek <em>freelance</em> untuk PT SPKD: <em>backend</em> platform kesiapan kredensial multi-rumah sakit (Go, Gin, PostgreSQL) dengan mesin skoring kesiapan RS, keamanan JWT dan RBAC, alur kredensial tenaga medis, serta integrasi SIMRS lewat FHIR.',
     image: medcredixThumb,
     tags: ['Go', 'PostgreSQL', 'Docker'],
     internal: true,
@@ -164,7 +164,7 @@ export const PROJECTS = [
   {
     title: 'SIMRS Dashboard',
     summary:
-      'Proyek internal di PT SPKD: <em>frontend</em> sistem informasi rumah sakit (Next.js, React, TypeScript) mulai dari registrasi, rawat jalan, IGD, rawat inap dari SPRI dokter, sampai farmasi dan kasir.',
+      'Proyek <em>freelance</em> untuk PT SPKD: <em>frontend</em> sistem informasi rumah sakit (Next.js, React, TypeScript) mulai dari registrasi, rawat jalan, IGD, rawat inap dari SPRI dokter, sampai farmasi dan kasir.',
     image: simrsThumb,
     tags: ['Next.js', 'React', 'TypeScript'],
     internal: true,

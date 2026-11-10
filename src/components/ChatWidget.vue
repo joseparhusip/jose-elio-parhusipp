@@ -588,7 +588,7 @@ async function answerConversation(intent, body) {
     const now = kb.value.EXPERIENCES[0]
     await botSay(
       en
-        ? `Jose currently works as a ${now.role} (contract) at PT Sistem Pelayanan Kesehatan dan Data (SPKD) in South Jakarta. There, he builds the MedCredix backend with Go, Gin, and PostgreSQL.`
+        ? `Jose currently works as a freelance ${now.role} for PT Sistem Pelayanan Kesehatan dan Data (SPKD) in South Jakarta. There, he builds the MedCredix backend with Go, Gin, and PostgreSQL.`
         : `Sekarang Jose kerja sebagai ${now.role}, ${now.company.charAt(0).toLowerCase()}${now.company.slice(1)}. Di sana dia ngerjain <em>backend</em> MedCredix pakai Go, Gin, dan PostgreSQL.`,
       550,
     )
@@ -598,8 +598,8 @@ async function answerConversation(intent, body) {
   if (intent.type === 'location') {
     await botSay(
       t({
-        id: 'Jose berbasis di Bekasi, Jawa Barat. Kerja kontraknya sekarang di Jakarta Selatan.',
-        en: 'Jose is based in Bekasi, West Java. His current contract role is in South Jakarta.',
+        id: 'Jose berbasis di Bekasi, Jawa Barat. Klien freelance-nya sekarang ada di Jakarta Selatan.',
+        en: 'Jose is based in Bekasi, West Java. His current freelance client is in South Jakarta.',
       }),
       500,
     )
@@ -1103,8 +1103,8 @@ async function answerPendingOffer(text) {
     )
     await botSay(
       t({
-        id: 'MedCredix dan SIMRS Dashboard itu proyek internal kantor, jadi demo dan kodenya nggak dipublikasikan.',
-        en: 'MedCredix and SIMRS Dashboard are internal company projects, so their demos and code are not public.',
+        id: 'MedCredix dan SIMRS Dashboard itu proyek freelance untuk klien (PT SPKD), jadi demo dan kodenya nggak dipublikasikan.',
+        en: 'MedCredix and SIMRS Dashboard are freelance projects for a client (PT SPKD), so their demos and code are not public.',
       }),
       450,
     )

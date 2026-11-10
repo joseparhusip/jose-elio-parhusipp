@@ -14,8 +14,8 @@ const experiences = [
     period: { id: 'Oktober 2026 — Sekarang', en: 'Oct 2026 – Present' },
     role: 'Back End Developer',
     company: {
-      id: 'Kontrak — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
-      en: 'Contract — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
+      id: 'Freelance — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
+      en: 'Freelance — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
     },
     short: 'SPKD',
     logo: spkdLogo,
