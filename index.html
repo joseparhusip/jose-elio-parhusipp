@@ -6,9 +6,6 @@
     <link rel="apple-touch-icon" href="/logo-untuk-google.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0E0F11">
-    <!-- PENTING: isi script di bawah diizinkan CSP lewat hash sha256 di vercel.json.
-         Kalau script ini diubah (satu karakter pun), hitung ulang hash-nya dan
-         perbarui "script-src" di vercel.json, atau script akan diblokir. -->
     <script>
       // Terapkan tema tersimpan SEBELUM halaman dirender (anti-kedip)
       (function () {
@@ -69,12 +66,6 @@
       "inLanguage": "id-ID"
     }
     </script>
-
-    <!-- Font "Editorial Elegan" disimpan di server sendiri (public/fonts,
-         @font-face di src/assets/fonts.css). Huruf latin dimuat lebih awal
-         karena langsung dipakai di layar pertama.
-         Font asli (untuk dikembalikan): Bricolage Grotesque, Geist,
-         Geist Mono, Instrument Serif dari Google Fonts. -->
     <link rel="preload" href="/fonts/fraunces-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/fraunces-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/hanken-grotesk-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
