@@ -11,11 +11,12 @@ import himabigLogo from './icons-experience/himabig.svg'
 
 const experiences = [
   {
-    period: { id: 'Oktober 2026 — Sekarang', en: 'Oct 2026 – Present' },
+    period: { id: 'Oktober 2026 — Sekarang', en: 'Oct 2026 – Present', ja: '2026年10月〜現在' },
     role: 'Back End Developer',
     company: {
       id: 'Freelance — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
       en: 'Freelance — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
+      ja: 'フリーランス — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
     },
     short: 'SPKD',
     logo: spkdLogo,
@@ -41,15 +42,26 @@ const experiences = [
         'Provide reference data: a hospital directory from the Ministry of Health (Kemenkes) registry, Indonesian region data, and BPJS facility code validation when adding partner hospitals.',
         'Build audit trails, global search, and printable or exportable reports; test APIs with Postman and databases with DBeaver.',
       ],
+      ja: [
+        '病院の運用データから資格認定（クレデンシャリング）への対応状況を自動で評価する、複数病院対応プラットフォーム「MedCredix」のバックエンド開発を担当。',
+        'Go（Gin）とGORM、PostgreSQLで44本のREST APIエンドポイントを構築し、Swaggerでドキュメントを整備。',
+        'JWT認証とロールベースのアクセス制御（RBAC）を実装し、ロールごとに使用できるボタンまで細かく制御。',
+        '経営層向けダッシュボード、リスク一覧、早期警告、改善計画の基盤となる、病院の対応状況スコアリングエンジン（スコア内訳・月次スナップショット）を構築。',
+        '医療従事者の資格認定ワークフローを構築。PDF/DOC書類のアップロード、書類の審査・差し戻し、資格の承認、前提条件の管理に対応。',
+        '24種類のFHIRリソースの接続テストを通じてSIMRS（病院情報システム）のデータを連携。請求（異常検知）、臨床データ、法令遵守の各モジュールも開発。',
+        'マスターデータを整備。保健省（Kemenkes）の登録情報に基づく病院ディレクトリ、インドネシアの地域データ、提携病院の追加時に行うBPJS医療機関コードの検証を実装。',
+        '監査証跡、横断検索、印刷・エクスポートに対応したレポート機能を構築。APIはPostman、データベースはDBeaverでテストを実施。',
+      ],
     },
     tags: ['Go', 'Gin', 'GORM', 'PostgreSQL', 'JWT', 'FHIR', 'Swagger'],
   },
   {
-    period: { id: 'Agustus 2025 — September 2025', en: 'Aug 2025 – Sep 2025' },
+    period: { id: 'Agustus 2025 — September 2025', en: 'Aug 2025 – Sep 2025', ja: '2025年8月〜2025年9月' },
     role: 'Mobile Developer',
     company: {
       id: 'Solo Project — JEC Eye Hospitals & Clinics',
       en: 'Solo Project — JEC Eye Hospitals & Clinics',
+      ja: '個人プロジェクト — JEC Eye Hospitals & Clinics',
     },
     short: 'JEC',
     logo: jecLogo,
@@ -72,15 +84,25 @@ const experiences = [
         'Implemented the UI in an Android app using Flutter & Dart, including an OCR feature.',
         'Performed Black Box Testing to ensure the app functioned as required, and evaluated usability with the System Usability Scale (SUS) across 120 new-user respondents, achieving an average score of 79 (Acceptable/Good category).',
       ],
+      ja: [
+        'アプリの要件分析の土台として、JECを利用したことのない新規ユーザーを対象にアンケートを実施し、データを収集。',
+        'FigmaでアプリのUIを設計し、ユースケース図、アクティビティ図、クラス図、ERDでシステム構成を文書化。',
+        'Node.js & Express.jsでバックエンドを構築し、アプリとサーバー間のデータ通信を実装。',
+        'ユーザーデータを保護するため、認証（auth）機能とアプリのセキュリティ機能を実装。',
+        'ウォーターフォール型の開発手法にユーザー中心設計（UCD）のアプローチを組み合わせ、SQLでリレーショナルデータベースを設計。',
+        'Flutter & DartでUIをAndroidアプリとして実装し、OCR機能も搭載。',
+        'ブラックボックステストでアプリが要件どおりに動作することを確認。さらに新規ユーザー120名を対象にSystem Usability Scale（SUS）でユーザビリティを評価し、平均79点（Acceptable/Good）を獲得。',
+      ],
     },
     tags: ['Flutter', 'Dart', 'Figma'],
   },
   {
-    period: { id: 'Juli 2024 — September 2024', en: 'Jul 2024 – Sep 2024' },
+    period: { id: 'Juli 2024 — September 2024', en: 'Jul 2024 – Sep 2024', ja: '2024年7月〜2024年9月' },
     role: 'Back End Developer',
     company: {
       id: 'Group Project — Kantor Pusat PT Pos Indonesia',
       en: 'Group Project — PT Pos Indonesia Head Office',
+      ja: 'グループプロジェクト — PT Pos Indonesia本社',
     },
     short: 'POS',
     logo: posLogo,
@@ -97,15 +119,26 @@ const experiences = [
         'Tested and validated all API endpoints with Postman to ensure request/response handling and backend-frontend integration met requirements.',
         'Coordinated with the development team and delivered on schedule in line with security and scalability standards; the project was published in the JUISI journal (Sinta 5).',
       ],
+      ja: [
+        'PT Pos Indonesiaの専門職人材データの管理を支えるWebアプリケーション「IHSAN POS」のバックエンドを、システムアーキテクチャの設計からAPIの実装まで担当。',
+        'ERDを設計し、PostgreSQLで安全かつ体系的なデータベースを構築。システムの安全性と柔軟性を高めるための環境設定も実施。',
+        'Postmanで全APIエンドポイントをテスト・検証し、リクエスト／レスポンスの処理とバックエンド・フロントエンド間の連携が要件どおりに動作することを確認。',
+        '開発チームと連携し、セキュリティとスケーラビリティの基準を満たしたうえで期限内に開発を完了。成果は学術誌JUISI（Sinta 5）に掲載。',
+      ],
     },
-    tags: ['Backend', 'REST API', 'Database'],
+    tags: [
+      { id: 'Backend', en: 'Backend', ja: 'バックエンド' },
+      'REST API',
+      { id: 'Database', en: 'Database', ja: 'データベース' },
+    ],
   },
   {
-    period: { id: 'Mei 2023 — April 2024', en: 'May 2023 – Apr 2024' },
+    period: { id: 'Mei 2023 — April 2024', en: 'May 2023 – Apr 2024', ja: '2023年5月〜2024年4月' },
     role: 'System Analyst',
     company: {
       id: 'Program Pembinaan Mahasiswa Wirausaha — Kampus Merdeka',
       en: 'Student Entrepreneurship Development Program — Kampus Merdeka',
+      ja: '学生起業家育成プログラム（P2MW） — Kampus Merdeka',
     },
     short: 'KM',
     logo: p2mwLogo,
@@ -118,15 +151,20 @@ const experiences = [
         'Managed the project budget from cost estimation to expense tracking, including preparing invoices, quotations, and receipts.',
         'Performed system modeling (Flowchart, ERD, UML) as the foundation for an MSME marketplace platform funded by the Indonesian Ministry of Education (Kemendikbudristek).',
       ],
+      ja: [
+        'コストの見積もりから支出の記録までプロジェクト予算を管理し、請求書・見積書・領収書の作成も担当。',
+        'インドネシア教育・文化・研究技術省（Kemendikbudristek）の助成を受けた、中小零細企業（UMKM）向けマーケットプレイスの開発基盤として、システムモデリング（フローチャート、ERD、UML）を実施。',
+      ],
     },
     tags: ['ERD', 'UML', 'Flowchart'],
   },
   {
-    period: { id: 'Oktober 2022 — Mei 2023', en: 'Oct 2022 – May 2023' },
+    period: { id: 'Oktober 2022 — Mei 2023', en: 'Oct 2022 – May 2023', ja: '2022年10月〜2023年5月' },
     role: 'Deputy Human Capital and Governance',
     company: {
       id: 'Himpunan Mahasiswa Bisnis Digital (HIMABIG)',
       en: 'Digital Business Student Association (HIMABIG)',
+      ja: 'デジタルビジネス学科学生会（HIMABIG）',
     },
     short: 'HIMABIG',
     logo: himabigLogo,
@@ -143,10 +181,15 @@ const experiences = [
         'Prepared organizational targets, schedules, and budgets.',
         'Prepared the general assembly as a member of the Steering Committee.',
       ],
+      ja: [
+        '役員の採用・選考を補佐。',
+        '組織の目標、スケジュール、予算を策定。',
+        '運営委員会（Steering Committee）の一員として総会の準備を担当。',
+      ],
     },
     tags: [
-      { id: 'Organisasi', en: 'Organization' },
-      { id: 'Rekrutmen', en: 'Recruitment' },
+      { id: 'Organisasi', en: 'Organization', ja: '組織運営' },
+      { id: 'Rekrutmen', en: 'Recruitment', ja: '採用' },
     ],
   },
 ]
@@ -181,6 +224,8 @@ function formatMonths(total) {
   if (!total) return ''
   const years = Math.floor(total / 12)
   const months = total % 12
+  // Jepang: "2年3か月" (tanpa spasi)
+  if (lang.value === 'ja') return `${years ? `${years}年` : ''}${months ? `${months}か月` : ''}`
   const en = lang.value === 'en'
   const yearText = en ? `${years} ${years === 1 ? 'yr' : 'yrs'}` : `${years} thn`
   const monthText = en ? `${months} ${months === 1 ? 'mo' : 'mos'}` : `${months} bln`
@@ -195,7 +240,7 @@ function duration(period) {
 function yearRange(period) {
   const [startText, endText = ''] = period.id.split('—')
   const startYear = startText.trim().split(/\s+/).pop()
-  const endYear = /sekarang/i.test(endText) ? t({ id: 'Kini', en: 'Now' }) : endText.trim().split(/\s+/).pop()
+  const endYear = /sekarang/i.test(endText) ? t({ id: 'Kini', en: 'Now', ja: '現在' }) : endText.trim().split(/\s+/).pop()
   return startYear === endYear ? startYear : `${startYear}–${endYear}`
 }
 
@@ -287,20 +332,20 @@ const logoStyle = (item) =>
       <header class="section-head">
         <div class="section-head__meta">
           <span v-reveal class="section-label">
-            <span class="section-label__num">02</span> {{ t({ id: 'Pengalaman', en: 'Experience' }) }}
+            <span class="section-label__num">02</span> {{ t({ id: 'Pengalaman', en: 'Experience', ja: '経歴' }) }}
           </span>
 
           <dl v-reveal.stagger="{ delay: 200, step: 90 }" class="experience__summary">
             <div>
-              <dt>{{ t({ id: 'Peran', en: 'Roles' }) }}</dt>
+              <dt>{{ t({ id: 'Peran', en: 'Roles', ja: '役割' }) }}</dt>
               <dd>{{ String(experiences.length).padStart(2, '0') }}</dd>
             </div>
             <div>
-              <dt>{{ t({ id: 'Rentang', en: 'Span' }) }}</dt>
+              <dt>{{ t({ id: 'Rentang', en: 'Span', ja: '期間' }) }}</dt>
               <dd>{{ firstYear }}–{{ new Date().getFullYear() }}</dd>
             </div>
             <div>
-              <dt>Total</dt>
+              <dt>{{ t({ id: 'Total', en: 'Total', ja: '合計' }) }}</dt>
               <dd>{{ formatMonths(totalMonths) }}</dd>
             </div>
           </dl>
@@ -311,6 +356,9 @@ const logoStyle = (item) =>
             <template v-if="lang === 'en'">
               A brief journey <span class="serif-accent">so far</span>
             </template>
+            <template v-else-if="lang === 'ja'">
+              これまでの<span class="serif-accent">歩み</span>
+            </template>
             <template v-else>
               Perjalanan singkat <span class="serif-accent">sejauh</span> ini
             </template>
@@ -319,6 +367,9 @@ const logoStyle = (item) =>
             <template v-if="lang === 'en'">
               A selection of roles I have held, from professional work and independent projects
               to student organizations, that have shaped the way I work.
+            </template>
+            <template v-else-if="lang === 'ja'">
+              仕事として携わった案件や個人プロジェクトから学生団体での活動まで、今の私の働き方を形づくってきた役割をご紹介します。
             </template>
             <template v-else>
               Beberapa peran yang pernah saya jalani, dari pekerjaan profesional, proyek mandiri,
@@ -333,8 +384,8 @@ const logoStyle = (item) =>
         <div v-reveal.left="120" class="experience__ledger">
           <div class="experience__ledger-head mono-meta" aria-hidden="true">
             <span>No.</span>
-            <span>{{ t({ id: 'Peran', en: 'Role' }) }}</span>
-            <span>{{ t({ id: 'Tahun', en: 'Year' }) }}</span>
+            <span>{{ t({ id: 'Peran', en: 'Role', ja: '役割' }) }}</span>
+            <span>{{ t({ id: 'Tahun', en: 'Year', ja: '年' }) }}</span>
           </div>
 
           <div
@@ -342,7 +393,7 @@ const logoStyle = (item) =>
             class="experience__tabs"
             :class="{ 'is-end': tabsAtEnd }"
             role="tablist"
-            :aria-label="t({ id: 'Daftar pengalaman', en: 'Experience list' })"
+            :aria-label="t({ id: 'Daftar pengalaman', en: 'Experience list', ja: '経歴一覧' })"
             aria-orientation="vertical"
             @keydown="onTabKeydown"
             @scroll.passive="onTabsScroll"
@@ -401,7 +452,7 @@ const logoStyle = (item) =>
                   <img
                     v-if="active.logo"
                     :src="active.logo"
-                    :alt="t({ id: `Logo ${active.short}`, en: `${active.short} logo` })"
+                    :alt="t({ id: `Logo ${active.short}`, en: `${active.short} logo`, ja: `${active.short}のロゴ` })"
                     width="52"
                     height="36"
                     draggable="false"
@@ -426,7 +477,7 @@ const logoStyle = (item) =>
                 <span v-if="duration(active.period)" class="experience__duration">
                   {{ duration(active.period) }}
                 </span>
-                <span v-if="active.current" class="experience__current">{{ t({ id: 'Sedang berjalan', en: 'Ongoing' }) }}</span>
+                <span v-if="active.current" class="experience__current">{{ t({ id: 'Sedang berjalan', en: 'Ongoing', ja: '進行中' }) }}</span>
               </div>
 
               <ol class="experience__points">
@@ -441,7 +492,7 @@ const logoStyle = (item) =>
               </ol>
 
               <div class="experience__card-bottom">
-                <ul class="experience__tags" :aria-label="t({ id: 'Teknologi', en: 'Technologies' })">
+                <ul class="experience__tags" :aria-label="t({ id: 'Teknologi', en: 'Technologies', ja: '使用技術' })">
                   <li v-for="tag in active.tags" :key="t(tag)" class="experience__tag">{{ t(tag) }}</li>
                 </ul>
 
@@ -454,8 +505,12 @@ const logoStyle = (item) =>
                 >
                   {{
                     expanded
-                      ? t({ id: 'Ringkas', en: 'Show less' })
-                      : t({ id: `Lihat semua (${active.desc.id.length})`, en: `Show all (${active.desc.en.length})` })
+                      ? t({ id: 'Ringkas', en: 'Show less', ja: '折りたたむ' })
+                      : t({
+                        id: `Lihat semua (${active.desc.id.length})`,
+                        en: `Show all (${active.desc.en.length})`,
+                        ja: `すべて表示（${active.desc.ja.length}）`,
+                      })
                   }}
                   <svg
                     viewBox="0 0 24 24"
@@ -473,7 +528,7 @@ const logoStyle = (item) =>
           </Transition>
 
           <!-- Pindah ke peran sebelum/berikutnya tanpa balik ke daftar -->
-          <nav class="experience__pager" :aria-label="t({ id: 'Navigasi pengalaman', en: 'Experience navigation' })">
+          <nav class="experience__pager" :aria-label="t({ id: 'Navigasi pengalaman', en: 'Experience navigation', ja: '経歴の切り替え' })">
             <button
               type="button"
               class="btn btn--ghost experience__pager-btn"
@@ -484,7 +539,7 @@ const logoStyle = (item) =>
                 <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-              {{ t({ id: 'Lebih baru', en: 'Newer' }) }}
+              {{ t({ id: 'Lebih baru', en: 'Newer', ja: '新しい経歴' }) }}
             </button>
             <span class="experience__pager-count">
               {{ String(activeIndex + 1).padStart(2, '0') }} / {{ String(experiences.length).padStart(2, '0') }}
@@ -495,7 +550,7 @@ const logoStyle = (item) =>
               :disabled="activeIndex === experiences.length - 1"
               @click="select(activeIndex + 1)"
             >
-              {{ t({ id: 'Lebih lama', en: 'Older' }) }}
+              {{ t({ id: 'Lebih lama', en: 'Older', ja: '以前の経歴' }) }}
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                 <path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round" />

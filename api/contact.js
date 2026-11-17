@@ -82,9 +82,9 @@ export default async (req, res) => {
   const name = oneLine(req.body?.name)
   const email = oneLine(req.body?.email)
   const message = String(req.body?.message || '').trim()
-  // Bahasa pengunjung (untuk email konfirmasi): hanya 'en' yang diterima,
-  // nilai lain apa pun dianggap 'id'.
-  const lang = req.body?.lang === 'en' ? 'en' : 'id'
+  // Bahasa pengunjung (untuk email konfirmasi): hanya 'en' dan 'ja' yang
+  // diterima, nilai lain apa pun dianggap 'id'.
+  const lang = ['en', 'ja'].includes(req.body?.lang) ? req.body.lang : 'id'
 
   if (!name || !email || !message) {
     return res.status(400).json({ ok: false, error: 'Nama, email, dan pesan wajib diisi.' })

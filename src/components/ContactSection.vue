@@ -86,10 +86,10 @@ const clockParts = computed(() => {
 // Bagian hari di Bekasi: pagi / siang / sore / malam
 const dayPart = computed(() => {
   const hour = Number(clockParts.value.hour)
-  if (hour >= 4 && hour < 11) return { id: 'Pagi', en: 'Morning' }
-  if (hour >= 11 && hour < 15) return { id: 'Siang', en: 'Afternoon' }
-  if (hour >= 15 && hour < 18) return { id: 'Sore', en: 'Evening' }
-  return { id: 'Malam', en: 'Night' }
+  if (hour >= 4 && hour < 11) return { id: 'Pagi', en: 'Morning', ja: '朝' }
+  if (hour >= 11 && hour < 15) return { id: 'Siang', en: 'Afternoon', ja: '昼' }
+  if (hour >= 15 && hour < 18) return { id: 'Sore', en: 'Evening', ja: '夕方' }
+  return { id: 'Malam', en: 'Night', ja: '夜' }
 })
 
 const clockIso = computed(() => now.value.toISOString())
@@ -103,9 +103,9 @@ onBeforeUnmount(() => clearInterval(clockTimer))
 
 // Info singkat di bawah jam
 const facts = [
-  { label: { id: 'Basis', en: 'Based in' }, value: { id: 'Bekasi, Jawa Barat', en: 'Bekasi, West Java' } },
-  { label: { id: 'Saat ini', en: 'Currently' }, value: 'Back End Developer · SPKD' },
-  { label: { id: 'Bahasa', en: 'Languages' }, value: { id: 'Indonesia · Inggris', en: 'Indonesian · English' } },
+  { label: { id: 'Basis', en: 'Based in', ja: '所在地' }, value: { id: 'Bekasi, Jawa Barat', en: 'Bekasi, West Java', ja: 'インドネシア・西ジャワ州ブカシ' } },
+  { label: { id: 'Saat ini', en: 'Currently', ja: '現在' }, value: 'Back End Developer · SPKD' },
+  { label: { id: 'Bahasa', en: 'Languages', ja: '言語' }, value: { id: 'Indonesia · Inggris', en: 'Indonesian · English', ja: 'インドネシア語・英語' } },
 ]
 
 const mapLocations = [
@@ -207,13 +207,16 @@ onBeforeUnmount(() => {
       <header class="section-head">
         <div class="section-head__meta">
           <span v-reveal class="section-label">
-            <span class="section-label__num">05</span> {{ t({ id: 'Kontak', en: 'Contact' }) }}
+            <span class="section-label__num">05</span> {{ t({ id: 'Kontak', en: 'Contact', ja: 'お問い合わせ' }) }}
           </span>
         </div>
         <div class="section-head__main">
           <h2 v-type="'kontak'" :key="lang" class="section-title contact__title">
             <template v-if="lang === 'en'">
               Have an idea or project? Let's <span class="serif-accent">talk</span>.
+            </template>
+            <template v-else-if="lang === 'ja'">
+              アイデアやプロジェクトはありますか？ぜひ<span class="serif-accent">お話し</span>しましょう。
             </template>
             <template v-else>
               Punya ide atau proyek? Yuk, <span class="serif-accent">ngobrol</span>.
@@ -227,13 +230,13 @@ onBeforeUnmount(() => {
         <div ref="formWrap" class="contact__col" :class="{ 'is-in': formIn }">
           <div class="contact__cta">
             <span class="contact__status mono-meta">
-              {{ t({ id: 'Terbuka untuk kerja & kolaborasi', en: 'Open to work & collaboration' }) }}
+              {{ t({ id: 'Terbuka untuk kerja & kolaborasi', en: 'Open to work & collaboration', ja: '求職中・協業のご相談受付中' }) }}
             </span>
 
             <!-- Jam lokal Bekasi -->
             <div class="contact__clock">
               <p class="contact__clock-label mono-meta">
-                {{ t({ id: 'Waktu lokal', en: 'Local time' }) }} · Bekasi
+                {{ t({ id: 'Waktu lokal · Bekasi', en: 'Local time · Bekasi', ja: '現地時間 · ブカシ' }) }}
               </p>
               <p class="contact__clock-row">
                 <time class="contact__clock-time" :datetime="clockIso">
@@ -263,7 +266,7 @@ onBeforeUnmount(() => {
                     d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"
                   />
                 </svg>
-                {{ t({ id: 'Mulai Chat', en: 'Start Chat' }) }}
+                {{ t({ id: 'Mulai Chat', en: 'Start Chat', ja: 'チャットを始める' }) }}
               </button>
             </div>
 
@@ -274,7 +277,7 @@ onBeforeUnmount(() => {
         <div ref="infoWrap" class="contact__col" :class="{ 'is-in': infoIn }">
           <figure class="contact__map-card">
             <figcaption class="contact__map-head mono-meta">
-              <span class="contact__map-label">{{ t({ id: 'Lokasi', en: 'Location' }) }}</span>
+              <span class="contact__map-label">{{ t({ id: 'Lokasi', en: 'Location', ja: '地図' }) }}</span>
               <span>Bandung · Bekasi</span>
             </figcaption>
 

@@ -33,31 +33,31 @@ import pandasIcon from './icons/icons-about/Pandas-logo.svg'
 // Tiga kata kunci di kalimat manifesto + catatan kakinya
 const highlights = [
   {
-    title: { id: 'full-stack & mobile', en: 'full-stack & mobile apps' },
-    verb: { id: 'Membangun', en: 'Build' },
+    title: { id: 'full-stack & mobile', en: 'full-stack & mobile apps', ja: 'フルスタック・モバイルアプリ' },
+    verb: { id: 'Membangun', en: 'Build', ja: '開発' },
     keywords: ['Vue', 'React', 'Flutter', 'Node.js'],
   },
   {
-    title: { id: 'analitis', en: 'analytically' },
-    verb: { id: 'Berpikir', en: 'Think' },
+    title: { id: 'analitis', en: 'analytically', ja: '分析的に' },
+    verb: { id: 'Berpikir', en: 'Think', ja: '思考' },
     keywords: ['ERD', 'UML', 'Flowchart'],
   },
   {
-    title: { id: 'kolaboratif', en: 'collaboratively' },
-    verb: { id: 'Bekerja', en: 'Work' },
-    keywords: [{ id: 'Tim lintas peran', en: 'Cross-functional teams' }, { id: 'Organisasi', en: 'Organizations' }],
+    title: { id: 'kolaboratif', en: 'collaboratively', ja: 'チームで協力して' },
+    verb: { id: 'Bekerja', en: 'Work', ja: '協働' },
+    keywords: [{ id: 'Tim lintas peran', en: 'Cross-functional teams', ja: '職種横断のチーム' }, { id: 'Organisasi', en: 'Organizations', ja: '組織活動' }],
   },
 ]
 
 // Kategori dipakai untuk filter di grid tools
 const categories = [
-  { key: 'all', label: { id: 'Semua', en: 'All' } },
+  { key: 'all', label: { id: 'Semua', en: 'All', ja: 'すべて' } },
   { key: 'fe', label: 'Frontend' },
   { key: 'be', label: 'Backend' },
   { key: 'db', label: 'Database' },
   { key: 'ops', label: 'API & DevOps' },
   { key: 'data', label: 'Data' },
-  { key: 'design', label: { id: 'Mobile & Desain', en: 'Mobile & Design' } },
+  { key: 'design', label: { id: 'Mobile & Desain', en: 'Mobile & Design', ja: 'モバイル・デザイン' } },
 ]
 
 const tools = [
@@ -247,7 +247,7 @@ onUnmounted(() => lanyardObserver?.disconnect())
       <header class="section-head about__head">
         <div class="section-head__meta">
           <span class="section-label" v-reveal
-            ><span class="section-label__num">01</span>{{ t({ id: 'Tentang Saya', en: 'About Me' }) }}</span
+            ><span class="section-label__num">01</span>{{ t({ id: 'Tentang Saya', en: 'About Me', ja: '自己紹介' }) }}</span
           >
           <div ref="lanyardSlot" class="about__lanyard">
             <LanyardCard v-if="showLanyard" @grab="lanyardTouched = true" />
@@ -261,7 +261,7 @@ onUnmounted(() => lanyardObserver?.disconnect())
                 <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                   stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" />
               </svg>
-              {{ t({ id: 'Ketuk kartu untuk membalik', en: 'Tap the card to flip' }) }}
+              {{ t({ id: 'Ketuk kartu untuk membalik', en: 'Tap the card to flip', ja: 'カードをタップして裏返す' }) }}
             </p>
           </div>
         </div>
@@ -290,6 +290,27 @@ onUnmounted(() => lanyardObserver?.disconnect())
                 @mouseleave="activeHighlight = null"
                 >{{ t(highlights[2].title) }}<sup>3</sup></span
               >.
+            </template>
+            <template v-else-if="lang === 'ja'">
+              <span
+                class="about__key"
+                :class="{ 'is-active': activeHighlight === 0 }"
+                @mouseenter="activeHighlight = 0"
+                @mouseleave="activeHighlight = null"
+                >{{ t(highlights[0].title) }}<sup>1</sup></span
+              >を開発し、<span
+                class="about__key serif-accent"
+                :class="{ 'is-active': activeHighlight === 1 }"
+                @mouseenter="activeHighlight = 1"
+                @mouseleave="activeHighlight = null"
+                >{{ t(highlights[1].title) }}<sup>2</sup></span
+              >考え、<span
+                class="about__key"
+                :class="{ 'is-active': activeHighlight === 2 }"
+                @mouseenter="activeHighlight = 2"
+                @mouseleave="activeHighlight = null"
+                >{{ t(highlights[2].title) }}<sup>3</sup></span
+              >働く。
             </template>
             <template v-else>
               Saya membangun
@@ -339,10 +360,10 @@ onUnmounted(() => lanyardObserver?.disconnect())
       <!-- Tools: baris bergeser; "Lihat semua" membuka grid + filter kategori -->
       <div ref="stackEl" class="about__stack">
         <div class="about__block-head about__block-head--stack" v-reveal>
-          <span class="about__block-label">Tools</span>
+          <span class="about__block-label">{{ t({ id: 'Tools', en: 'Tools', ja: 'ツール' }) }}</span>
 
           <div class="about__stack-actions">
-            <div v-if="showAll" class="about__filters" role="group" :aria-label="t({ id: 'Filter kategori tools', en: 'Filter tools by category' })">
+            <div v-if="showAll" class="about__filters" role="group" :aria-label="t({ id: 'Filter kategori tools', en: 'Filter tools by category', ja: 'カテゴリーでツールを絞り込む' })">
               <button
                 v-for="cat in categories"
                 :key="cat.key"
@@ -364,7 +385,7 @@ onUnmounted(() => lanyardObserver?.disconnect())
               aria-controls="about-tools"
               @click="toggleAll"
             >
-              {{ showAll ? t({ id: 'Tutup', en: 'Close' }) : t({ id: `Lihat semua ${tools.length}`, en: `View all ${tools.length}` }) }}
+              {{ showAll ? t({ id: 'Tutup', en: 'Close', ja: '閉じる' }) : t({ id: `Lihat semua ${tools.length}`, en: `View all ${tools.length}`, ja: `全${tools.length}件を表示` }) }}
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                 <path
                   v-if="showAll"

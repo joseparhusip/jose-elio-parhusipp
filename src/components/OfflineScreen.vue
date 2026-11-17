@@ -108,10 +108,10 @@ onUnmounted(() => {
     >
       <div class="offline__card">
         <div class="offline__strip mono-meta">
-          <span>{{ t({ id: 'Status · Jaringan', en: 'Status · Network' }) }}</span>
+          <span>{{ t({ id: 'Status · Jaringan', en: 'Status · Network', ja: 'ステータス · ネットワーク' }) }}</span>
           <span class="offline__status">
             <span class="offline__dot" aria-hidden="true"></span>
-            {{ state === 'back' ? t({ id: 'Tersambung', en: 'Connected' }) : 'Offline' }}
+            {{ state === 'back' ? t({ id: 'Tersambung', en: 'Connected', ja: '接続済み' }) : 'Offline' }}
           </span>
         </div>
 
@@ -127,18 +127,23 @@ onUnmounted(() => {
         <h2 id="offline-title" class="offline__title">
           <template v-if="state === 'back'">
             <template v-if="lang === 'en'">Back <span class="serif-accent">online</span>.</template>
+            <template v-else-if="lang === 'ja'">接続が<span class="serif-accent">回復</span>しました。</template>
             <template v-else>Tersambung <span class="serif-accent">kembali</span>.</template>
           </template>
           <template v-else>
             <template v-if="lang === 'en'">Connection <span class="serif-accent">lost</span>.</template>
+            <template v-else-if="lang === 'ja'">接続が<span class="serif-accent">切断</span>されました。</template>
             <template v-else>Koneksi <span class="serif-accent">terputus</span>.</template>
           </template>
         </h2>
         <p id="offline-desc" class="offline__lead">
-          <template v-if="state === 'back'">{{ t({ id: 'Internet sudah kembali. Silakan lanjutkan.', en: 'Your internet connection is back. You can continue.' }) }}</template>
+          <template v-if="state === 'back'">{{ t({ id: 'Internet sudah kembali. Silakan lanjutkan.', en: 'Your internet connection is back. You can continue.', ja: 'インターネット接続が回復しました。そのままご利用いただけます。' }) }}</template>
           <template v-else-if="lang === 'en'">
             Content cannot load without an internet connection. Check your Wi-Fi or mobile
             data. This page will reconnect automatically.
+          </template>
+          <template v-else-if="lang === 'ja'">
+            インターネットに接続されていないため、コンテンツを読み込めません。Wi-Fiまたはモバイルデータ通信をご確認ください。接続が戻ると、このページは自動的に再接続します。
           </template>
           <template v-else>
             Data tidak bisa dimuat tanpa internet. Periksa Wi-Fi atau data seluler,
@@ -164,13 +169,14 @@ onUnmounted(() => {
             <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" />
           </svg>
-          <span class="offline__btn-label">{{ checking ? t({ id: 'Memeriksa…', en: 'Checking…' }) : t({ id: 'Coba lagi', en: 'Try again' }) }}</span>
+          <span class="offline__btn-label">{{ checking ? t({ id: 'Memeriksa…', en: 'Checking…', ja: '確認中…' }) : t({ id: 'Coba lagi', en: 'Try again', ja: '再試行' }) }}</span>
         </button>
 
         <p v-if="state !== 'back'" class="offline__hint mono-meta" aria-live="polite">
           <span class="offline__pulse" aria-hidden="true"></span>
-          <template v-if="checking">{{ t({ id: 'Memeriksa koneksi', en: 'Checking connection' }) }}</template>
+          <template v-if="checking">{{ t({ id: 'Memeriksa koneksi', en: 'Checking connection', ja: '接続を確認中' }) }}</template>
           <template v-else-if="lang === 'en'">Auto-retry in {{ countdown }} s</template>
+          <template v-else-if="lang === 'ja'">{{ countdown }}秒後に自動で再試行</template>
           <template v-else>Coba otomatis dalam {{ countdown }} dtk</template>
         </p>
       </div>

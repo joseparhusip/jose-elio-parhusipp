@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { loaderDone, hasSeenIntro, INTRO_SEEN_KEY } from '@/composables/useLoaderState'
 import { useTheme } from '@/composables/useTheme'
+import PageSkeleton from './PageSkeleton.vue'
 
 /* ---------------------------------------------------------
    Layar pembuka:
@@ -18,14 +19,13 @@ import { useTheme } from '@/composables/useTheme'
 
    Intro zoom di atas hanya untuk kunjungan pertama. Penanda disimpan
    setelah intro selesai ditonton sampai habis; kunjungan berikutnya
-   memakai loading biasa: logo + garis progres, lalu memudar (± 0,7 detik).
+   (reload biasa) memakai skeleton halaman (PageSkeleton.vue) yang
+   ukurannya diukur langsung dari halaman asli.
 --------------------------------------------------------- */
 const COUNT_MS = 1700
 const LOGO_ZOOM_MS = 900 // logo zoom sampai habis
 const CARD_PAUSE_MS = 450 // kartu kecil terlihat sebentar, baru membesar
 const REVEAL_MS = 1200
-const QUICK_COUNT_MS = 450 // loading biasa: garis progres
-const QUICK_FADE_MS = 250 // loading biasa: loader memudar
 
 function markIntroSeen() {
   try {
@@ -70,28 +70,18 @@ function finish() {
 
 onMounted(() => {
   document.body.style.overflow = 'hidden'
-  if (!isQuick) root.classList.add('intro-hold')
+  // Reload biasa: skeleton yang mengatur waktunya sendiri (lihat onSkeletonReveal)
+  if (isQuick) return
+  root.classList.add('intro-hold')
 
-  const countMs = isQuick ? QUICK_COUNT_MS : COUNT_MS
   const start = performance.now()
   const tick = (now) => {
-    const t = Math.min(1, (now - start) / countMs)
+    const t = Math.min(1, (now - start) / COUNT_MS)
     // Cepat di awal, melambat di akhir
     count.value = Math.round((1 - Math.pow(1 - t, 3)) * 100)
     if (t < 1) frame = requestAnimationFrame(tick)
   }
   frame = requestAnimationFrame(tick)
-
-  if (isQuick) {
-    timers.push(
-      setTimeout(() => {
-        isFading.value = true
-        loaderDone.value = true
-      }, QUICK_COUNT_MS),
-      setTimeout(finish, QUICK_COUNT_MS + QUICK_FADE_MS),
-    )
-    return
-  }
 
   const tZoom = COUNT_MS + 120
   const tHide = tZoom + LOGO_ZOOM_MS
@@ -118,6 +108,12 @@ onMounted(() => {
   )
 })
 
+// Skeleton mulai memudar: animasi masuk halaman ikut berjalan di bawahnya
+function onSkeletonReveal() {
+  isFading.value = true
+  loaderDone.value = true
+}
+
 onUnmounted(() => {
   cancelAnimationFrame(frame)
   timers.forEach(clearTimeout)
@@ -127,8 +123,9 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <PageSkeleton v-if="isVisible && isQuick" @reveal="onSkeletonReveal" @done="finish" />
   <div
-    v-if="isVisible"
+    v-else-if="isVisible"
     class="loader"
     :class="{
       'loader--exit': isExiting,

@@ -1,14 +1,58 @@
 <script setup>
 import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useChatWidgetStore } from '../stores/chatWidget'
-import { lang, t } from '@/composables/useLang'
+import { lang, t, LOCALES } from '@/composables/useLang'
 import * as kbId from './chatKnowledge'
 import * as kbEn from './chatKnowledge.en'
+import * as kbJa from './chatKnowledge.ja'
 
-// Basis pengetahuan + pendeteksi maksud sesuai bahasa situs. Kedua modul
+// Basis pengetahuan + pendeteksi maksud sesuai bahasa situs. Ketiga modul
 // mengekspor nama dan bentuk yang sama (lihat chatKnowledge.en.js), jadi
 // semua logika di bawah cukup memanggil kb.value.<nama>.
-const kb = computed(() => (lang.value === 'en' ? kbEn : kbId))
+const KB_BY_LANG = { id: kbId, en: kbEn, ja: kbJa }
+const kb = computed(() => KB_BY_LANG[lang.value] || kbId)
+
+// --- Bahasa Jepang: salam sesuai waktu ---------------------------------
+// getTimeOfDay() / getUserTimeGreeting() di chatKnowledge.ja.js bisa
+// mengembalikan kata Jepang (朝/昼/夕方/夜) atau token Inggris
+// (morning/afternoon/evening/night). Keduanya dinormalkan dulu ke satu slot,
+// lalu dipetakan ke salam Jepang yang wajar (おはようございます, dst.),
+// bukan terjemahan harfiah seperti 「良い朝」.
+const JA_TIME_SLOT = {
+  朝: 'morning',
+  昼: 'afternoon',
+  午後: 'afternoon',
+  夕方: 'evening',
+  晩: 'evening',
+  夜: 'night',
+  おはよう: 'morning',
+  おはようございます: 'morning',
+  こんにちは: 'afternoon',
+  こんばんは: 'evening',
+  morning: 'morning',
+  afternoon: 'afternoon',
+  evening: 'evening',
+  night: 'night',
+  pagi: 'morning',
+  siang: 'afternoon',
+  sore: 'evening',
+  malam: 'night',
+}
+const JA_GREETING = {
+  morning: 'おはようございます',
+  afternoon: 'こんにちは',
+  evening: 'こんばんは',
+  night: 'こんばんは',
+}
+
+function jaTimeSlot(word) {
+  return JA_TIME_SLOT[String(word || '').trim().toLowerCase()] || null
+}
+
+// Salam Jepang untuk kata waktu tertentu; tanpa argumen pakai jam perangkat.
+function jaGreeting(word) {
+  return JA_GREETING[jaTimeSlot(word) || jaTimeSlot(kb.value.getTimeOfDay()) || 'afternoon']
+}
 
 const chatStore = useChatWidgetStore()
 
@@ -41,9 +85,9 @@ const pendingOffer = ref(null)
 // Key sengaja dibuat spesifik (bukan cuma "chat") supaya kalau nanti ada
 // fitur lain yang juga pakai localStorage di situs ini, nggak ketimpa.
 // Riwayat disimpan per bahasa: key lama untuk Indonesia (riwayat yang sudah
-// ada tetap terbaca), dan akhiran "-en" untuk percakapan bahasa Inggris.
+// ada tetap terbaca), dan akhiran "-en" / "-ja" untuk bahasa Inggris / Jepang.
 const STORAGE_KEY = 'jose-portfolio-chat-widget-v1'
-const storageKeyFor = (code) => (code === 'en' ? `${STORAGE_KEY}-en` : STORAGE_KEY)
+const storageKeyFor = (code) => (code === 'en' || code === 'ja' ? `${STORAGE_KEY}-${code}` : STORAGE_KEY)
 // Dipakai supaya proses restore dari localStorage saat pertama buka widget
 // tidak ikut ke-trigger sama watcher penyimpanan di bawah (biar nggak nyimpen
 // ulang data yang baru aja dibaca).
@@ -160,12 +204,28 @@ function escapeHtml(value = '') {
     .replace(/'/g, '&#39;')
 }
 
+// Bahasa Jepang: nama pengunjung + さん di awal kalimat ("Budiさん、…").
+// Kosong kalau nama belum diketahui.
+function jaCall() {
+  return form.value.name ? `${escapeHtml(form.value.name)}さん、` : ''
+}
+
+// Pemisah antara salam balik dan kalimat berikutnya: bahasa Jepang tidak
+// memakai spasi di antara kalimat.
+function sentenceGap() {
+  return lang.value === 'ja' ? '' : ' '
+}
+
 // --- Basa-basi: sapaan sesuai waktu, terima kasih, pamit, dsb. ---
 // Mengembalikan true kalau pesan sudah dijawab sebagai basa-basi.
 // Sapa balik dengan waktu yang disebut user ("selamat malam" -> "selamat
 // malam juga"), kalau user cuma bilang "halo" pakai jam di perangkatnya.
 function greetBack(text, name = '') {
   const said = kb.value.getUserTimeGreeting(text)
+  if (lang.value === 'ja') {
+    // "Budiさん、こんばんは！": salam yang disebut user, atau sesuai jam perangkat
+    return `${name ? jaCall() : ''}${jaGreeting(said)}！`
+  }
   if (lang.value === 'en') {
     return said ? `Good ${said} to you too${name}!` : `Hello${name}, and good ${kb.value.getTimeOfDay()}!`
   }
@@ -175,6 +235,7 @@ function greetBack(text, name = '') {
 async function answerSmallTalk(talk, text = '') {
   const time = kb.value.getUserTimeGreeting(text) || kb.value.getTimeOfDay()
   const name = form.value.name ? `, ${escapeHtml(form.value.name)}` : ''
+  const nj = jaCall()
 
   if (talk.type === 'greeting') {
     const extras = t({
@@ -189,8 +250,16 @@ async function answerSmallTalk(talk, text = '') {
         afternoon: 'I hope your day is going well.',
         evening: 'Thanks for stopping by this evening.',
       },
+      ja: {
+        morning: '今日も一日、よい日になりますように。',
+        afternoon: '今日も順調にお過ごしでしょうか。',
+        evening: '今晩はお立ち寄りいただき、ありがとうございます。',
+        night: '夜遅くにお立ち寄りいただき、ありがとうございます。',
+      },
     })
-    await botSay(`${greetBack(text, name)} ${extras[time]}`, 550)
+    // Bahasa Jepang: kata waktu dari kb dinormalkan dulu ke slot morning/afternoon/...
+    const extraKey = lang.value === 'ja' ? jaTimeSlot(time) || 'afternoon' : time
+    await botSay(`${greetBack(text, name)}${sentenceGap()}${extras[extraKey]}`, 550)
   } else if (talk.type === 'howAreYou') {
     await botSay(
       pick('howAreYou', {
@@ -204,51 +273,73 @@ async function answerSmallTalk(talk, text = '') {
           `Very well${name}, especially now that someone has stopped by to chat. I hope you're doing well too.`,
           `I'm good${name}! Thanks for asking, not many people ask a bot how it's doing.`,
         ],
+        ja: [
+          `${nj}おかげさまで元気です。聞いてくださってありがとうございます！そちらはいかがですか？`,
+          `${nj}とても元気です。こうして話しかけていただけて、なおさらうれしいです。そちらもお元気でお過ごしでしょうか。`,
+          `${nj}元気です！ボットの調子を聞いてくださる方はなかなかいないので、うれしいです。`,
+        ],
       }),
       550,
     )
   } else if (talk.type === 'thanks') {
     await botSay(
-      lang.value === 'en'
-        ? kb.value.pickVariant('thanks', [
-            `You're welcome${name}! Happy to help.`,
-            `You're welcome${name}. If you have any other questions, I'm here.`,
-            `My pleasure${name}!`,
-          ])
-        : kb.value.pickVariant('thanks', [
-            `Sama-sama${name}! Senang bisa bantu.`,
-            `Sama-sama${name}, santai aja. Kalau ada yang mau ditanyain lagi, aku di sini.`,
-            `Dengan senang hati${name}!`,
-          ]),
+      pick('thanks', {
+        id: [
+          `Sama-sama${name}! Senang bisa bantu.`,
+          `Sama-sama${name}, santai aja. Kalau ada yang mau ditanyain lagi, aku di sini.`,
+          `Dengan senang hati${name}!`,
+        ],
+        en: [
+          `You're welcome${name}! Happy to help.`,
+          `You're welcome${name}. If you have any other questions, I'm here.`,
+          `My pleasure${name}!`,
+        ],
+        ja: [
+          `${nj}どういたしまして！お役に立ててうれしいです。`,
+          `${nj}どういたしまして。ほかにもご質問があれば、いつでもどうぞ。`,
+          `${nj}こちらこそ、ありがとうございます！`,
+        ],
+      }),
       450,
     )
   } else if (talk.type === 'bye') {
     await botSay(
-      lang.value === 'en'
-        ? kb.value.pickVariant('bye', [
-            `Goodbye${name}! Have a good ${time}. Feel free to stop by again anytime.`,
-            `Bye${name}! Thanks for visiting, and all the best.`,
-            `Okay${name}, see you next time! This chat is always open.`,
-          ])
-        : kb.value.pickVariant('bye', [
-            `Sampai jumpa${name}! Selamat ${time} dan semoga harinya menyenangkan. Kapan-kapan mampir lagi ya.`,
-            `Dadah${name}! Makasih udah mampir, semoga lancar urusannya.`,
-            `Oke${name}, sampai ketemu lagi! Pintu chat ini selalu terbuka kok.`,
-          ]),
+      pick('bye', {
+        id: [
+          `Sampai jumpa${name}! Selamat ${time} dan semoga harinya menyenangkan. Kapan-kapan mampir lagi ya.`,
+          `Dadah${name}! Makasih udah mampir, semoga lancar urusannya.`,
+          `Oke${name}, sampai ketemu lagi! Pintu chat ini selalu terbuka kok.`,
+        ],
+        en: [
+          `Goodbye${name}! Have a good ${time}. Feel free to stop by again anytime.`,
+          `Bye${name}! Thanks for visiting, and all the best.`,
+          `Okay${name}, see you next time! This chat is always open.`,
+        ],
+        ja: [
+          `${nj}お立ち寄りいただきありがとうございました！またいつでもお気軽にお越しください。`,
+          `${nj}ご訪問ありがとうございました。それでは、お元気で！`,
+          `${nj}それでは、また！このチャットはいつでも開いています。`,
+        ],
+      }),
       500,
     )
     return true
   } else if (talk.type === 'aboutBot') {
     await botSay(
-      lang.value === 'en'
-        ? kb.value.pickVariant('aboutBot', [
-            "I'm the automated chat assistant on Jose's portfolio. I'm not Jose himself, but I know his story well and can help pass your message on to his email.",
-            "I'm Jose's assistant bot. My job is to chat with you about Jose and forward your message to him.",
-          ])
-        : kb.value.pickVariant('aboutBot', [
-            'Aku asisten chat otomatis di portofolio Jose. Bukan Jose langsung ya, tapi aku hafal cerita soal dia dan bisa bantu nyampein pesan kamu ke email Jose.',
-            'Aku bot asistennya Jose, hehe. Tugasku nemenin kamu ngobrol soal Jose dan nerusin pesan kamu ke dia.',
-          ]),
+      pick('aboutBot', {
+        id: [
+          'Aku asisten chat otomatis di portofolio Jose. Bukan Jose langsung ya, tapi aku hafal cerita soal dia dan bisa bantu nyampein pesan kamu ke email Jose.',
+          'Aku bot asistennya Jose, hehe. Tugasku nemenin kamu ngobrol soal Jose dan nerusin pesan kamu ke dia.',
+        ],
+        en: [
+          "I'm the automated chat assistant on Jose's portfolio. I'm not Jose himself, but I know his story well and can help pass your message on to his email.",
+          "I'm Jose's assistant bot. My job is to chat with you about Jose and forward your message to him.",
+        ],
+        ja: [
+          '私はJoseのポートフォリオの自動チャットアシスタントです。Jose本人ではありませんが、Joseのことはよく知っていますし、メッセージをJoseのメールへお届けするお手伝いもできます。',
+          '私はJoseのアシスタントボットです。Joseについてお話ししたり、メッセージをJoseに取り次いだりするのが私の役目です。',
+        ],
+      }),
       550,
     )
   } else if (talk.type === 'ack') {
@@ -262,6 +353,7 @@ async function answerSmallTalk(talk, text = '') {
         t({
           id: 'Pesan kamu ke Jose sudah terkirim ya. Kalau mau kirim pesan lain, klik tombol "Kirim pesan lain".',
           en: 'Your message to Jose has been sent. If you want to send another one, click the "Send another message" button.',
+          ja: 'Joseへのメッセージは送信済みです。別のメッセージを送る場合は、「別のメッセージを送る」ボタンを押してください。',
         }),
         450,
       )
@@ -289,8 +381,8 @@ function projectCards(list, withLinks) {
     // Proyek internal tidak punya demo/repo publik
     links: withLinks && !item.internal
       ? [
-          { label: t({ id: 'Lihat Demo', en: 'View Demo' }), url: item.demoHref },
-          { label: t({ id: 'Lihat Code', en: 'View Code' }), url: item.codeHref },
+          { label: t({ id: 'Lihat Demo', en: 'View Demo', ja: 'デモを見る' }), url: item.demoHref },
+          { label: t({ id: 'Lihat Code', en: 'View Code', ja: 'コードを見る' }), url: item.codeHref },
         ]
       : [],
   }))
@@ -315,6 +407,11 @@ async function answerFaq(intent) {
           "Okay, here's Jose's academic background:",
           'Of course, let me tell you about his studies.',
         ],
+        ja: [
+          'もちろんです！Joseの学歴についてご紹介します。',
+          'はい、Joseの学歴はこちらです。',
+          'かしこまりました。大学での学びについてお話しします。',
+        ],
       }),
       450,
     )
@@ -329,6 +426,7 @@ async function answerFaq(intent) {
       pick('aboutLead', {
         id: ['Boleh banget!', 'Oh, tentang Jose ya? Boleh!', 'Siap, aku kenalin.'],
         en: ['Sure!', 'About Jose? Of course!', 'Happy to introduce him.'],
+        ja: ['もちろんです！', 'Joseについてですね。喜んで！', 'では、ご紹介します。'],
       }),
       400,
     )
@@ -342,6 +440,10 @@ async function answerFaq(intent) {
         en: [
           'Would you like to hear more? For example, his skills and the tools he works with.',
           'If you like, I can share the full version. Would you like that?',
+        ],
+        ja: [
+          'もっと詳しくお聞きになりますか？たとえば、Joseのスキルや使っているツールについてもお話しできます。',
+          'よろしければ、詳しいプロフィールもご紹介できます。いかがですか？',
         ],
       }),
       450,
@@ -363,6 +465,11 @@ async function answerFaq(intent) {
           'Of course, here are the roles Jose has held, from professional work to student organizations:',
           "Okay, here's a summary of Jose's experience:",
         ],
+        ja: [
+          'もちろんです！これまでのJoseの経歴はこちらです。',
+          'はい、Joseがこれまでに担ってきた役割を、仕事から学生団体での活動までご紹介します。',
+          'では、Joseの経歴をまとめてご紹介します。',
+        ],
       }),
       500,
     )
@@ -383,6 +490,11 @@ async function answerFaq(intent) {
           "Of course, here's Jose's work, from web and mobile apps to data dashboards:",
           "Okay, here are Jose's projects:",
         ],
+        ja: [
+          'もちろんです！Joseがこれまでに手がけたプロジェクトの一部をご紹介します。',
+          'はい、Joseの制作実績です。Web・モバイルアプリからデータダッシュボードまであります。',
+          'では、Joseのプロジェクトをご覧ください。',
+        ],
       }),
       500,
     )
@@ -392,6 +504,7 @@ async function answerFaq(intent) {
         t({
           id: 'Mau aku kasih link demo dan repo-nya juga?',
           en: 'Would you like the demo and repository links as well?',
+          ja: 'デモとリポジトリのリンクもお送りしましょうか？',
         }),
         500,
       )
@@ -414,6 +527,7 @@ async function answerFaq(intent) {
       t({
         id: 'Maksudnya gimana nih, kamu mau tau riwayat/pengalaman kerja Jose, atau kamu yang mau nawarin kerjaan atau kolaborasi ke Jose?',
         en: "Just to be sure, would you like to know about Jose's work history and experience, or would you like to offer him a job or a collaboration?",
+        ja: '念のため確認させてください。Joseの職歴や経験についてお知りになりたいですか？それとも、Joseへのお仕事やコラボレーションのご依頼でしょうか？',
       }),
       500,
     )
@@ -433,7 +547,9 @@ async function answerFaq(intent) {
 // ditanyakan di giliran ini (mis. bot baru saja menawarkan sesuatu).
 async function answerConversation(intent, body) {
   const name = form.value.name ? `, ${escapeHtml(form.value.name)}` : ''
+  const nj = jaCall()
   const en = lang.value === 'en'
+  const ja = lang.value === 'ja'
 
   if (intent.type === 'meetBot') {
     // "aku mau kenalan sama kamu, namaku budi" -> langsung pakai namanya
@@ -442,9 +558,11 @@ async function answerConversation(intent, body) {
       form.value.name = stated.name
       step.value = form.value.email ? 'message' : 'email'
       await botSay(
-        en
-          ? `Nice to meet you, ${escapeHtml(stated.name)}! I'm the chat assistant on Jose's portfolio.`
-          : `Boleh banget, salam kenal ${escapeHtml(stated.name)}! Aku asisten chat di portofolio Jose.`,
+        t({
+          id: `Boleh banget, salam kenal ${escapeHtml(stated.name)}! Aku asisten chat di portofolio Jose.`,
+          en: `Nice to meet you, ${escapeHtml(stated.name)}! I'm the chat assistant on Jose's portfolio.`,
+          ja: `はじめまして、${escapeHtml(stated.name)}さん！Joseのポートフォリオのチャットアシスタントです。`,
+        }),
         500,
       )
       await botSay(
@@ -452,10 +570,12 @@ async function answerConversation(intent, body) {
           ? t({
               id: 'Ada yang mau kamu tanyain atau sampein ke Jose?',
               en: 'Is there anything you would like to ask or tell Jose?',
+              ja: 'Joseに聞きたいことや伝えたいことはありますか？',
             })
           : t({
               id: 'Kalau nanti mau kirim pesan ke Jose, email kamu apa? Atau mau ngobrol soal Jose dulu juga boleh.',
               en: "If you'd like to send Jose a message later, what's your email? Or we can talk about Jose first, that's fine too.",
+              ja: '後でJoseにメッセージを送る場合に備えて、メールアドレスを教えていただけますか？先にJoseについてお話ししても大丈夫です。',
             }),
         450,
       )
@@ -463,15 +583,20 @@ async function answerConversation(intent, body) {
     }
     if (form.value.name) {
       await botSay(
-        en
-          ? kb.value.pickVariant('meetAgain', [
-              `We've already met${name}! I'm Jose's chat assistant. Is there anything you'd like to know about him?`,
-              `We already know each other${name}. Go ahead, what would you like to know about Jose?`,
-            ])
-          : kb.value.pickVariant('meetAgain', [
-              `Hehe, kita kan udah kenalan${name}! Aku asisten chat-nya Jose. Ada yang mau kamu tau soal dia?`,
-              `Udah kenal dong kita${name}. Ngobrol aja, mau tanya soal Jose apa?`,
-            ]),
+        pick('meetAgain', {
+          id: [
+            `Hehe, kita kan udah kenalan${name}! Aku asisten chat-nya Jose. Ada yang mau kamu tau soal dia?`,
+            `Udah kenal dong kita${name}. Ngobrol aja, mau tanya soal Jose apa?`,
+          ],
+          en: [
+            `We've already met${name}! I'm Jose's chat assistant. Is there anything you'd like to know about him?`,
+            `We already know each other${name}. Go ahead, what would you like to know about Jose?`,
+          ],
+          ja: [
+            `${nj}自己紹介はもう済んでいますよ！Joseのチャットアシスタントです。Joseについて知りたいことはありますか？`,
+            `${nj}もうお知り合いですね。Joseについて、何でも聞いてください。`,
+          ],
+        }),
         500,
       )
       return true
@@ -484,6 +609,7 @@ async function answerConversation(intent, body) {
           'Tentu boleh!',
         ],
         en: ['Of course! Nice to meet you.', "Sure! It's nice to meet you too.", 'Absolutely!'],
+        ja: ['もちろんです！お会いできてうれしいです。', 'ぜひ！こちらこそ、よろしくお願いします。', 'もちろんです！'],
       }),
       450,
     )
@@ -491,6 +617,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Aku asisten chat di portofolio Jose. Tugasku nemenin kamu ngobrol soal Jose dan bantu nyampein pesan ke dia. Nah, gantian dong, nama kamu siapa?',
         en: "I'm the chat assistant on Jose's portfolio. I'm here to chat with you about Jose and help pass your message on to him. Now it's your turn, what's your name?",
+        ja: 'Joseのポートフォリオのチャットアシスタントです。Joseについてお話ししたり、Joseへのメッセージをお届けしたりするのが私の役目です。よろしければ、お名前を教えていただけますか？',
       }),
       550,
     )
@@ -504,6 +631,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Aku belum punya nama resmi, hehe. Panggil aja "asisten Jose". Kalau kamu, namanya siapa?',
         en: 'I don\'t have an official name yet. You can call me "Jose\'s assistant". What\'s your name?',
+        ja: 'まだ正式な名前はありません。「Joseのアシスタント」と呼んでください。お名前を伺ってもよろしいですか？',
       }),
       500,
     )
@@ -515,6 +643,7 @@ async function answerConversation(intent, body) {
       pick('capLead', {
         id: ['Banyak kok!', 'Boleh, ini yang bisa aku bantu:', 'Siap!'],
         en: ['Quite a few things!', "Sure, here's what I can help with:", 'Of course!'],
+        ja: ['いろいろお手伝いできます！', 'はい、お手伝いできることはこちらです。', 'お任せください！'],
       }),
       350,
     )
@@ -527,6 +656,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Ini aku, asisten chat-nya, bukan Jose langsung. Tapi pesan kamu bisa aku teruskan ke email Jose, dan dia biasanya balas dalam sehari. Mau aku bantu kirimin?',
         en: "This is his chat assistant, not Jose himself. But I can forward your message to Jose's email, and he usually replies within a day. Would you like me to help you send one?",
+        ja: 'こちらはJose本人ではなく、チャットアシスタントです。ただ、メッセージをJoseのメールへお届けすることはできます。Joseはたいてい1日以内に返信します。メッセージの送信をお手伝いしましょうか？',
       }),
       550,
     )
@@ -545,6 +675,10 @@ async function answerConversation(intent, body) {
           "Hmm, that's personal information I don't have. If you really need it, you can ask Jose directly by sending him a message.",
           "I'm afraid I don't know that one. I only have information about Jose's work, education, and projects.",
         ],
+        ja: [
+          'そちらは個人的な情報のため、私にはわかりかねます。どうしても必要な場合は、メッセージでJoseに直接お尋ねください。',
+          'すみません、それはわかりません。私がお答えできるのは、Joseの仕事・学歴・プロジェクトに関することだけです。',
+        ],
       }),
       500,
     )
@@ -556,6 +690,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Soal nilai kuliah aku nggak tampilkan di sini ya. Yang pasti Jose lulusan S1 Bisnis Digital ULBI Bandung. Kalau perlu detailnya, tanya langsung ke Jose lewat pesan.',
         en: "I don't share his grades here. What I can tell you is that Jose holds a Bachelor of Digital Business from ULBI Bandung. If you need the details, feel free to ask Jose directly by message.",
+        ja: '成績についてはこちらでは公開していません。お伝えできるのは、JoseがバンドンのULBIでデジタルビジネスの学士号を取得していることです。詳細が必要でしたら、メッセージでJoseに直接お尋ねください。',
       }),
       500,
     )
@@ -567,6 +702,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Ada beberapa: <strong>SAP01 SAP Overview</strong> (EDUGATE, 2025), peserta <strong>P2MW 2023</strong> kategori Bisnis Digital, bootcamp karier IT dari <strong>SmartPath</strong> (2024), dan kursus <strong>CodeIgniter 3 &amp; API Raja Ongkir</strong> di Udemy (2023). Semuanya bisa dilihat di bagian <strong>Sertifikat</strong>.',
         en: 'He has several: <strong>SAP01 SAP Overview</strong> (EDUGATE, 2025), participant in <strong>P2MW 2023</strong> in the Digital Business category, an IT career bootcamp from <strong>SmartPath</strong> (2024), and the <strong>CodeIgniter 3 &amp; Raja Ongkir API</strong> course on Udemy (2023). You can see all of them in the <strong>Certificates</strong> section.',
+        ja: 'いくつかあります。<strong>SAP01 SAP Overview</strong>（EDUGATE、2025年）、デジタルビジネス部門での<strong>P2MW 2023</strong>（インドネシア政府の学生起業支援プログラム）への参加、<strong>SmartPath</strong>のITキャリアブートキャンプ（2024年）、Udemyの<strong>CodeIgniter 3 &amp; Raja Ongkir API</strong>講座（2023年）です。すべて<strong>資格・修了証</strong>のセクションでご覧いただけます。',
       }),
       500,
     )
@@ -578,6 +714,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'CV Jose bisa kamu unduh lewat tombol <strong>"Unduh CV"</strong> di bagian paling atas halaman ini. Formatnya PDF.',
         en: 'You can download Jose\'s CV with the <strong>"Download CV"</strong> button at the top of this page. It\'s a PDF.',
+        ja: 'Joseの履歴書は、このページ上部の<strong>「履歴書をダウンロード」</strong>ボタンからダウンロードできます。PDF形式です。',
       }),
       500,
     )
@@ -589,7 +726,9 @@ async function answerConversation(intent, body) {
     await botSay(
       en
         ? `Jose currently works as a freelance ${now.role} for PT Sistem Pelayanan Kesehatan dan Data (SPKD) in South Jakarta. There, he builds the MedCredix backend with Go, Gin, and PostgreSQL.`
-        : `Sekarang Jose kerja sebagai ${now.role}, ${now.company.charAt(0).toLowerCase()}${now.company.slice(1)}. Di sana dia ngerjain <em>backend</em> MedCredix pakai Go, Gin, dan PostgreSQL.`,
+        : ja
+          ? `Joseは現在、南ジャカルタのPT Sistem Pelayanan Kesehatan dan Data（SPKD）で、フリーランスの${now.role}として働いています。MedCredixのバックエンドをGo・Gin・PostgreSQLで開発しています。`
+          : `Sekarang Jose kerja sebagai ${now.role}, ${now.company.charAt(0).toLowerCase()}${now.company.slice(1)}. Di sana dia ngerjain <em>backend</em> MedCredix pakai Go, Gin, dan PostgreSQL.`,
       550,
     )
     return false
@@ -600,6 +739,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Jose berbasis di Bekasi, Jawa Barat. Klien freelance-nya sekarang ada di Jakarta Selatan.',
         en: 'Jose is based in Bekasi, West Java. His current freelance client is in South Jakarta.',
+        ja: 'Joseはインドネシア・西ジャワ州のブカシを拠点にしています。現在のフリーランスのクライアントは南ジャカルタにあります。',
       }),
       500,
     )
@@ -608,9 +748,11 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'availability') {
     await botSay(
-      en
-        ? `Yes${name}, Jose is open to job opportunities, freelance work, and collaborations. Would you like me to help pass your message or offer on to him?`
-        : `Iya${name}, Jose lagi terbuka buat peluang kerja, <em>freelance</em>, maupun kolaborasi. Mau aku bantu sampein pesan atau tawaran kamu ke dia?`,
+      t({
+        id: `Iya${name}, Jose lagi terbuka buat peluang kerja, <em>freelance</em>, maupun kolaborasi. Mau aku bantu sampein pesan atau tawaran kamu ke dia?`,
+        en: `Yes${name}, Jose is open to job opportunities, freelance work, and collaborations. Would you like me to help pass your message or offer on to him?`,
+        ja: `${nj}はい、Joseは現在、就職のお誘い、フリーランスのお仕事、コラボレーションのご相談を受け付けています。メッセージやご依頼をJoseにお届けしましょうか？`,
+      }),
       550,
     )
     pendingOffer.value = { type: 'contact' }
@@ -620,7 +762,7 @@ async function answerConversation(intent, body) {
   if (intent.type === 'social') {
     await botSay(
       [
-        t({ id: '<p>Ini akun-akun Jose:</p>', en: "<p>Here are Jose's accounts:</p>" }),
+        t({ id: '<p>Ini akun-akun Jose:</p>', en: "<p>Here are Jose's accounts:</p>", ja: '<p>Joseのアカウントはこちらです。</p>' }),
         '<ul class="chat-widget__highlight-list">',
         '<li>GitHub: <a href="https://github.com/joseparhusip" target="_blank" rel="noopener noreferrer">github.com/joseparhusip</a></li>',
         '<li>LinkedIn: <a href="https://www.linkedin.com/in/joseparhusip/" target="_blank" rel="noopener noreferrer">linkedin.com/in/joseparhusip</a></li>',
@@ -634,15 +776,18 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'skills') {
     await botSay(
-      en
-        ? `Jose works with ${kb.value.TOOLS_TEXT}. He is also experienced in system design with UML, ERD, and Flowchart, and he holds an SAP certificate.`
-        : `Jose biasa pakai ${kb.value.TOOLS_TEXT}. Dia juga terbiasa merancang sistem pakai UML, ERD, dan Flowchart, plus punya sertifikasi SAP.`,
+      t({
+        id: `Jose biasa pakai ${kb.value.TOOLS_TEXT}. Dia juga terbiasa merancang sistem pakai UML, ERD, dan Flowchart, plus punya sertifikasi SAP.`,
+        en: `Jose works with ${kb.value.TOOLS_TEXT}. He is also experienced in system design with UML, ERD, and Flowchart, and he holds an SAP certificate.`,
+        ja: `Joseは${kb.value.TOOLS_TEXT}を使っています。また、UML・ERD・フローチャートを用いたシステム設計の経験があり、SAPの認定資格も持っています。`,
+      }),
       550,
     )
     await botSay(
       t({
         id: 'Mau tanya soal satu tools tertentu? Misalnya "Jose bisa Flutter?"',
         en: 'Want to ask about a specific tool? For example, "Does Jose know Flutter?"',
+        ja: '特定のツールについて聞いてみますか？たとえば「JoseはFlutterを使えますか？」のように聞いてみてください。',
       }),
       400,
     )
@@ -660,15 +805,23 @@ async function answerConversation(intent, body) {
           // Peran yang sama (mis. dua kali Back End Developer) cukup disebut sekali
           ...[...new Set(roles.map((r) => r.role.replace(/<[^>]+>/g, '')))].map((role) => `in his work as ${/^[aeiou]/i.test(role) ? 'an' : 'a'} ${role}`),
         ]
-      : [
-          ...(projects.length ? [`proyek ${joinList(projects.map((p) => p.title))}`] : []),
-          ...roles.map((r) => `waktu jadi ${r.role.replace(/<[^>]+>/g, '')}`),
-        ]
+      : ja
+        ? [
+            // "MedCredixのプロジェクト", "Back End Developerとしての業務"
+            ...(projects.length ? [`${joinList(projects.map((p) => p.title))}のプロジェクト`] : []),
+            ...[...new Set(roles.map((r) => r.role.replace(/<[^>]+>/g, '')))].map((role) => `${role}としての業務`),
+          ]
+        : [
+            ...(projects.length ? [`proyek ${joinList(projects.map((p) => p.title))}`] : []),
+            ...roles.map((r) => `waktu jadi ${r.role.replace(/<[^>]+>/g, '')}`),
+          ]
     if (!places.length) {
       await botSay(
-        en
-          ? `Yes! ${intent.tech.name} is one of the tools Jose works with.`
-          : `Bisa! ${intent.tech.name} termasuk tools yang Jose kuasai.`,
+        t({
+          id: `Bisa! ${intent.tech.name} termasuk tools yang Jose kuasai.`,
+          en: `Yes! ${intent.tech.name} is one of the tools Jose works with.`,
+          ja: `はい！${intent.tech.name}はJoseが使いこなしているツールのひとつです。`,
+        }),
         500,
       )
       return false
@@ -676,14 +829,18 @@ async function answerConversation(intent, body) {
     await botSay(
       en
         ? `${kb.value.pickVariant('techYes', ['Yes, he does!', 'Yes!', 'Yes, definitely.'])} Jose has used ${intent.tech.name} ${joinList(places)}.`
-        : `${kb.value.pickVariant('techYes', ['Bisa dong!', 'Bisa!', 'Iya, bisa.'])} Jose pernah pakai ${intent.tech.name} di ${joinList(places)}.`,
+        : ja
+          ? `${kb.value.pickVariant('techYes', ['はい、使えます！', 'はい！', 'はい、もちろんです。'])}Joseは${joinList(places)}で${intent.tech.name}を使った経験があります。`
+          : `${kb.value.pickVariant('techYes', ['Bisa dong!', 'Bisa!', 'Iya, bisa.'])} Jose pernah pakai ${intent.tech.name} di ${joinList(places)}.`,
       500,
     )
     if (projects.length) {
       await botSay(
         en
           ? `Would you like to see the ${projects.length === 1 ? 'project' : 'projects'} that ${projects.length === 1 ? 'uses' : 'use'} ${intent.tech.name}?`
-          : `Mau aku tunjukin proyek yang pakai ${intent.tech.name}?`,
+          : ja
+            ? `${intent.tech.name}を使ったプロジェクトをご覧になりますか？`
+            : `Mau aku tunjukin proyek yang pakai ${intent.tech.name}?`,
         400,
       )
       pendingOffer.value = { type: 'techProjects', titles: projects.map((p) => p.title) }
@@ -695,9 +852,11 @@ async function answerConversation(intent, body) {
   if (intent.type === 'techUnknown') {
     const tech = intent.tech.charAt(0).toUpperCase() + intent.tech.slice(1)
     await botSay(
-      en
-        ? `Hmm, ${escapeHtml(tech)} isn't on the list of Jose's tools that I know of. The tools he usually works with are ${kb.value.TOOLS_TEXT}. If it's important, feel free to ask Jose directly, he may know it too.`
-        : `Hmm, ${escapeHtml(tech)} belum ada di daftar tools Jose yang aku tahu. Yang biasa dia pakai itu ${kb.value.TOOLS_TEXT}. Kalau penting, coba tanya langsung ke Jose ya, siapa tahu dia juga bisa.`,
+      t({
+        id: `Hmm, ${escapeHtml(tech)} belum ada di daftar tools Jose yang aku tahu. Yang biasa dia pakai itu ${kb.value.TOOLS_TEXT}. Kalau penting, coba tanya langsung ke Jose ya, siapa tahu dia juga bisa.`,
+        en: `Hmm, ${escapeHtml(tech)} isn't on the list of Jose's tools that I know of. The tools he usually works with are ${kb.value.TOOLS_TEXT}. If it's important, feel free to ask Jose directly, he may know it too.`,
+        ja: `うーん、${escapeHtml(tech)}は、私が把握しているJoseのツールの一覧にはありません。Joseがよく使っているのは${kb.value.TOOLS_TEXT}です。重要でしたら、Joseに直接お尋ねください。もしかすると使えるかもしれません。`,
+      }),
       550,
     )
     return false
@@ -706,13 +865,17 @@ async function answerConversation(intent, body) {
   if (intent.type === 'projectDetail') {
     const one = intent.projects.length === 1
     await botSay(
-      en
-        ? one
-          ? `Ah, ${intent.projects[0].title}! Here are the details:`
-          : 'There are two matching projects:'
-        : one
-          ? `Oh, ${intent.projects[0].title}! Ini detailnya:`
-          : 'Ada dua proyek yang cocok nih:',
+      one
+        ? t({
+            id: `Oh, ${intent.projects[0].title}! Ini detailnya:`,
+            en: `Ah, ${intent.projects[0].title}! Here are the details:`,
+            ja: `${intent.projects[0].title}ですね！詳細はこちらです。`,
+          })
+        : t({
+            id: 'Ada dua proyek yang cocok nih:',
+            en: 'There are two matching projects:',
+            ja: '該当するプロジェクトが2件あります。',
+          }),
       450,
     )
     await botSay('', 350, 'cards', projectCards(intent.projects, true))
@@ -721,17 +884,23 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'compliment') {
     await botSay(
-      en
-        ? kb.value.pickVariant('compliment', [
-            `Thank you so much${name}! I'll pass that on to Jose, I'm sure he'll be glad to hear it.`,
-            `Thanks${name}! Jose will be happy to hear that.`,
-            `Thank you${name}! Is there anything you'd like to know more about his work?`,
-          ])
-        : kb.value.pickVariant('compliment', [
-            `Makasih banyak${name}! Nanti aku sampein ke Jose, pasti dia senang.`,
-            `Wah, makasih${name}! Jose bakal senang dengarnya.`,
-            `Hehe, makasih ya${name}! Ada yang mau kamu tau lebih jauh soal karyanya?`,
-          ]),
+      pick('compliment', {
+        id: [
+          `Makasih banyak${name}! Nanti aku sampein ke Jose, pasti dia senang.`,
+          `Wah, makasih${name}! Jose bakal senang dengarnya.`,
+          `Hehe, makasih ya${name}! Ada yang mau kamu tau lebih jauh soal karyanya?`,
+        ],
+        en: [
+          `Thank you so much${name}! I'll pass that on to Jose, I'm sure he'll be glad to hear it.`,
+          `Thanks${name}! Jose will be happy to hear that.`,
+          `Thank you${name}! Is there anything you'd like to know more about his work?`,
+        ],
+        ja: [
+          `${nj}ありがとうございます！Joseにも伝えておきます。きっと喜ぶと思います。`,
+          `${nj}ありがとうございます！それを聞いたら、Joseも喜びます。`,
+          `${nj}ありがとうございます！Joseの制作実績について、もっと詳しく知りたいことはありますか？`,
+        ],
+      }),
       450,
     )
     return false
@@ -739,7 +908,11 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'laugh') {
     await botSay(
-      pick('laugh', { id: ['Hehe.', 'Wkwk, iya.', 'Haha, santai ya.'], en: ['Haha.', 'Haha, indeed.', 'Glad that made you smile.'] }),
+      pick('laugh', {
+        id: ['Hehe.', 'Wkwk, iya.', 'Haha, santai ya.'],
+        en: ['Haha.', 'Haha, indeed.', 'Glad that made you smile.'],
+        ja: ['ふふ。', 'ははは、本当ですね。', '笑っていただけてうれしいです。'],
+      }),
       350,
     )
     return false
@@ -747,15 +920,18 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'projectInquiry') {
     await botSay(
-      en
-        ? `That's definitely something to discuss${name}! Jose is open to web, mobile, and data dashboard projects.`
-        : `Bisa banget dibicarakan${name}! Jose terbuka untuk proyek web, mobile, maupun dasbor data.`,
+      t({
+        id: `Bisa banget dibicarakan${name}! Jose terbuka untuk proyek web, mobile, maupun dasbor data.`,
+        en: `That's definitely something to discuss${name}! Jose is open to web, mobile, and data dashboard projects.`,
+        ja: `${nj}ぜひご相談ください！JoseはWeb・モバイル・データダッシュボードのプロジェクトを受け付けています。`,
+      }),
       500,
     )
     await botSay(
       t({
         id: 'Soal detail kebutuhan, waktu, dan budget, paling pas langsung dibahas sama Jose. Mau aku bantu kirim pesan ke dia sekarang?',
         en: 'Details such as requirements, timeline, and budget are best discussed with Jose directly. Would you like me to help you send him a message now?',
+        ja: 'ご要望の詳細やスケジュール、予算については、Joseと直接お話しいただくのがいちばんです。今からJoseへのメッセージ送信をお手伝いしましょうか？',
       }),
       500,
     )
@@ -777,6 +953,11 @@ async function answerConversation(intent, body) {
           "Sorry, I can't give or lend money. I'm only here to tell you about Jose and pass your message on to him.",
           "I'm afraid my wallet is empty, I'm just a bot. But if it's about Jose, I'm happy to help!",
         ],
+        ja: [
+          '申し訳ありませんが、お金に関することはお手伝いできません。私はチャットアシスタントなので、お金は一切扱っていないんです。',
+          '申し訳ありませんが、お金をお渡ししたりお貸ししたりすることはできません。私の役目は、Joseについてご紹介し、メッセージをJoseにお届けすることです。',
+          'あいにく、ボットなのでお財布は空っぽです。でも、Joseのことならお任せください！',
+        ],
       }),
       500,
     )
@@ -788,6 +969,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Maaf, untuk hal seperti itu aku nggak bisa bantu. Aku cuma bisa ngobrol soal profil, pengalaman, proyek, dan kontak Jose ya.',
         en: "Sorry, I can't help with that. I can only talk about Jose's profile, experience, projects, and contact details.",
+        ja: '申し訳ありませんが、そのようなご依頼にはお応えできません。お話しできるのは、Joseのプロフィール・経歴・プロジェクト・連絡先についてだけです。',
       }),
       500,
     )
@@ -799,6 +981,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Maaf, aku nggak bisa bantu untuk hal yang merugikan orang lain atau melanggar aturan. Kalau mau ngobrol soal Jose atau proyeknya, aku siap.',
         en: "Sorry, I can't help with anything that could harm others or break the rules. If you'd like to talk about Jose or his projects, I'm here.",
+        ja: '申し訳ありませんが、他人に害を与えたり、ルールに反したりすることはお手伝いできません。Joseやそのプロジェクトについてでしたら、喜んでお話しします。',
       }),
       500,
     )
@@ -816,6 +999,10 @@ async function answerConversation(intent, body) {
           "That's kind of you, but I'm just Jose's assistant bot. My heart is full of project data.",
           "You're making me blush, and I'm only a bot. How about we talk about Jose's work instead?",
         ],
+        ja: [
+          'ありがとうございます。でも、私はJoseのアシスタントボットです。心の中はプロジェクトのデータでいっぱいなんです。',
+          'ボットなのに照れてしまいます。それより、Joseの制作実績についてお話ししませんか？',
+        ],
       }),
       500,
     )
@@ -827,6 +1014,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Aku nggak bisa ngerjain tugas atau kode kamu langsung di sini. Tapi kalau kamu butuh bantuan untuk proyek, Jose bisa diajak diskusi. Mau aku bantu sampein pesan ke dia?',
         en: "I can't do your assignment or write your code here. But if you need help with a project, Jose is open to a discussion. Would you like me to help pass a message on to him?",
+        ja: '課題を代わりに行ったり、ここでコードを書いたりすることはできません。ただ、プロジェクトでお困りでしたら、Joseに相談していただけます。Joseへのメッセージをお届けしましょうか？',
       }),
       550,
     )
@@ -836,17 +1024,23 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'offtopicTopic') {
     await botSay(
-      en
-        ? kb.value.pickVariant('offtopicTopic', [
-            `Sorry, I can't help with questions about ${intent.topic}. I'm here to talk about Jose: his profile, experience, projects, and how to contact him.`,
-            `Hmm, ${intent.topic} is outside what I know. But if you'd like to know about Jose, just ask.`,
-            `Sorry, ${intent.topic} isn't my area. I'm only the assistant for Jose's portfolio.`,
-          ])
-        : kb.value.pickVariant('offtopicTopic', [
-            `Wah, soal ${intent.topic} aku nggak bisa bantu jawab. Aku khusus ngobrolin Jose: profil, pengalaman, proyek, dan cara menghubungi dia.`,
-            `Hmm, ${intent.topic} itu di luar yang aku tahu, hehe. Tapi kalau mau tahu soal Jose, tanya aja.`,
-            `Maaf, untuk urusan ${intent.topic} aku bukan ahlinya. Aku cuma asisten portofolio Jose.`,
-          ]),
+      pick('offtopicTopic', {
+        id: [
+          `Wah, soal ${intent.topic} aku nggak bisa bantu jawab. Aku khusus ngobrolin Jose: profil, pengalaman, proyek, dan cara menghubungi dia.`,
+          `Hmm, ${intent.topic} itu di luar yang aku tahu, hehe. Tapi kalau mau tahu soal Jose, tanya aja.`,
+          `Maaf, untuk urusan ${intent.topic} aku bukan ahlinya. Aku cuma asisten portofolio Jose.`,
+        ],
+        en: [
+          `Sorry, I can't help with questions about ${intent.topic}. I'm here to talk about Jose: his profile, experience, projects, and how to contact him.`,
+          `Hmm, ${intent.topic} is outside what I know. But if you'd like to know about Jose, just ask.`,
+          `Sorry, ${intent.topic} isn't my area. I'm only the assistant for Jose's portfolio.`,
+        ],
+        ja: [
+          `申し訳ありませんが、${intent.topic}についてのご質問にはお答えできません。私がお話しできるのは、Joseのプロフィール・経歴・プロジェクト・連絡方法についてです。`,
+          `うーん、${intent.topic}は私の専門外です。でも、Joseについてならお気軽にどうぞ。`,
+          `すみません、${intent.topic}は私の担当外です。私はJoseのポートフォリオ専用のアシスタントなんです。`,
+        ],
+      }),
       500,
     )
     return false
@@ -858,6 +1052,7 @@ async function answerConversation(intent, body) {
       pick('testMsg', {
         id: ['Masuk kok! Pesannya sampai.', 'Ada, aku di sini. Ada yang bisa aku bantu?'],
         en: ['Received! Your message came through.', "I'm here. How can I help?"],
+        ja: ['届いています！メッセージはちゃんと受け取りました。', 'はい、ここにいます。何かお手伝いしましょうか？'],
       }),
       350,
     )
@@ -866,24 +1061,34 @@ async function answerConversation(intent, body) {
 
   // Jam & tanggal diambil dari perangkat pengunjung (zona waktunya sendiri)
   if (intent.type === 'timeNow') {
-    const time = new Intl.DateTimeFormat(en ? 'en-GB' : 'id-ID', { hour: '2-digit', minute: '2-digit' }).format(new Date())
+    // Bahasa Inggris sengaja pakai en-GB (format 24 jam); bahasa lain dari LOCALES
+    const time = new Intl.DateTimeFormat(en ? 'en-GB' : LOCALES[lang.value], { hour: '2-digit', minute: '2-digit' }).format(new Date())
     await botSay(
       en
         ? `It's <strong>${time}</strong> according to your device's clock. Good ${kb.value.getTimeOfDay()}${name}!`
-        : `Sekarang jam <strong>${time}</strong> menurut jam di perangkat kamu. Selamat ${kb.value.getTimeOfDay()}${name}!`,
+        : ja
+          ? `お使いの端末の時計では、現在<strong>${time}</strong>です。${nj}${jaGreeting()}！`
+          : `Sekarang jam <strong>${time}</strong> menurut jam di perangkat kamu. Selamat ${kb.value.getTimeOfDay()}${name}!`,
       400,
     )
     return false
   }
 
   if (intent.type === 'dateNow') {
-    const date = new Intl.DateTimeFormat(en ? 'en-GB' : 'id-ID', {
+    const date = new Intl.DateTimeFormat(en ? 'en-GB' : LOCALES[lang.value], {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     }).format(new Date())
-    await botSay(en ? `Today is <strong>${date}</strong>.` : `Hari ini <strong>${date}</strong>.`, 400)
+    await botSay(
+      t({
+        id: `Hari ini <strong>${date}</strong>.`,
+        en: `Today is <strong>${date}</strong>.`,
+        ja: `今日は<strong>${date}</strong>です。`,
+      }),
+      400,
+    )
     return false
   }
 
@@ -892,6 +1097,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Hehe, aku masih baru kok, umurku seumur portofolio ini. Kalau Jose, dia sudah lulus kuliah dan sekarang kerja.',
         en: "I'm still quite new, I'm as old as this portfolio. As for Jose, he has graduated from university and is now working.",
+        ja: 'まだ生まれたばかりで、このポートフォリオと同い年です。Joseはというと、大学を卒業して、現在は働いています。',
       }),
       450,
     )
@@ -903,6 +1109,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Aku paling lancar bahasa Indonesia, termasuk bahasa gaul. Bahasa Inggris aku ngerti sedikit, misalnya "education" atau "projects". Jawabanku tetap pakai bahasa Indonesia ya.',
         en: 'I can chat in English and Indonesian. I follow the language selected for the site, so switch the language in the navigation bar if you prefer Indonesian.',
+        ja: '日本語・英語・インドネシア語でお話しできます。サイトで選択されている言語に合わせてお返事しますので、ほかの言語をご希望の場合は、ナビゲーションバーで言語を切り替えてください。',
       }),
       500,
     )
@@ -914,6 +1121,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Aku paling suka kalau ada yang nanya soal proyek Jose, hehe. Mau aku tunjukin salah satunya?',
         en: "My favorite thing is when someone asks about Jose's projects. Would you like me to show you some?",
+        ja: 'Joseのプロジェクトについて聞かれるのがいちばん好きです。いくつかご紹介しましょうか？',
       }),
       450,
     )
@@ -926,6 +1134,7 @@ async function answerConversation(intent, body) {
       pick('apology', {
         id: ['Santai aja, nggak apa-apa kok!', 'Nggak masalah, tenang aja.'],
         en: ["No worries, it's all good!", 'No problem at all.'],
+        ja: ['お気になさらず、大丈夫ですよ！', 'まったく問題ありません。'],
       }),
       350,
     )
@@ -937,6 +1146,7 @@ async function answerConversation(intent, body) {
       pick('askPermission', {
         id: ['Boleh banget, tanya aja!', 'Tentu boleh, silakan!', 'Boleh dong, mau tanya soal apa?'],
         en: ['Of course, go ahead!', 'Sure, ask away!', 'Of course, what would you like to know?'],
+        ja: ['もちろんです、どうぞ！', 'はい、何でも聞いてください！', 'もちろんです。何についてお知りになりたいですか？'],
       }),
       350,
     )
@@ -945,9 +1155,11 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'goodnight') {
     await botSay(
-      en
-        ? `Good night${name}! Thanks for stopping by. If you have any questions about Jose tomorrow, I'll still be here.`
-        : `Selamat istirahat${name}! Makasih udah mampir. Kalau besok ada yang mau ditanya soal Jose, aku masih di sini.`,
+      t({
+        id: `Selamat istirahat${name}! Makasih udah mampir. Kalau besok ada yang mau ditanya soal Jose, aku masih di sini.`,
+        en: `Good night${name}! Thanks for stopping by. If you have any questions about Jose tomorrow, I'll still be here.`,
+        ja: `${nj}おやすみなさい！お立ち寄りいただきありがとうございました。明日もJoseについて聞きたいことがあれば、いつでもお待ちしています。`,
+      }),
       450,
     )
     return true
@@ -958,6 +1170,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Aku dibuat khusus untuk portofolio Jose, buat nemenin pengunjung ngobrol soal dia dan nyampein pesan ke emailnya.',
         en: "I was made specifically for Jose's portfolio, to chat with visitors about him and pass their messages on to his email.",
+        ja: 'Joseのポートフォリオ専用に作られたアシスタントです。訪問者の方とJoseについてお話しし、メッセージをJoseのメールへお届けするのが役目です。',
       }),
       500,
     )
@@ -969,6 +1182,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Hehe, aku bukan cewek atau cowok, aku cuma bot asistennya Jose.',
         en: "I'm neither, I'm just Jose's assistant bot.",
+        ja: '男性でも女性でもありません。Joseのアシスタントボットです。',
       }),
       400,
     )
@@ -980,6 +1194,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Aku "tinggal" di website ini, hehe. Kalau Jose sendiri, dia berbasis di Bekasi, Jawa Barat.',
         en: 'I "live" on this website. Jose himself is based in Bekasi, West Java.',
+        ja: '私はこのWebサイトに「住んで」います。Jose本人は、インドネシア・西ジャワ州のブカシを拠点にしています。',
       }),
       450,
     )
@@ -996,6 +1211,10 @@ async function answerConversation(intent, body) {
         en: [
           "Bots don't need to eat, but thanks for asking! Don't forget to have a meal yourself.",
           'Electricity is all I need. Have you eaten?',
+        ],
+        ja: [
+          'ボットは食事をしなくても大丈夫です。でも、気にかけてくださってありがとうございます！お食事はどうぞ忘れずに。',
+          '電気さえあれば十分です。もうお食事はお済みですか？',
         ],
       }),
       450,
@@ -1014,6 +1233,10 @@ async function answerConversation(intent, body) {
           'Just waiting for someone to chat with, and here you are. Is there anything you want to know about Jose?',
           "Looking after Jose's portfolio. Are you looking for information about him?",
         ],
+        ja: [
+          '話しかけてくれる人を待っていたら、ちょうど来てくださいました。Joseについて知りたいことはありますか？',
+          'Joseのポートフォリオの番をしているところです。Joseについての情報をお探しですか？',
+        ],
       }),
       450,
     )
@@ -1022,15 +1245,20 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'mood') {
     await botSay(
-      en
-        ? kb.value.pickVariant('mood', [
-            `Hang in there${name}! If you're tired, it's okay to take a break.`,
-            `I'm sorry to hear that${name}. I hope things get better soon. If you'd like a light chat about Jose, I'm here.`,
-          ])
-        : kb.value.pickVariant('mood', [
-            `Semangat ya${name}! Kalau lagi capek, istirahat dulu juga gapapa.`,
-            `Peluk jauh${name}. Semoga cepat membaik ya. Kalau mau ngobrol santai soal Jose, aku temenin.`,
-          ]),
+      pick('mood', {
+        id: [
+          `Semangat ya${name}! Kalau lagi capek, istirahat dulu juga gapapa.`,
+          `Peluk jauh${name}. Semoga cepat membaik ya. Kalau mau ngobrol santai soal Jose, aku temenin.`,
+        ],
+        en: [
+          `Hang in there${name}! If you're tired, it's okay to take a break.`,
+          `I'm sorry to hear that${name}. I hope things get better soon. If you'd like a light chat about Jose, I'm here.`,
+        ],
+        ja: [
+          `${nj}無理なさらないでくださいね。疲れたときは、少し休んでも大丈夫です。`,
+          `${nj}それは大変でしたね。早く元気になりますように。Joseについて気軽にお話ししたいときは、いつでもお付き合いします。`,
+        ],
+      }),
       450,
     )
     return true
@@ -1038,9 +1266,11 @@ async function answerConversation(intent, body) {
 
   if (intent.type === 'happy') {
     await botSay(
-      en
-        ? `Glad to hear that${name}! I hope the rest of your day is just as good.`
-        : `Ikut senang dengarnya${name}! Semoga harinya terus menyenangkan.`,
+      t({
+        id: `Ikut senang dengarnya${name}! Semoga harinya terus menyenangkan.`,
+        en: `Glad to hear that${name}! I hope the rest of your day is just as good.`,
+        ja: `${nj}それはよかったです！このあとも素敵な一日になりますように。`,
+      }),
       400,
     )
     return false
@@ -1051,6 +1281,7 @@ async function answerConversation(intent, body) {
       t({
         id: 'Waduh, santai dulu ya. Aku di sini buat bantu. Kalau ada yang kurang pas, bilang aja, nanti aku coba bantu sebisanya.',
         en: "Let's keep things friendly. I'm here to help. If something isn't right, just let me know and I'll do my best to help.",
+        ja: '穏やかにお話ししましょう。私はお手伝いするためにここにいます。何かお気に召さない点があれば教えてください。できる限りお手伝いします。',
       }),
       500,
     )
@@ -1083,6 +1314,10 @@ async function answerPendingOffer(text) {
           'Okay, no problem! Is there anything else you would like to know about Jose?',
           "Sure, that's fine. If you have any other questions, just let me know.",
         ],
+        ja: [
+          '承知しました、問題ありません！ほかにJoseについて知りたいことはありますか？',
+          'かしこまりました。ほかにご質問があれば、お気軽にどうぞ。',
+        ],
       }),
       400,
     )
@@ -1096,7 +1331,7 @@ async function answerPendingOffer(text) {
     return true
   } else if (offer.type === 'projectLinks') {
     await botSay(
-      t({ id: 'Nih link demo dan repo-nya:', en: 'Here are the demo and repository links:' }),
+      t({ id: 'Nih link demo dan repo-nya:', en: 'Here are the demo and repository links:', ja: 'デモとリポジトリのリンクはこちらです。' }),
       400,
       'cards',
       projectCards(kb.value.PROJECTS.filter((p) => !p.internal), true),
@@ -1105,11 +1340,12 @@ async function answerPendingOffer(text) {
       t({
         id: 'MedCredix dan SIMRS Dashboard itu proyek freelance untuk klien (PT SPKD), jadi demo dan kodenya nggak dipublikasikan.',
         en: 'MedCredix and SIMRS Dashboard are freelance projects for a client (PT SPKD), so their demos and code are not public.',
+        ja: 'MedCredixとSIMRS Dashboardはクライアント（PT SPKD）向けのフリーランス案件のため、デモとコードは公開していません。',
       }),
       450,
     )
   } else if (offer.type === 'techProjects') {
-    await botSay(t({ id: 'Nih proyeknya:', en: 'Here you go:' }), 400)
+    await botSay(t({ id: 'Nih proyeknya:', en: 'Here you go:', ja: 'こちらです。' }), 400)
     await botSay(
       '',
       350,
@@ -1145,10 +1381,15 @@ function stepPrompt(after = 'faq') {
       ? t({
           id: 'Btw, aku asisten chat Jose. Boleh kenalan dulu, nama kamu siapa?',
           en: "By the way, I'm Jose's chat assistant. May I know your name?",
+          ja: 'ところで、私はJoseのチャットアシスタントです。お名前を伺ってもよろしいですか？',
         })
       : pick('askName', {
           id: ['Oh iya, dari tadi belum kenalan. Nama kamu siapa?', 'Btw, boleh tau nama kamu?'],
           en: ["Oh, we haven't introduced ourselves yet. What's your name?", 'By the way, may I know your name?'],
+          ja: [
+            'そういえば、まだお名前を伺っていませんでした。お名前を教えていただけますか？',
+            'ところで、お名前を伺ってもよろしいですか？',
+          ],
         })
   }
   if (step.value === 'email') {
@@ -1161,6 +1402,10 @@ function stepPrompt(after = 'faq') {
         "By the way, if you'd like to send Jose a message later, what's your email? No rush, you can share it later.",
         "By the way, may I have your email so Jose can reply to you? Feel free to ask a few questions first.",
       ],
+      ja: [
+        'ところで、後でJoseにメッセージを送る場合に備えて、メールアドレスを教えていただけますか？急ぎませんので、後からでも大丈夫です。',
+        'ところで、Joseから返信できるよう、メールアドレスを教えていただけますか？先にいくつか質問していただいても構いません。',
+      ],
     })
   }
   return pick('askMessage', {
@@ -1171,6 +1416,10 @@ function stepPrompt(after = 'faq') {
     en: [
       'By the way, is there a project, a collaboration idea, or a question you would like to share with Jose?',
       'If there is anything you would like to tell Jose directly, just write it here.',
+    ],
+    ja: [
+      'ところで、Joseに伝えたいプロジェクトのご相談、コラボレーションのアイデア、ご質問などはありますか？',
+      'Joseに直接伝えたいことがあれば、こちらにご記入ください。',
     ],
   })
 }
@@ -1190,9 +1439,12 @@ async function startConversation() {
   // Sapaan sesuai waktu dulu, lalu topik yang bisa dijawab. Pertanyaan nama
   // cuma ada sekali, di akhir pesan topik.
   await botSay(
-    lang.value === 'en'
-      ? `Hi, good ${kb.value.getTimeOfDay()}! Thanks for visiting Jose's portfolio. I'm his chat assistant, here to help.`
-      : `Halo, selamat ${kb.value.getTimeOfDay()}! Makasih udah mampir ke portofolio Jose. Aku asisten chat-nya, siap nemenin ngobrol.`,
+    t({
+      id: `Halo, selamat ${kb.value.getTimeOfDay()}! Makasih udah mampir ke portofolio Jose. Aku asisten chat-nya, siap nemenin ngobrol.`,
+      en: `Hi, good ${kb.value.getTimeOfDay()}! Thanks for visiting Jose's portfolio. I'm his chat assistant, here to help.`,
+      // Bahasa Jepang: salam sesuai jam (おはようございます/こんにちは/こんばんは)
+      ja: `${jaGreeting()}！Joseのポートフォリオにお越しいただき、ありがとうございます。Joseのチャットアシスタントです。どうぞお気軽に話しかけてください。`,
+    }),
     400,
   )
   await botSay(kb.value.TOPICS_HTML, 450)
@@ -1231,6 +1483,7 @@ function clearConversation() {
     t({
       id: 'Hapus semua riwayat chat ini? Percakapan akan dimulai dari awal lagi.',
       en: 'Delete this entire chat history? The conversation will start over from the beginning.',
+      ja: 'このチャット履歴をすべて削除しますか？会話は最初からやり直しになります。',
     }),
   )
   if (!confirmed) return
@@ -1244,6 +1497,7 @@ const API_URL = import.meta.env.VITE_API_URL || ''
 async function submitForm() {
   const gen = convGen
   const en = lang.value === 'en'
+  const ja = lang.value === 'ja'
   try {
     const res = await fetch(`${API_URL}/api/contact`, {
       method: 'POST',
@@ -1268,6 +1522,16 @@ async function submitForm() {
         enError.userFacing = true
         throw enError
       }
+      // Versi Jepang: sama, diganti kalimat Jepang yang setara.
+      if (ja) {
+        const jaError = new Error(
+          res.status === 429
+            ? '短時間に多くのメッセージが送信されました。数分後にもう一度お試しください。'
+            : 'メッセージを送信できませんでした。もう一度お試しください。',
+        )
+        jaError.userFacing = true
+        throw jaError
+      }
       throw new Error(data.error || 'Gagal mengirim pesan, coba lagi ya.')
     }
 
@@ -1276,25 +1540,35 @@ async function submitForm() {
       t({
         id: 'Pesan berhasil terkirim! Cek email kamu, sudah kukirim juga konfirmasinya ke sana. Makasih ya!',
         en: "Your message has been sent! Please check your inbox, I've also sent you a confirmation email. Thank you!",
+        ja: 'メッセージを送信しました！確認メールもお送りしましたので、受信トレイをご確認ください。ありがとうございました！',
       }),
     )
   } catch (err) {
     if (gen !== convGen) return
-    // Versi Inggris: error teknis browser (mis. "Failed to fetch") diganti
+    // Versi Inggris/Jepang: error teknis browser (mis. "Failed to fetch") diganti
     // kalimat yang ramah, sama seperti error dari server.
     submitError.value = en
       ? err.userFacing
         ? err.message
         : 'something went wrong while sending your message. Please try again.'
-      : err.message || 'Ada masalah pas ngirim pesan, coba lagi ya.'
+      : ja
+        ? err.userFacing
+          ? err.message
+          : 'メッセージの送信中に問題が発生しました。もう一度お試しください。'
+        : err.message || 'Ada masalah pas ngirim pesan, coba lagi ya.'
     step.value = 'error'
-    await botSay(en ? `Sorry, ${submitError.value}` : `Waduh, ${submitError.value}`)
+    await botSay(
+      en ? `Sorry, ${submitError.value}` : ja ? `申し訳ありません。${submitError.value}` : `Waduh, ${submitError.value}`,
+    )
   }
 }
 
 async function retrySubmit() {
   step.value = 'submitting'
-  await botSay(t({ id: 'Oke, aku coba kirim ulang ya...', en: "Okay, I'll try sending it again..." }), 350)
+  await botSay(
+    t({ id: 'Oke, aku coba kirim ulang ya...', en: "Okay, I'll try sending it again...", ja: 'では、もう一度送信してみます…' }),
+    350,
+  )
   await submitForm()
 }
 
@@ -1330,15 +1604,19 @@ function takeUserMessage(text) {
 async function enterChatMode(hello = '') {
   step.value = 'chat'
   const name = form.value.name ? `, ${escapeHtml(form.value.name)}` : ''
-  const en = lang.value === 'en'
+  const nj = jaCall()
   await botSay(
     form.value.name && form.value.email
-      ? en
-        ? `${hello}No problem at all${name}! I already have your details, so whenever you want to send a message, just let me know.`
-        : `${hello}Gapapa, santai aja${name}! Data kamu udah aku catat, jadi kapan pun mau kirim pesan tinggal bilang aja.`
-      : en
-        ? `${hello}No problem at all${name}! Your name and email are only needed if you want to send Jose a message. Let's just chat for now.`
-        : `${hello}Gapapa, santai aja${name}! Nama dan email cuma perlu kalau kamu mau kirim pesan ke Jose. Sekarang kita ngobrol dulu aja.`,
+      ? t({
+          id: `${hello}Gapapa, santai aja${name}! Data kamu udah aku catat, jadi kapan pun mau kirim pesan tinggal bilang aja.`,
+          en: `${hello}No problem at all${name}! I already have your details, so whenever you want to send a message, just let me know.`,
+          ja: `${hello}${nj}もちろん大丈夫です！お名前とメールアドレスはお預かりしていますので、メッセージを送りたくなったら、いつでもお声がけください。`,
+        })
+      : t({
+          id: `${hello}Gapapa, santai aja${name}! Nama dan email cuma perlu kalau kamu mau kirim pesan ke Jose. Sekarang kita ngobrol dulu aja.`,
+          en: `${hello}No problem at all${name}! Your name and email are only needed if you want to send Jose a message. Let's just chat for now.`,
+          ja: `${hello}${nj}もちろん大丈夫です！お名前とメールアドレスは、Joseにメッセージを送る場合にだけ必要です。まずは気軽にお話ししましょう。`,
+        }),
     450,
   )
   await botSay(kb.value.TOPICS_MENU_HTML, 400)
@@ -1353,14 +1631,17 @@ async function resumeContact(email = '') {
       t({
         id: 'Siap! Biar Jose tau ini dari siapa, nama kamu siapa?',
         en: "Sure! So Jose knows who it's from, what's your name?",
+        ja: 'かしこまりました！どなたからのメッセージかJoseに伝わるよう、お名前を教えていただけますか？',
       }),
     )
   } else if (!form.value.email) {
     step.value = 'email'
     await botSay(
-      lang.value === 'en'
-        ? `Sure, ${escapeHtml(form.value.name)}! What's your email, so Jose can reply to you there?`
-        : `Siap, ${escapeHtml(form.value.name)}! Email kamu apa, biar Jose bisa balas ke sana?`,
+      t({
+        id: `Siap, ${escapeHtml(form.value.name)}! Email kamu apa, biar Jose bisa balas ke sana?`,
+        en: `Sure, ${escapeHtml(form.value.name)}! What's your email, so Jose can reply to you there?`,
+        ja: `かしこまりました、${escapeHtml(form.value.name)}さん！Joseから返信できるよう、メールアドレスを教えていただけますか？`,
+      }),
     )
   } else {
     step.value = 'message'
@@ -1368,6 +1649,7 @@ async function resumeContact(email = '') {
       t({
         id: 'Siap! Cerita dong, ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?',
         en: 'Sure! Tell me, is there a project, a collaboration idea, or a question you would like to share with Jose?',
+        ja: 'かしこまりました！Joseに伝えたいプロジェクトのご相談、コラボレーションのアイデア、ご質問などをお聞かせください。',
       }),
     )
   }
@@ -1388,6 +1670,7 @@ function canMatchConversation(body) {
 async function processMessage(text) {
   const kbm = kb.value
   const en = lang.value === 'en'
+  const ja = lang.value === 'ja'
 
   // 0) Jawaban "iya/boleh/nggak" untuk tawaran bot sebelumnya. Dicek paling
   //    awal supaya "iya" tidak tertelan sebagai basa-basi.
@@ -1450,7 +1733,7 @@ async function processMessage(text) {
     (step.value === 'message' ? wordCount <= 5 && !kbm.looksLikeMessageToJose(body) : wordCount <= 10)
   if (['name', 'email', 'message'].includes(step.value) && isDecline) {
     takeUserMessage(text)
-    await enterChatMode(greeted ? `${greetBack(text)} ` : '')
+    await enterChatMode(greeted ? `${greetBack(text)}${sentenceGap()}` : '')
     return
   }
 
@@ -1482,6 +1765,7 @@ async function processMessage(text) {
       t({
         id: 'Pesan kamu ke Jose sudah terkirim ya. Kalau mau kirim pesan lain, klik tombol "Kirim pesan lain". Kamu juga masih bisa tanya soal profil, pengalaman, atau proyek Jose di sini.',
         en: 'Your message to Jose has been sent. If you want to send another one, click the "Send another message" button. You can still ask about Jose\'s profile, experience, or projects here.',
+        ja: 'Joseへのメッセージは送信済みです。別のメッセージを送る場合は、「別のメッセージを送る」ボタンを押してください。Joseのプロフィール・経歴・プロジェクトについても、引き続きこちらで質問できます。',
       }),
       500,
     )
@@ -1509,12 +1793,17 @@ async function processMessage(text) {
     takeUserMessage(text)
     // Hanya kalau user memang minta dipilihkan ("terserah", "bingung"), bukan
     // setiap kalimat yang kebetulan mengandung "ga"/"tidak".
-    const pickAnyRx = en
+    // Bahasa Inggris & Jepang memakai PICK_ANY_RX dari basis pengetahuannya.
+    const pickAnyRx = (en || ja) && kbm.PICK_ANY_RX
       ? kbm.PICK_ANY_RX
       : /^(?:terserah|bebas|apa\s*(?:aja|saja)|bingung|yang\s*lain|lain\s*aja)\b/i
     await botSay(
       pickAnyRx.test(body.trim())
-        ? t({ id: 'Boleh, pilih aja topiknya ya.', en: 'Sure, just pick a topic from the list below.' })
+        ? t({
+            id: 'Boleh, pilih aja topiknya ya.',
+            en: 'Sure, just pick a topic from the list below.',
+            ja: 'もちろんです。下の一覧からトピックを選んでください。',
+          })
         : pick('unknown', {
             id: [
               'Hmm, yang itu aku belum bisa jawab. Aku paling nyambung kalau ditanya soal Jose.',
@@ -1526,6 +1815,11 @@ async function processMessage(text) {
               "Sorry, I didn't quite catch that. Try asking in a different way, or pick a topic below.",
               "That's outside what I know. But I'm happy to tell you about Jose!",
             ],
+            ja: [
+              'うーん、その質問にはまだお答えできません。Joseについてのご質問なら、お役に立てると思います。',
+              'すみません、うまく理解できませんでした。別の言い方で聞いていただくか、下のトピックから選んでください。',
+              'それは私の知識の範囲外です。でも、Joseについてなら喜んでお話しします！',
+            ],
           }),
       400,
     )
@@ -1536,7 +1830,7 @@ async function processMessage(text) {
   // 5) Alur form: nama -> email -> pesan
   if (step.value === 'name') {
     takeUserMessage(text)
-    const hello = greeted ? `${greetBack(text)} ` : ''
+    const hello = greeted ? `${greetBack(text)}${sentenceGap()}` : ''
 
     // Ada yang langsung ngetik email di langkah nama
     const emailInName = kbm.extractEmail(body)
@@ -1547,16 +1841,20 @@ async function processMessage(text) {
         form.value.name = statedName.name
         step.value = 'message'
         await botSay(
-          en
-            ? `${hello}Nice to meet you, ${escapeHtml(statedName.name)}! I've noted your email. Now tell me, is there a project, a collaboration idea, or a question you would like to share with Jose?`
-            : `${hello}Salam kenal, ${escapeHtml(statedName.name)}! Emailnya udah aku catat. Sekarang cerita dong, ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?`,
+          t({
+            id: `${hello}Salam kenal, ${escapeHtml(statedName.name)}! Emailnya udah aku catat. Sekarang cerita dong, ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?`,
+            en: `${hello}Nice to meet you, ${escapeHtml(statedName.name)}! I've noted your email. Now tell me, is there a project, a collaboration idea, or a question you would like to share with Jose?`,
+            ja: `${hello}はじめまして、${escapeHtml(statedName.name)}さん！メールアドレスを控えました。では、Joseに伝えたいプロジェクトのご相談、コラボレーションのアイデア、ご質問などをお聞かせください。`,
+          }),
         )
         return
       }
       await botSay(
-        en
-          ? `${hello}I've noted your email. And what's your name?`
-          : `${hello}Emailnya udah aku catat ya. Biar lebih akrab, nama kamu siapa?`,
+        t({
+          id: `${hello}Emailnya udah aku catat ya. Biar lebih akrab, nama kamu siapa?`,
+          en: `${hello}I've noted your email. And what's your name?`,
+          ja: `${hello}メールアドレスを控えました。お名前も教えていただけますか？`,
+        }),
       )
       return
     }
@@ -1570,13 +1868,20 @@ async function processMessage(text) {
                 "Hmm, I can't answer that one yet. I'm most helpful with questions about Jose's profile, experience, projects, or skills.",
                 "Sorry, I didn't quite catch that. Try asking about Jose in a different way.",
               ])} By the way, may I know your name?`
-            : `${hello}${kbm.pickVariant('unknownName', [
-                'Hmm, yang itu aku belum bisa jawab. Aku paling nyambung kalau ditanya soal profil, pengalaman, proyek, atau skill Jose.',
-                'Maaf, aku belum nangkep maksudnya. Coba tanya soal Jose dengan kalimat lain ya.',
-              ])} Oh iya, boleh tau nama kamu siapa?`
-          : en
-            ? `${hello}Hmm, that doesn't look like a name. What should I call you? One word is enough, for example: Sarah.`
-            : `${hello}Hmm, kayaknya itu bukan nama deh. Nama panggilan kamu siapa? Cukup satu kata aja, contoh: Budi.`,
+            : ja
+              ? `${hello}${kbm.pickVariant('unknownName', [
+                  'うーん、その質問にはまだお答えできません。Joseのプロフィール・経歴・プロジェクト・スキルについてのご質問なら、お役に立てると思います。',
+                  'すみません、うまく理解できませんでした。Joseについて、別の言い方で聞いてみてください。',
+                ])}ところで、お名前を伺ってもよろしいですか？`
+              : `${hello}${kbm.pickVariant('unknownName', [
+                  'Hmm, yang itu aku belum bisa jawab. Aku paling nyambung kalau ditanya soal profil, pengalaman, proyek, atau skill Jose.',
+                  'Maaf, aku belum nangkep maksudnya. Coba tanya soal Jose dengan kalimat lain ya.',
+                ])} Oh iya, boleh tau nama kamu siapa?`
+          : t({
+              id: `${hello}Hmm, kayaknya itu bukan nama deh. Nama panggilan kamu siapa? Cukup satu kata aja, contoh: Budi.`,
+              en: `${hello}Hmm, that doesn't look like a name. What should I call you? One word is enough, for example: Sarah.`,
+              ja: `${hello}うーん、お名前ではないようです。何とお呼びすればよいですか？「さくら」のように、ひと言で大丈夫です。`,
+            }),
       )
       return
     }
@@ -1586,18 +1891,22 @@ async function processMessage(text) {
     if (form.value.email) {
       step.value = 'message'
       await botSay(
-        en
-          ? `${hello}Nice to meet you, ${safeName}! Now tell me, is there a project, a collaboration idea, or a question you would like to share with Jose?`
-          : `${hello}Salam kenal, ${safeName}! Sekarang cerita dong, ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?`,
+        t({
+          id: `${hello}Salam kenal, ${safeName}! Sekarang cerita dong, ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?`,
+          en: `${hello}Nice to meet you, ${safeName}! Now tell me, is there a project, a collaboration idea, or a question you would like to share with Jose?`,
+          ja: `${hello}はじめまして、${safeName}さん！では、Joseに伝えたいプロジェクトのご相談、コラボレーションのアイデア、ご質問などをお聞かせください。`,
+        }),
       )
       return
     }
     step.value = 'email'
     lastAskTurn = userTurn
     await botSay(
-      en
-        ? `${hello}Nice to meet you, ${safeName}! What's your email, so Jose can reply to you there?`
-        : `${hello}Salam kenal, ${safeName}! Email kamu apa, biar Jose bisa balas ke sana?`,
+      t({
+        id: `${hello}Salam kenal, ${safeName}! Email kamu apa, biar Jose bisa balas ke sana?`,
+        en: `${hello}Nice to meet you, ${safeName}! What's your email, so Jose can reply to you there?`,
+        ja: `${hello}はじめまして、${safeName}さん！Joseから返信できるよう、メールアドレスを教えていただけますか？`,
+      }),
     )
     return
   }
@@ -1611,9 +1920,11 @@ async function processMessage(text) {
       if (nameStatement) {
         form.value.name = nameStatement.name
         await botSay(
-          en
-            ? `Got it, I'll call you ${escapeHtml(nameStatement.name)}! Next, what's your email, so Jose can reply to you there?`
-            : `Oke, aku panggil ${escapeHtml(nameStatement.name)} ya! Lanjut, email kamu apa, biar Jose bisa balas ke sana?`,
+          t({
+            id: `Oke, aku panggil ${escapeHtml(nameStatement.name)} ya! Lanjut, email kamu apa, biar Jose bisa balas ke sana?`,
+            en: `Got it, I'll call you ${escapeHtml(nameStatement.name)}! Next, what's your email, so Jose can reply to you there?`,
+            ja: `承知しました。${escapeHtml(nameStatement.name)}さんとお呼びしますね！続いて、Joseから返信できるよう、メールアドレスを教えていただけますか？`,
+          }),
         )
         return
       }
@@ -1624,10 +1935,12 @@ async function processMessage(text) {
           ? t({
               id: 'Hmm, format emailnya kayaknya belum pas. Coba tulis ulang ya, contoh: nama@email.com',
               en: "Hmm, that email format doesn't look quite right. Please try again, for example: name@email.com",
+              ja: 'うーん、メールアドレスの形式が正しくないようです。もう一度入力してください。例：name@email.com',
             })
           : t({
               id: 'Itu kayaknya bukan email ya. Kalau belum mau kasih email juga gapapa, bilang aja "nanti aja", nanti kita ngobrol soal Jose dulu. Kalau mau lanjut, tulis email kamu, contoh: nama@email.com',
               en: 'That doesn\'t look like an email address. If you\'d rather not share your email yet, that\'s fine, just say "maybe later" and we can talk about Jose first. To continue, type your email, for example: name@email.com',
+              ja: 'メールアドレスではないようです。まだメールアドレスを教えたくない場合は、「あとで」と入力してください。先にJoseについてお話しできます。続ける場合は、メールアドレスを入力してください。例：name@email.com',
             }),
       )
       return
@@ -1637,6 +1950,7 @@ async function processMessage(text) {
         t({
           id: 'Hmm, format emailnya kayaknya belum pas. Coba tulis ulang ya, contoh: nama@email.com',
           en: "Hmm, that email format doesn't look quite right. Please try again, for example: name@email.com",
+          ja: 'うーん、メールアドレスの形式が正しくないようです。もう一度入力してください。例：name@email.com',
         }),
       )
       return
@@ -1647,6 +1961,7 @@ async function processMessage(text) {
       t({
         id: 'Sip! Terakhir, cerita dong ada <em>project</em>, ide kolaborasi, atau pertanyaan apa yang mau kamu sampein ke Jose?',
         en: 'Great! Lastly, tell me, is there a project, a collaboration idea, or a question you would like to share with Jose?',
+        ja: 'ありがとうございます！最後に、Joseに伝えたいプロジェクトのご相談、コラボレーションのアイデア、ご質問などをお聞かせください。',
       }),
     )
     return
@@ -1660,6 +1975,7 @@ async function processMessage(text) {
         t({
           id: 'Pesannya singkat banget nih. Ceritain sedikit lebih detail ya, biar Jose bisa langsung bantu.',
           en: 'That message is quite short. Could you add a bit more detail so Jose can help you right away?',
+          ja: 'メッセージが少し短いようです。Joseがすぐに対応できるよう、もう少し詳しく書いていただけますか？',
         }),
       )
       return
@@ -1667,7 +1983,11 @@ async function processMessage(text) {
     form.value.message = text
     step.value = 'submitting'
     await botSay(
-      t({ id: 'Oke, aku kirimkan sekarang ya, tunggu sebentar...', en: "Okay, I'm sending it now, one moment..." }),
+      t({
+        id: 'Oke, aku kirimkan sekarang ya, tunggu sebentar...',
+        en: "Okay, I'm sending it now, one moment...",
+        ja: 'では、今から送信します。少々お待ちください…',
+      }),
       400,
     )
     await submitForm()
@@ -1681,15 +2001,19 @@ async function processMessage(text) {
 }
 
 const placeholder = computed(() => {
-  if (step.value === 'name') return t({ id: 'Ketik nama kamu...', en: 'Type your name...' })
-  if (step.value === 'email') return t({ id: 'Ketik email kamu...', en: 'Type your email...' })
-  if (step.value === 'message') return t({ id: 'Tulis pesan kamu...', en: 'Write your message...' })
-  if (step.value === 'submitting') return t({ id: 'Sedang mengirim...', en: 'Sending...' })
+  if (step.value === 'name') return t({ id: 'Ketik nama kamu...', en: 'Type your name...', ja: 'お名前を入力…' })
+  if (step.value === 'email') return t({ id: 'Ketik email kamu...', en: 'Type your email...', ja: 'メールアドレスを入力…' })
+  if (step.value === 'message') return t({ id: 'Tulis pesan kamu...', en: 'Write your message...', ja: 'メッセージを入力…' })
+  if (step.value === 'submitting') return t({ id: 'Sedang mengirim...', en: 'Sending...', ja: '送信中…' })
   if (step.value === 'done') {
-    return t({ id: 'Tanya soal Jose, atau klik "Kirim pesan lain"', en: 'Ask about Jose, or click "Send another message"' })
+    return t({
+      id: 'Tanya soal Jose, atau klik "Kirim pesan lain"',
+      en: 'Ask about Jose, or click "Send another message"',
+      ja: 'Joseについて質問するか、「別のメッセージを送る」を押してください',
+    })
   }
-  if (step.value === 'chat') return t({ id: 'Tanya soal Jose...', en: 'Ask about Jose...' })
-  return t({ id: 'Klik "Coba Lagi" di atas', en: 'Click "Try Again" above' })
+  if (step.value === 'chat') return t({ id: 'Tanya soal Jose...', en: 'Ask about Jose...', ja: 'Joseについて質問…' })
+  return t({ id: 'Klik "Coba Lagi" di atas', en: 'Click "Try Again" above', ja: '上の「再試行」を押してください' })
 })
 
 const isInputDisabled = computed(() => ['submitting', 'error'].includes(step.value))
@@ -1763,16 +2087,16 @@ watch(lang, (next, prev) => {
         v-if="chatStore.isOpen"
         class="chat-widget__panel"
         role="dialog"
-        :aria-label="t({ id: 'Chat kontak dengan Jose', en: 'Chat with Jose' })"
+        :aria-label="t({ id: 'Chat kontak dengan Jose', en: 'Chat with Jose', ja: 'Joseとのチャット' })"
       >
         <header class="chat-widget__header">
           <div class="chat-widget__header-info">
             <span class="chat-widget__avatar" aria-hidden="true">JP</span>
             <div>
-              <p class="chat-widget__title">{{ t({ id: 'Chat dengan Jose', en: 'Chat with Jose' }) }}</p>
+              <p class="chat-widget__title">{{ t({ id: 'Chat dengan Jose', en: 'Chat with Jose', ja: 'Joseとチャット' }) }}</p>
               <p class="chat-widget__subtitle">
                 <span class="chat-widget__status-dot" aria-hidden="true"></span>
-                {{ t({ id: 'Biasanya balas dalam 1 hari', en: 'Usually replies within a day' }) }}
+                {{ t({ id: 'Biasanya balas dalam 1 hari', en: 'Usually replies within a day', ja: 'たいてい1日以内に返信します' }) }}
               </p>
             </div>
           </div>
@@ -1781,8 +2105,8 @@ watch(lang, (next, prev) => {
             <button
               type="button"
               class="btn-close btn-close--blue chat-widget__icon-btn"
-              :aria-label="t({ id: 'Hapus riwayat chat', en: 'Clear chat history' })"
-              :title="t({ id: 'Hapus riwayat chat', en: 'Clear chat history' })"
+              :aria-label="t({ id: 'Hapus riwayat chat', en: 'Clear chat history', ja: 'チャット履歴を削除' })"
+              :title="t({ id: 'Hapus riwayat chat', en: 'Clear chat history', ja: 'チャット履歴を削除' })"
               @click="clearConversation"
             >
               <svg viewBox="0 0 24 24" class="chat-widget__icon-svg" aria-hidden="true">
@@ -1800,7 +2124,7 @@ watch(lang, (next, prev) => {
             <button
               type="button"
               class="btn-close btn-close--blue chat-widget__icon-btn"
-              :aria-label="t({ id: 'Tutup chat', en: 'Close chat' })"
+              :aria-label="t({ id: 'Tutup chat', en: 'Close chat', ja: 'チャットを閉じる' })"
               @click="closeWidget"
             >
               <svg viewBox="0 0 24 24" class="chat-widget__icon-svg" aria-hidden="true">
@@ -1838,7 +2162,7 @@ watch(lang, (next, prev) => {
                   <div v-if="item.image" class="chat-widget__card-thumb-wrap">
                     <img
                       :src="item.image"
-                      :alt="t({ id: `Thumbnail proyek ${item.title}`, en: `${item.title} project thumbnail` })"
+                      :alt="t({ id: `Thumbnail proyek ${item.title}`, en: `${item.title} project thumbnail`, ja: `${item.title}のサムネイル` })"
                       class="chat-widget__card-thumb"
                       loading="lazy"
                       draggable="false"
@@ -1884,13 +2208,13 @@ watch(lang, (next, prev) => {
 
           <div v-if="step === 'error'" class="chat-widget__actions">
             <button type="button" class="chat-widget__action-btn" @click="retrySubmit">
-              {{ t({ id: 'Coba Lagi', en: 'Try Again' }) }}
+              {{ t({ id: 'Coba Lagi', en: 'Try Again', ja: '再試行' }) }}
             </button>
           </div>
 
           <div v-if="step === 'done'" class="chat-widget__actions">
             <button type="button" class="chat-widget__action-btn" @click="resetConversation">
-              {{ t({ id: 'Kirim pesan lain', en: 'Send another message' }) }}
+              {{ t({ id: 'Kirim pesan lain', en: 'Send another message', ja: '別のメッセージを送る' }) }}
             </button>
           </div>
 
@@ -1911,7 +2235,7 @@ watch(lang, (next, prev) => {
             type="submit"
             class="chat-widget__send"
             :disabled="isInputDisabled || !inputValue.trim()"
-            :aria-label="t({ id: 'Kirim pesan', en: 'Send message' })"
+            :aria-label="t({ id: 'Kirim pesan', en: 'Send message', ja: 'メッセージを送信' })"
           >
             <svg viewBox="0 0 24 24" class="chat-widget__send-icon" aria-hidden="true">
               <path
@@ -1932,7 +2256,7 @@ watch(lang, (next, prev) => {
       type="button"
       class="btn-close btn-close--solid chat-widget__fab"
       :class="{ 'chat-widget__fab--open': chatStore.isOpen, 'chat-widget__fab--tucked': fabTucked }"
-      :aria-label="chatStore.isOpen ? t({ id: 'Tutup chat', en: 'Close chat' }) : t({ id: 'Buka chat kontak', en: 'Open contact chat' })"
+      :aria-label="chatStore.isOpen ? t({ id: 'Tutup chat', en: 'Close chat', ja: 'チャットを閉じる' }) : t({ id: 'Buka chat kontak', en: 'Open contact chat', ja: 'お問い合わせチャットを開く' })"
       @click="toggleWidget"
     >
       <svg

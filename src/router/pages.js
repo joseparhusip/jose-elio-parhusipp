@@ -8,7 +8,7 @@
 --------------------------------------------------------- */
 export const SITE_URL = 'https://www.joseparhusip.com'
 
-// `en`: label menu, judul tab, & deskripsi versi Inggris (lihat useLang.js)
+// `en` / `ja`: label menu, judul tab, & deskripsi versi Inggris / Jepang (lihat useLang.js)
 export const pages = [
   {
     path: '/',
@@ -23,6 +23,12 @@ export const pages = [
       title: 'Jose Elio Parhusip — Fresh Graduate Passionate About Technology',
       description:
         'Portfolio of Jose Elio Parhusip, a Digital Business graduate from ULBI Bandung who is passionate about technology, especially web, mobile, data, and AI.',
+    },
+    ja: {
+      label: 'ホーム',
+      title: 'Jose Elio Parhusip — テクノロジーに情熱を注ぐ新卒エンジニア',
+      description:
+        'Jose Elio Parhusipのポートフォリオです。ULBI（バンドン）でデジタルビジネス学士を取得した新卒で、Web・モバイル・データ・AIを中心にテクノロジーに情熱を注いでいます。',
     },
   },
   {
@@ -39,6 +45,12 @@ export const pages = [
       description:
         'Get to know Jose Elio Parhusip: his Digital Business degree from ULBI, his skills, and his journey in technology.',
     },
+    ja: {
+      label: '自己紹介',
+      title: '自己紹介 — Jose Elio Parhusip',
+      description:
+        'Jose Elio Parhusipの自己紹介です。ULBIでのデジタルビジネス学士の学び、スキル、テクノロジーとの歩みをご紹介します。',
+    },
   },
   {
     path: '/pengalaman',
@@ -53,6 +65,12 @@ export const pages = [
       title: 'Experience — Jose Elio Parhusip',
       description:
         'Work, internship, and organizational experience of Jose Elio Parhusip in web, mobile, and data development.',
+    },
+    ja: {
+      label: '経歴',
+      title: '経歴 — Jose Elio Parhusip',
+      description:
+        'Jose Elio ParhusipのWeb・モバイル・データ開発分野における職務経験、インターンシップ、組織活動の経歴です。',
     },
   },
   {
@@ -69,6 +87,12 @@ export const pages = [
       description:
         'Projects by Jose Elio Parhusip: landing pages, e-commerce websites, Flutter mobile apps, and data analysis.',
     },
+    ja: {
+      label: 'プロジェクト',
+      title: 'プロジェクト — Jose Elio Parhusip',
+      description:
+        'Jose Elio Parhusipのプロジェクト一覧です。ランディングページ、ECサイト、Flutterによるモバイルアプリ、データ分析などを掲載しています。',
+    },
   },
   {
     path: '/sertifikat',
@@ -84,6 +108,12 @@ export const pages = [
       description:
         'Certificates and training of Jose Elio Parhusip: SAP, an IT career bootcamp, the P2MW program, and a web development course.',
     },
+    ja: {
+      label: '資格',
+      title: '資格・修了証 — Jose Elio Parhusip',
+      description:
+        'Jose Elio Parhusipの資格・研修歴です。SAP、ITキャリアブートキャンプ、P2MWプログラム、Web開発講座などを修了しています。',
+    },
   },
   {
     path: '/kontak',
@@ -98,6 +128,12 @@ export const pages = [
       title: 'Contact — Jose Elio Parhusip',
       description:
         'Contact Jose Elio Parhusip about job opportunities, collaborations, or projects. Send a message directly or reach out on LinkedIn and Instagram.',
+    },
+    ja: {
+      label: 'お問い合わせ',
+      title: 'お問い合わせ — Jose Elio Parhusip',
+      description:
+        '求人・協業・プロジェクトのご相談は、Jose Elio Parhusipまでお気軽にご連絡ください。メッセージの直接送信のほか、LinkedInやInstagramからもご連絡いただけます。',
     },
   },
 ]

@@ -38,6 +38,7 @@ const wantedPath = computed(() => {
         <div class="notfound__text">
           <h1 v-reveal.clip="140" class="notfound__title">
             <template v-if="lang === 'en'">This page <span class="serif-accent">got lost</span>.</template>
+            <template v-else-if="lang === 'ja'">このページは<span class="serif-accent">迷子</span>になりました。</template>
             <template v-else>Halaman ini <span class="serif-accent">tersesat</span>.</template>
           </h1>
           <p v-reveal="220" class="notfound__lead">
@@ -45,6 +46,9 @@ const wantedPath = computed(() => {
               The address <code class="notfound__path">{{ wantedPath }}</code> does not exist or
               has been moved. Try starting again from the
               <RouterLink to="/" class="notfound__home">home page</RouterLink>.
+            </template>
+            <template v-else-if="lang === 'ja'">
+              お探しのページ<code class="notfound__path">{{ wantedPath }}</code>は存在しないか、移動した可能性があります。<RouterLink to="/" class="notfound__home">ホーム</RouterLink>からもう一度お試しください。
             </template>
             <template v-else>
               Alamat <code class="notfound__path">{{ wantedPath }}</code> tidak ada atau

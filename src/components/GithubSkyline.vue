@@ -483,21 +483,21 @@ onBeforeUnmount(() => {
     ></canvas>
 
     <!-- Tombol zoom (pojok kanan atas) -->
-    <div class="skyline__zoom" role="group" :aria-label="t({ id: 'Zoom grafik', en: 'Graph zoom' })">
-      <button type="button" class="skyline__btn" :aria-label="t({ id: 'Perbesar', en: 'Zoom in' })" @click="zoomBy(1.6)">
+    <div class="skyline__zoom" role="group" :aria-label="t({ id: 'Zoom grafik', en: 'Graph zoom', ja: 'グラフの拡大・縮小' })">
+      <button type="button" class="skyline__btn" :aria-label="t({ id: 'Perbesar', en: 'Zoom in', ja: '拡大' })" @click="zoomBy(1.6)">
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
       </button>
-      <button type="button" class="skyline__btn" :disabled="!zoomed" :aria-label="t({ id: 'Perkecil', en: 'Zoom out' })" @click="zoomBy(1 / 1.6)">
+      <button type="button" class="skyline__btn" :disabled="!zoomed" :aria-label="t({ id: 'Perkecil', en: 'Zoom out', ja: '縮小' })" @click="zoomBy(1 / 1.6)">
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
       </button>
-      <button type="button" class="skyline__btn" :aria-label="t({ id: 'Kembalikan tampilan', en: 'Reset view' })" @click="resetView">
+      <button type="button" class="skyline__btn" :aria-label="t({ id: 'Kembalikan tampilan', en: 'Reset view', ja: '表示をリセット' })" @click="resetView">
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5M3 2.8v3.6h3.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
       </button>
     </div>
 
     <Transition name="skyline-hint">
       <p v-if="zoomHint" class="skyline__hint" aria-hidden="true">
-        {{ t({ id: 'Tahan Ctrl + scroll untuk zoom', en: 'Hold Ctrl + scroll to zoom' }) }}
+        {{ t({ id: 'Tahan Ctrl + scroll untuk zoom', en: 'Hold Ctrl + scroll to zoom', ja: 'Ctrl＋スクロールで拡大・縮小' }) }}
       </p>
     </Transition>
   </div>

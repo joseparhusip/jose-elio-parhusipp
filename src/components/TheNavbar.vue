@@ -168,7 +168,7 @@ onUnmounted(() => {
       'navbar--phone': isPhone,
     }"
   >
-    <nav class="navbar__inner" :aria-label="t({ id: 'Navigasi utama', en: 'Main navigation' })">
+    <nav class="navbar__inner" :aria-label="t({ id: 'Navigasi utama', en: 'Main navigation', ja: 'メインナビゲーション' })">
       <a :href="homeLink.path" class="navbar__logo" :aria-label="t(homeLink.label)" @click="onLinkClick($event, homeLink)">
         <img
           :src="theme === 'light' ? '/logo-navbar-sebelum-scroll.webp' : '/logo-navbar-footer.webp'"
@@ -209,7 +209,7 @@ onUnmounted(() => {
         <LangSwitch />
         <ThemeSwitch />
         <a :href="contactLink.path" class="navbar__cta navbar__cta--desktop" @click="onLinkClick($event, contactLink)">
-          {{ t({ id: 'Hubungi Saya', en: 'Get in Touch' }) }}
+          {{ t({ id: 'Hubungi Saya', en: 'Get in Touch', ja: 'お問い合わせ' }) }}
           <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
               stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
@@ -222,8 +222,8 @@ onUnmounted(() => {
           type="button"
           :aria-label="
             isMenuOpen
-              ? t({ id: 'Tutup menu navigasi', en: 'Close navigation menu' })
-              : t({ id: 'Buka menu navigasi', en: 'Open navigation menu' })
+              ? t({ id: 'Tutup menu navigasi', en: 'Close navigation menu', ja: 'ナビゲーションメニューを閉じる' })
+              : t({ id: 'Buka menu navigasi', en: 'Open navigation menu', ja: 'ナビゲーションメニューを開く' })
           "
           :aria-expanded="isMenuOpen"
           aria-controls="navbar-sheet"
@@ -268,7 +268,7 @@ onUnmounted(() => {
           :style="{ '--i': navLinks.length }"
           @click="onLinkClick($event, contactLink)"
         >
-          {{ t({ id: 'Hubungi Saya', en: 'Get in Touch' }) }}
+          {{ t({ id: 'Hubungi Saya', en: 'Get in Touch', ja: 'お問い合わせ' }) }}
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
               stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />

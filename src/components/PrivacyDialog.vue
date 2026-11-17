@@ -1,7 +1,7 @@
 <script setup>
 import { nextTick, ref, watch } from 'vue'
 import { privacyOpen, closePrivacy } from '@/composables/usePrivacy'
-import { lang, t } from '@/composables/useLang'
+import { lang, t, LOCALES } from '@/composables/useLang'
 
 /* ---------------------------------------------------------
    Pop up kebijakan privasi, dibuka dari tautan di footer.
@@ -13,59 +13,61 @@ import { lang, t } from '@/composables/useLang'
    di atas kursor custom, sehingga kursor tidak terlihat.
 --------------------------------------------------------- */
 const UPDATED = { iso: '2026-11-07', label: { id: '7 Nov 2026', en: 'Nov 7, 2026' } }
+// Versi Jepang dibentuk dari tanggal ISO (hasil: 2026年11月7日)
+UPDATED.label.ja = new Intl.DateTimeFormat(LOCALES.ja, { dateStyle: 'long' }).format(new Date(`${UPDATED.iso}T00:00:00`))
 const CONTACT_EMAIL = 'joseparhusip7@gmail.com'
 // Dipisah di "@" supaya kalau harus turun baris, patahnya di situ (bukan di tengah kata)
 const [MAIL_USER, MAIL_DOMAIN] = CONTACT_EMAIL.split('@')
 
 // Ringkasan sekilas di bagian atas
 const glance = [
-  { value: '0', label: { id: 'Cookie', en: 'Cookies' } },
-  { value: '0', label: { id: 'Iklan', en: 'Ads' } },
-  { value: '0', label: { id: 'Pelacak & analitik', en: 'Trackers & analytics' } },
-  { value: '4', label: { id: 'Layanan pihak ketiga', en: 'Third-party services' } },
+  { value: '0', label: { id: 'Cookie', en: 'Cookies', ja: 'Cookie' } },
+  { value: '0', label: { id: 'Iklan', en: 'Ads', ja: '広告' } },
+  { value: '0', label: { id: 'Pelacak & analitik', en: 'Trackers & analytics', ja: 'トラッカー・アクセス解析' } },
+  { value: '4', label: { id: 'Layanan pihak ketiga', en: 'Third-party services', ja: '外部サービス' } },
 ]
 
 // Daftar isi (urutannya sama dengan bagian di bawah)
 const toc = [
-  { key: 'data', label: { id: 'Data tersimpan', en: 'Stored data' } },
-  { key: 'chat', label: { id: 'Chat & pesan', en: 'Chat & messages' } },
-  { key: 'services', label: { id: 'Pihak ketiga', en: 'Third parties' } },
-  { key: 'security', label: { id: 'Keamanan', en: 'Security' } },
-  { key: 'rights', label: { id: 'Hak kamu', en: 'Your rights' } },
-  { key: 'changes', label: { id: 'Perubahan', en: 'Changes' } },
+  { key: 'data', label: { id: 'Data tersimpan', en: 'Stored data', ja: '保存するデータ' } },
+  { key: 'chat', label: { id: 'Chat & pesan', en: 'Chat & messages', ja: 'チャットとメッセージ' } },
+  { key: 'services', label: { id: 'Pihak ketiga', en: 'Third parties', ja: '外部サービス' } },
+  { key: 'security', label: { id: 'Keamanan', en: 'Security', ja: 'セキュリティ' } },
+  { key: 'rights', label: { id: 'Hak kamu', en: 'Your rights', ja: '利用者の権利' } },
+  { key: 'changes', label: { id: 'Perubahan', en: 'Changes', ja: '改定' } },
 ]
 
 // Semua data yang pernah disimpan situs ini
 const ledger = [
   {
-    data: { id: 'Pilihan tema, bahasa, & penanda intro', en: 'Theme, language & intro marker' },
-    where: { id: 'Browser kamu', en: 'Your browser' },
-    until: { id: 'Sampai kamu menghapusnya', en: 'Until you delete it' },
-    erase: { id: 'Hapus data situs di pengaturan browser', en: 'Clear site data in your browser settings' },
+    data: { id: 'Pilihan tema, bahasa, & penanda intro', en: 'Theme, language & intro marker', ja: 'テーマ・言語の設定、イントロ表示済みの記録' },
+    where: { id: 'Browser kamu', en: 'Your browser', ja: 'お使いのブラウザー' },
+    until: { id: 'Sampai kamu menghapusnya', en: 'Until you delete it', ja: '削除されるまで' },
+    erase: { id: 'Hapus data situs di pengaturan browser', en: 'Clear site data in your browser settings', ja: 'ブラウザーの設定からサイトデータを消去' },
   },
   {
-    data: { id: 'Riwayat chat (terpisah per bahasa)', en: 'Chat history (kept per language)' },
-    where: { id: 'Browser kamu', en: 'Your browser' },
-    until: { id: 'Sampai kamu menghapusnya', en: 'Until you delete it' },
-    erase: { id: 'Tombol hapus riwayat di jendela chat', en: 'The clear history button in the chat window' },
+    data: { id: 'Riwayat chat (terpisah per bahasa)', en: 'Chat history (kept per language)', ja: 'チャット履歴（言語ごとに保存）' },
+    where: { id: 'Browser kamu', en: 'Your browser', ja: 'お使いのブラウザー' },
+    until: { id: 'Sampai kamu menghapusnya', en: 'Until you delete it', ja: '削除されるまで' },
+    erase: { id: 'Tombol hapus riwayat di jendela chat', en: 'The clear history button in the chat window', ja: 'チャット画面の履歴削除ボタン' },
   },
   {
-    data: { id: 'Nama, email, & pesan yang kamu kirim', en: 'Name, email & the message you send' },
-    where: { id: 'Kotak masuk email saya, plus salinan konfirmasi di email kamu', en: 'My email inbox, plus a confirmation copy in yours' },
-    until: { id: 'Selama dibutuhkan untuk membalas', en: 'As long as needed to reply' },
-    erase: { id: 'Minta lewat email', en: 'Request it by email' },
+    data: { id: 'Nama, email, & pesan yang kamu kirim', en: 'Name, email & the message you send', ja: 'お名前・メールアドレス・送信されたメッセージ' },
+    where: { id: 'Kotak masuk email saya, plus salinan konfirmasi di email kamu', en: 'My email inbox, plus a confirmation copy in yours', ja: '私のメール受信箱（確認メールの控えはご本人の受信箱にも届きます）' },
+    until: { id: 'Selama dibutuhkan untuk membalas', en: 'As long as needed to reply', ja: '返信に必要な期間' },
+    erase: { id: 'Minta lewat email', en: 'Request it by email', ja: 'メールでご請求ください' },
   },
   {
-    data: { id: 'Alamat IP saat mengirim pesan', en: 'IP address when you send a message' },
-    where: { id: 'Memori server (untuk menahan spam)', en: 'Server memory (to stop spam)' },
-    until: { id: 'Sementara, hilang saat server dimuat ulang', en: 'Temporarily, cleared when the server restarts' },
-    erase: { id: 'Terhapus dengan sendirinya', en: 'Deleted automatically' },
+    data: { id: 'Alamat IP saat mengirim pesan', en: 'IP address when you send a message', ja: 'メッセージ送信時のIPアドレス' },
+    where: { id: 'Memori server (untuk menahan spam)', en: 'Server memory (to stop spam)', ja: 'サーバーのメモリー（スパム対策のため）' },
+    until: { id: 'Sementara, hilang saat server dimuat ulang', en: 'Temporarily, cleared when the server restarts', ja: '一時的（サーバーの再起動時に消去）' },
+    erase: { id: 'Terhapus dengan sendirinya', en: 'Deleted automatically', ja: '自動的に削除' },
   },
   {
-    data: { id: 'Log teknis kunjungan (IP, jenis browser, waktu)', en: 'Technical visit logs (IP, browser type, time)' },
-    where: { id: 'Server Vercel (hosting)', en: 'Vercel servers (hosting)' },
-    until: { id: 'Sesuai kebijakan Vercel', en: 'According to Vercel’s policy' },
-    erase: { id: 'Dikelola oleh Vercel', en: 'Managed by Vercel' },
+    data: { id: 'Log teknis kunjungan (IP, jenis browser, waktu)', en: 'Technical visit logs (IP, browser type, time)', ja: 'アクセスログ（IPアドレス、ブラウザーの種類、日時）' },
+    where: { id: 'Server Vercel (hosting)', en: 'Vercel servers (hosting)', ja: 'Vercelのサーバー（ホスティング）' },
+    until: { id: 'Sesuai kebijakan Vercel', en: 'According to Vercel’s policy', ja: 'Vercelのポリシーに準拠' },
+    erase: { id: 'Dikelola oleh Vercel', en: 'Managed by Vercel', ja: 'Vercelが管理' },
   },
 ]
 
@@ -73,26 +75,26 @@ const services = [
   {
     name: 'Vercel',
     href: 'https://vercel.com/legal/privacy-policy',
-    use: { id: 'Menjalankan situs & server pengirim pesan.', en: 'Runs the site and the message-sending server.' },
-    when: { id: 'Setiap kunjungan', en: 'Every visit' },
+    use: { id: 'Menjalankan situs & server pengirim pesan.', en: 'Runs the site and the message-sending server.', ja: '本サイトとメッセージ送信用サーバーの運用。' },
+    when: { id: 'Setiap kunjungan', en: 'Every visit', ja: 'すべてのアクセス時' },
   },
   {
     name: 'OpenStreetMap',
     href: 'https://osmfoundation.org/wiki/Privacy_Policy',
-    use: { id: 'Gambar peta lokasi di bagian Kontak.', en: 'Map images in the Contact section.' },
-    when: { id: 'Saat bagian Kontak didekati', en: 'When you reach Contact' },
+    use: { id: 'Gambar peta lokasi di bagian Kontak.', en: 'Map images in the Contact section.', ja: 'お問い合わせセクションの地図画像。' },
+    when: { id: 'Saat bagian Kontak didekati', en: 'When you reach Contact', ja: 'お問い合わせセクションの表示時' },
   },
   {
     name: 'GitHub Contributions API',
     href: null,
-    use: { id: 'Data grafik aktivitas GitHub saya.', en: 'Data for my GitHub activity chart.' },
-    when: { id: 'Saat grafiknya didekati', en: 'When you reach the chart' },
+    use: { id: 'Data grafik aktivitas GitHub saya.', en: 'Data for my GitHub activity chart.', ja: '私のGitHubアクティビティグラフのデータ。' },
+    when: { id: 'Saat grafiknya didekati', en: 'When you reach the chart', ja: 'グラフの表示時' },
   },
   {
     name: 'Gmail',
     href: 'https://policies.google.com/privacy',
-    use: { id: 'Menerima pesanmu & mengirim konfirmasi.', en: 'Receives your message and sends the confirmation.' },
-    when: { id: 'Hanya saat kamu mengirim pesan', en: 'Only when you send a message' },
+    use: { id: 'Menerima pesanmu & mengirim konfirmasi.', en: 'Receives your message and sends the confirmation.', ja: 'メッセージの受信と確認メールの送信。' },
+    when: { id: 'Hanya saat kamu mengirim pesan', en: 'Only when you send a message', ja: 'メッセージ送信時のみ' },
   },
 ]
 
@@ -198,17 +200,17 @@ watch(privacyOpen, async (open) => {
             <div class="privacy__meta">
               <!-- Di HP awalan "Dokumen ·" disembunyikan supaya tanggal muat di sebelah tombol tutup -->
               <span class="mono-meta privacy__label">
-                <span class="privacy__label-prefix">{{ t({ id: 'Dokumen · ', en: 'Document · ' }) }}</span>{{ t({ id: 'Privasi', en: 'Privacy' }) }}
+                <span class="privacy__label-prefix">{{ t({ id: 'Dokumen · ', en: 'Document · ', ja: '文書 · ' }) }}</span>{{ t({ id: 'Privasi', en: 'Privacy', ja: 'プライバシー' }) }}
               </span>
               <span class="mono-meta privacy__date">
-                {{ t({ id: 'Diperbarui', en: 'Updated' }) }} <time :datetime="UPDATED.iso">{{ t(UPDATED.label) }}</time>
+                {{ t({ id: 'Diperbarui', en: 'Updated', ja: '最終更新' }) }} <time :datetime="UPDATED.iso">{{ t(UPDATED.label) }}</time>
               </span>
             </div>
             <button
               ref="closeBtn"
               type="button"
               class="btn-close privacy__close"
-              :aria-label="t({ id: 'Tutup kebijakan privasi', en: 'Close privacy policy' })"
+              :aria-label="t({ id: 'Tutup kebijakan privasi', en: 'Close privacy policy', ja: 'プライバシーポリシーを閉じる' })"
               @click="closePrivacy"
             >
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -229,8 +231,8 @@ watch(privacyOpen, async (open) => {
           >
             <div class="privacy__layout">
               <!-- Daftar isi (desktop): menandai bagian yang sedang dibaca -->
-              <nav class="privacy__toc" :aria-label="t({ id: 'Daftar isi', en: 'Contents' })">
-                <span class="privacy__toc-label mono-meta">{{ t({ id: 'Isi', en: 'Contents' }) }}</span>
+              <nav class="privacy__toc" :aria-label="t({ id: 'Daftar isi', en: 'Contents', ja: '目次' })">
+                <span class="privacy__toc-label mono-meta">{{ t({ id: 'Isi', en: 'Contents', ja: '目次' }) }}</span>
                 <ol class="privacy__toc-list">
                   <li v-for="(item, index) in toc" :key="item.key">
                     <button
@@ -250,12 +252,16 @@ watch(privacyOpen, async (open) => {
               <div class="privacy__content">
                 <h2 id="privacy-title" class="privacy__title">
                   <template v-if="lang === 'en'">Privacy <span class="serif-accent">policy</span>.</template>
+                  <template v-else-if="lang === 'ja'">プライバシー<span class="serif-accent">ポリシー</span></template>
                   <template v-else>Kebijakan <span class="serif-accent">privasi</span>.</template>
                 </h2>
                 <p class="privacy__statement">
                   <template v-if="lang === 'en'">
                     There are no cookies, ads, or trackers on this site. Data only reaches me
                     if <em class="privacy__em">you</em> choose to send it.
+                  </template>
+                  <template v-else-if="lang === 'ja'">
+                    本サイトでは、Cookie・広告・トラッカーを一切使用していません。データが私の手元に届くのは、<em class="privacy__em">ご自身</em>で送信された場合のみです。
                   </template>
                   <template v-else>
                     Tidak ada cookie, iklan, atau alat pelacak di situs ini. Data baru sampai ke saya
@@ -274,14 +280,14 @@ watch(privacyOpen, async (open) => {
                 <section class="privacy__block" data-section="data" aria-labelledby="pv-data">
                   <span class="privacy__num">01</span>
                   <div class="privacy__body">
-                    <h3 id="pv-data" class="privacy__h3">{{ t({ id: 'Yang tersimpan, dan di mana.', en: 'What is stored, and where.' }) }}</h3>
+                    <h3 id="pv-data" class="privacy__h3">{{ t({ id: 'Yang tersimpan, dan di mana.', en: 'What is stored, and where.', ja: '保存するデータと保存先' }) }}</h3>
                     <ul class="ledger">
                       <li v-for="row in ledger" :key="row.data.id" class="ledger__row">
                         <p class="ledger__data">{{ t(row.data) }}</p>
                         <dl class="ledger__facts">
-                          <div><dt>{{ t({ id: 'Disimpan di', en: 'Stored in' }) }}</dt><dd>{{ t(row.where) }}</dd></div>
-                          <div><dt>{{ t({ id: 'Berapa lama', en: 'How long' }) }}</dt><dd>{{ t(row.until) }}</dd></div>
-                          <div><dt>{{ t({ id: 'Cara menghapus', en: 'How to delete' }) }}</dt><dd>{{ t(row.erase) }}</dd></div>
+                          <div><dt>{{ t({ id: 'Disimpan di', en: 'Stored in', ja: '保存先' }) }}</dt><dd>{{ t(row.where) }}</dd></div>
+                          <div><dt>{{ t({ id: 'Berapa lama', en: 'How long', ja: '保存期間' }) }}</dt><dd>{{ t(row.until) }}</dd></div>
+                          <div><dt>{{ t({ id: 'Cara menghapus', en: 'How to delete', ja: '削除方法' }) }}</dt><dd>{{ t(row.erase) }}</dd></div>
                         </dl>
                       </li>
                     </ul>
@@ -291,7 +297,7 @@ watch(privacyOpen, async (open) => {
                 <section class="privacy__block" data-section="chat" aria-labelledby="pv-chat">
                   <span class="privacy__num">02</span>
                   <div class="privacy__body">
-                    <h3 id="pv-chat" class="privacy__h3">{{ t({ id: 'Chat & pesan.', en: 'Chat & messages.' }) }}</h3>
+                    <h3 id="pv-chat" class="privacy__h3">{{ t({ id: 'Chat & pesan.', en: 'Chat & messages.', ja: 'チャットとメッセージ' }) }}</h3>
                     <template v-if="lang === 'en'">
                       <p>
                         The assistant in the chat window is not AI: its answers come from rules
@@ -306,6 +312,17 @@ watch(privacyOpen, async (open) => {
                       <p>
                         To prevent spam, the server temporarily remembers the sender's IP address,
                         so one address cannot send more than 5 messages in 10 minutes.
+                      </p>
+                    </template>
+                    <template v-else-if="lang === 'ja'">
+                      <p>
+                        チャット画面のアシスタントはAIではなく、お使いのブラウザー上で動作するルールに基づいて回答しています。入力された内容が外部に送信されることはありません。ただし、最後のステップで送信を選択された場合に限り、お名前・メールアドレス・メッセージが送信されます。
+                      </p>
+                      <p>
+                        送信されたメッセージは私のメール受信箱に転送され、ご本人には確認メールが届きます。これらの情報は返信のためにのみ利用し、メーリングリストへの登録、販売、第三者への提供は一切行いません。
+                      </p>
+                      <p>
+                        スパム対策として、サーバーは送信元のIPアドレスを一時的に記録し、同一のアドレスから10分間に5件を超えるメッセージを送信できないようにしています。
                       </p>
                     </template>
                     <template v-else>
@@ -331,11 +348,14 @@ watch(privacyOpen, async (open) => {
                 <section class="privacy__block" data-section="services" aria-labelledby="pv-services">
                   <span class="privacy__num">03</span>
                   <div class="privacy__body">
-                    <h3 id="pv-services" class="privacy__h3">{{ t({ id: 'Layanan pihak ketiga.', en: 'Third-party services.' }) }}</h3>
+                    <h3 id="pv-services" class="privacy__h3">{{ t({ id: 'Layanan pihak ketiga.', en: 'Third-party services.', ja: '外部サービスの利用' }) }}</h3>
                     <p v-if="lang === 'en'">
                       Some parts of the site load from other services. Your browser connects to
                       them directly, so they can see your IP address and browser type, as described
                       in their own privacy policies.
+                    </p>
+                    <p v-else-if="lang === 'ja'">
+                      本サイトの一部は外部サービスから読み込まれます。お使いのブラウザーはこれらのサービスに直接接続するため、各サービスがIPアドレスやブラウザーの種類を取得する場合があります。取り扱いの詳細は、各社のプライバシーポリシーをご確認ください。
                     </p>
                     <p v-else>
                       Beberapa bagian situs dimuat dari layanan lain. Browser kamu terhubung langsung
@@ -364,6 +384,7 @@ watch(privacyOpen, async (open) => {
                       {{ t({
                         id: 'Huruf (font) disimpan di server situs ini sendiri, tidak diambil dari Google.',
                         en: 'Fonts are hosted on this site’s own server, not loaded from Google.',
+                        ja: 'フォントはGoogleから読み込まず、本サイトのサーバーから配信しています。',
                       }) }}
                     </p>
                   </div>
@@ -372,12 +393,15 @@ watch(privacyOpen, async (open) => {
                 <section class="privacy__block" data-section="security" aria-labelledby="pv-security">
                   <span class="privacy__num">04</span>
                   <div class="privacy__body">
-                    <h3 id="pv-security" class="privacy__h3">{{ t({ id: 'Keamanan.', en: 'Security.' }) }}</h3>
+                    <h3 id="pv-security" class="privacy__h3">{{ t({ id: 'Keamanan.', en: 'Security.', ja: 'セキュリティ' }) }}</h3>
                     <p v-if="lang === 'en'">
                       The site is only served over HTTPS and uses a browser security policy that
                       allows only the sources listed above. The message form only accepts
                       submissions from this site, limits the length of each field, and blocks
                       repeated spam. Even so, no system on the internet is 100% secure.
+                    </p>
+                    <p v-else-if="lang === 'ja'">
+                      本サイトはHTTPSでのみ配信しており、上記の提供元からの読み込みのみを許可するブラウザー向けのセキュリティポリシーを適用しています。メッセージフォームは本サイトからの送信のみを受け付け、各入力欄の文字数を制限し、繰り返し送信されるスパムをブロックしています。ただし、インターネット上に100%安全なシステムは存在しません。
                     </p>
                     <p v-else>
                       Situs hanya bisa dibuka lewat HTTPS dan memakai aturan keamanan browser yang
@@ -391,11 +415,14 @@ watch(privacyOpen, async (open) => {
                 <section class="privacy__block" data-section="rights" aria-labelledby="pv-rights">
                   <span class="privacy__num">05</span>
                   <div class="privacy__body">
-                    <h3 id="pv-rights" class="privacy__h3">{{ t({ id: 'Tanya, perbaiki, hapus.', en: 'Ask, correct, delete.' }) }}</h3>
+                    <h3 id="pv-rights" class="privacy__h3">{{ t({ id: 'Tanya, perbaiki, hapus.', en: 'Ask, correct, delete.', ja: '開示・訂正・削除の請求' }) }}</h3>
                     <p v-if="lang === 'en'">
                       You may ask about your data, request a correction, or request its deletion, in
                       line with Indonesian Law No. 27 of 2022 on Personal Data Protection. Send the
                       email from the same address you used for your message, so I can confirm it is you.
+                    </p>
+                    <p v-else-if="lang === 'ja'">
+                      インドネシア個人データ保護法（UU PDP、2022年法律第27号）に基づき、ご自身のデータについて開示・訂正・削除を請求していただけます。ご本人確認のため、メッセージを送信した際と同じメールアドレスからご連絡ください。
                     </p>
                     <p v-else>
                       Kamu boleh menanyakan, meminta perbaikan, atau meminta penghapusan datamu, sesuai
@@ -408,8 +435,8 @@ watch(privacyOpen, async (open) => {
                 <section class="privacy__block" data-section="changes" aria-labelledby="pv-changes">
                   <span class="privacy__num">06</span>
                   <div class="privacy__body">
-                    <h3 id="pv-changes" class="privacy__h3">{{ t({ id: 'Kalau ada yang berubah.', en: 'If anything changes.' }) }}</h3>
-                    <p>{{ t({ id: 'Dokumen ini diperbarui, dan tanggal di bagian atas ikut berganti.', en: 'If anything changes, this document will be updated and the date at the top will change accordingly.' }) }}</p>
+                    <h3 id="pv-changes" class="privacy__h3">{{ t({ id: 'Kalau ada yang berubah.', en: 'If anything changes.', ja: '本ポリシーの改定' }) }}</h3>
+                    <p>{{ t({ id: 'Dokumen ini diperbarui, dan tanggal di bagian atas ikut berganti.', en: 'If anything changes, this document will be updated and the date at the top will change accordingly.', ja: '本ポリシーを改定した場合は、本文書を更新し、上部の日付も併せて変更します。' }) }}</p>
                   </div>
                 </section>
               </div>
@@ -418,10 +445,10 @@ watch(privacyOpen, async (open) => {
 
           <footer class="privacy__foot">
             <div class="privacy__ask">
-              <span class="mono-meta">{{ t({ id: 'Pertanyaan', en: 'Questions' }) }}</span>
+              <span class="mono-meta">{{ t({ id: 'Pertanyaan', en: 'Questions', ja: 'お問い合わせ' }) }}</span>
               <a :href="`mailto:${CONTACT_EMAIL}`" class="privacy__mail">{{ MAIL_USER }}@<wbr />{{ MAIL_DOMAIN }}</a>
             </div>
-            <button type="button" class="btn btn--primary privacy__ok" @click="closePrivacy">{{ t({ id: 'Mengerti', en: 'Got it' }) }}</button>
+            <button type="button" class="btn btn--primary privacy__ok" @click="closePrivacy">{{ t({ id: 'Mengerti', en: 'Got it', ja: '閉じる' }) }}</button>
           </footer>
         </section>
       </div>

@@ -218,6 +218,10 @@ function getPrepObserver() {
 /* ---- Tunggu loader selesai baru mulai mengamati ---- */
 let started = false
 const waiting = new Set()
+// Animasi baru DISIAPKAN setelah loader/skeleton selesai. Sebelum itu elemen
+// tetap di posisi aslinya (tanpa geseran awal animasi), supaya skeleton
+// bisa mengukur posisi & ukuran yang persis sama dengan tampilan akhirnya.
+const preArms = new Map() // elemen -> fungsi penyiap animasinya
 
 function startObserving(el) {
   if (!pending.has(el)) return
@@ -227,6 +231,8 @@ function startObserving(el) {
 function start() {
   if (started) return
   started = true
+  preArms.forEach((arm) => arm())
+  preArms.clear()
   window.addEventListener('scroll', onScrollSettled, { passive: true })
   // 2 frame: biarkan keadaan tersembunyi sempat dilukis dulu
   requestAnimationFrame(() =>
@@ -267,6 +273,10 @@ export const vReveal = {
 
     // Membuat animasinya (ditahan tersembunyi) lalu mendaftar ke antrian tampil
     const arm = () => {
+      if (!started) {
+        preArms.set(el, arm)
+        return
+      }
       const c = deviceConfig()
       if (typeof opts.onReveal === 'function') {
         callbacks.set(el, { fn: opts.onReveal, delay: Math.round(baseDelay * c.delayScale) })
@@ -297,6 +307,7 @@ export const vReveal = {
   },
 
   unmounted(el) {
+    preArms.delete(el)
     if (lazy.has(el)) {
       lazy.delete(el)
       prepObserver?.unobserve(el)

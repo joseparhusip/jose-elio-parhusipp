@@ -14,8 +14,8 @@ const isLight = computed(() => theme.value === 'light')
     :class="{ 'sw--light': isLight }"
     role="switch"
     :aria-checked="isLight"
-    :aria-label="isLight ? t({ id: 'Ganti ke mode gelap', en: 'Switch to dark mode' }) : t({ id: 'Ganti ke mode terang', en: 'Switch to light mode' })"
-    :title="isLight ? t({ id: 'Mode terang', en: 'Light mode' }) : t({ id: 'Mode gelap', en: 'Dark mode' })"
+    :aria-label="isLight ? t({ id: 'Ganti ke mode gelap', en: 'Switch to dark mode', ja: 'ダークモードに切り替える' }) : t({ id: 'Ganti ke mode terang', en: 'Switch to light mode', ja: 'ライトモードに切り替える' })"
+    :title="isLight ? t({ id: 'Mode terang', en: 'Light mode', ja: 'ライトモード' }) : t({ id: 'Mode gelap', en: 'Dark mode', ja: 'ダークモード' })"
     @click="toggleTheme"
   >
     <!-- Track cekung (3D inset) -->

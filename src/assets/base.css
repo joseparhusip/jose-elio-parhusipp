@@ -57,6 +57,10 @@
   --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-body: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Huruf Jepang: font sistem (tidak diunduh). Dipakai otomatis untuk
+     kana/kanji karena font utama tidak punya hurufnya (lihat main.css). */
+  --font-ja-sans: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Yu Gothic', YuGothic, Meiryo, 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif;
+  --font-ja-serif: 'Hiragino Mincho ProN', 'Yu Mincho', YuMincho, 'Noto Serif JP', 'Noto Serif CJK JP', serif;
 
   /* ---- Ritme & bentuk ---- */
   --container: 1200px;

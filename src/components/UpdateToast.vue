@@ -83,16 +83,16 @@ onUnmounted(() => {
         </svg>
       </span>
       <div class="update__text">
-        <p class="update__label mono-meta">{{ t({ id: 'Pembaruan', en: 'Update' }) }}</p>
-        <p class="update__title">{{ t({ id: 'Versi baru tersedia.', en: 'A new version is available.' }) }}</p>
+        <p class="update__label mono-meta">{{ t({ id: 'Pembaruan', en: 'Update', ja: 'アップデート' }) }}</p>
+        <p class="update__title">{{ t({ id: 'Versi baru tersedia.', en: 'A new version is available.', ja: '新しいバージョンがあります。' }) }}</p>
       </div>
       <button type="button" class="btn btn--primary update__btn" :disabled="reloading" @click="reload">
-        {{ reloading ? t({ id: 'Memuat…', en: 'Loading…' }) : t({ id: 'Muat ulang', en: 'Reload' }) }}
+        {{ reloading ? t({ id: 'Memuat…', en: 'Loading…', ja: '読み込み中…' }) : t({ id: 'Muat ulang', en: 'Reload', ja: '再読み込み' }) }}
       </button>
       <button
         type="button"
         class="btn-close update__close"
-        :aria-label="t({ id: 'Tutup', en: 'Close' })"
+        :aria-label="t({ id: 'Tutup', en: 'Close', ja: '閉じる' })"
         @click="dismiss"
       >
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">

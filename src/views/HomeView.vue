@@ -14,9 +14,9 @@ import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-sv
 const edition = new Date().getFullYear()
 
 const stats = [
-  { value: '4+', label: { id: 'Tahun belajar teknologi', en: 'Years learning tech' } },
-  { value: '8', label: { id: 'Proyek dibangun', en: 'Projects built' } },
-  { value: '5', label: { id: 'Peran kerja & organisasi', en: 'Work & organizational roles' } },
+  { value: '4+', label: { id: 'Tahun belajar teknologi', en: 'Years learning tech', ja: 'テクノロジーを学んだ年数' } },
+  { value: '8', label: { id: 'Proyek dibangun', en: 'Projects built', ja: '開発したプロジェクト' } },
+  { value: '5', label: { id: 'Peran kerja & organisasi', en: 'Work & organizational roles', ja: '職務・組織での役割' } },
 ]
 
 const prefersReducedMotion =
@@ -96,9 +96,9 @@ const downloadState = ref('idle')
 let resetTimeoutId = null
 
 const downloadLabel = computed(() => {
-  if (downloadState.value === 'loading') return t({ id: 'Menyiapkan berkas...', en: 'Preparing file…' })
-  if (downloadState.value === 'done') return t({ id: 'Terunduh!', en: 'Downloaded!' })
-  return t({ id: 'Unduh CV', en: 'Download CV' })
+  if (downloadState.value === 'loading') return t({ id: 'Menyiapkan berkas...', en: 'Preparing file…', ja: 'ファイルを準備中…' })
+  if (downloadState.value === 'done') return t({ id: 'Terunduh!', en: 'Downloaded!', ja: 'ダウンロード完了！' })
+  return t({ id: 'Unduh CV', en: 'Download CV', ja: '履歴書をダウンロード' })
 })
 
 async function handleDownloadCV(event) {
@@ -220,12 +220,12 @@ onUnmounted(() => {
         <!-- Strip metadata ala sampul jurnal -->
         <div class="hero__strip mono-meta" v-reveal.down.intro>
           <span>
-            {{ t({ id: 'Portofolio', en: 'Portfolio' }) }} ·
-            <span class="hero__strip-word">{{ t({ id: 'Edisi', en: 'Edition' }) }}</span>
+            {{ t({ id: 'Portofolio', en: 'Portfolio', ja: 'ポートフォリオ' }) }} ·
+            <span class="hero__strip-word">{{ t({ id: 'Edisi', en: 'Edition', ja: 'エディション' }) }}</span>
             {{ edition }}
           </span>
           <span class="hero__strip-status">
-            {{ t({ id: 'Terbuka untuk kerja', en: 'Open to work' }) }}
+            {{ t({ id: 'Terbuka untuk kerja', en: 'Open to work', ja: '求職中・案件受付中' }) }}
           </span>
         </div>
 
@@ -244,30 +244,31 @@ onUnmounted(() => {
                 <p class="hero__role" v-reveal.intro="300">
                   <!-- Baris label: "Saya seorang" + nomor peran yang sedang tampil -->
                   <span class="hero__role-head" aria-hidden="true">
-                    <span class="hero__role-prefix">{{ t({ id: 'Saya seorang', en: 'I am a' }) }}</span>
+                    <span class="hero__role-prefix">{{ t({ id: 'Saya seorang', en: 'I am a', ja: '肩書き' }) }}</span>
                     <span class="hero__role-count">
                       {{ String(roleNo).padStart(2, '0') }} / {{ String(roles.length).padStart(2, '0') }}
                     </span>
                   </span>
                   <!-- Pembaca layar membaca daftar peran lengkap, bukan huruf yang sedang diketik -->
-                  <span class="hero__sr">{{ t({ id: 'Saya seorang', en: 'I am a' }) }} {{ roles.join(', ') }}</span>
+                  <span class="hero__sr">{{ t({ id: 'Saya seorang', en: 'I am a', ja: '肩書き' }) }} {{ roles.join(', ') }}</span>
                   <!-- Dua warna: kata depan warna teks, kata terakhir biru
                        (mis. "Full Stack" + "Developer") -->
-                  <span class="hero__role-word" aria-hidden="true">
+                  <!-- data-skeleton-ghost: teks contoh untuk skeleton saat reload (teks asli baru diketik setelahnya) -->
+                  <span class="hero__role-word" aria-hidden="true" :data-skeleton-ghost="roleFull">
                     <span class="hero__role-typed">{{ typedSplit.head }}</span
                     ><span class="hero__role-typed hero__role-typed--accent">{{ typedSplit.tail }}</span
                     ><span class="hero__cursor"></span>
                   </span>
                 </p>
                 <p class="hero__lead" v-reveal.intro="380">
-                  {{ t({ id: 'Mengubah data, desain, dan kode jadi produk yang benar-benar dipakai.', en: 'Turning data, design, and code into products people actually use.' }) }}
+                  {{ t({ id: 'Mengubah data, desain, dan kode jadi produk yang benar-benar dipakai.', en: 'Turning data, design, and code into products people actually use.', ja: 'データ、デザイン、コードを、本当に使われるプロダクトへ。' }) }}
                 </p>
               </div>
 
               <div class="hero__cta">
                 <div class="hero__actions" v-reveal.stagger.intro="{ delay: 460, step: 90 }">
                   <a href="#proyek" class="btn btn--primary hero__btn">
-                    {{ t({ id: 'Lihat Proyek', en: 'View Projects' }) }}
+                    {{ t({ id: 'Lihat Proyek', en: 'View Projects', ja: 'プロジェクトを見る' }) }}
                     <svg viewBox="0 0 24 24" class="hero__btn-arrow" aria-hidden="true">
                       <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
                     </svg>
@@ -368,7 +369,7 @@ onUnmounted(() => {
             </dd>
           </div>
           <a href="#tentang" class="hero__scroll mono-meta">
-            <span>{{ t({ id: 'Gulir', en: 'Scroll' }) }}</span>
+            <span>{{ t({ id: 'Gulir', en: 'Scroll', ja: 'スクロール' }) }}</span>
             <span class="hero__scroll-line" aria-hidden="true"></span>
           </a>
         </dl>

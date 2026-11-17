@@ -23,11 +23,12 @@ const certificates = [
   {
     title: 'SAP01 — SAP Overview',
     issuer: 'SAP University Partnership · EDUGATE',
-    kind: { id: 'Kursus profesional', en: 'Professional course' },
-    date: 'Jul 2025',
+    kind: { id: 'Kursus profesional', en: 'Professional course', ja: '専門講座' },
+    date: { id: 'Jul 2025', en: 'Jul 2025', ja: '2025年7月' },
     detail: {
       id: 'Pengenalan sistem ERP SAP dan modul-modul bisnisnya.',
       en: 'An introduction to the SAP ERP system and its business modules.',
+      ja: 'SAPのERPシステムと、その各業務モジュールについて学ぶ入門講座です。',
     },
     ref: 'ID 550181560',
     image: sapImg,
@@ -36,24 +37,26 @@ const certificates = [
   {
     title: 'Career Planning for IT/Computer',
     issuer: 'SmartPath · International Bootcamp',
-    kind: 'Bootcamp',
-    date: 'Jan 2024',
+    kind: { id: 'Bootcamp', en: 'Bootcamp', ja: 'ブートキャンプ' },
+    date: { id: 'Jan 2024', en: 'Jan 2024', ja: '2024年1月' },
     detail: {
       id: 'Peserta sesi "Introduction to Successful Career Planning for IT/Computer".',
       en: 'Participated in the session "Introduction to Successful Career Planning for IT/Computer".',
+      ja: 'セッション「Introduction to Successful Career Planning for IT/Computer」に参加しました。',
     },
     ref: '170/SP/I/2024',
     image: smartpathImg,
     size: [2000, 1414],
   },
   {
-    title: { id: 'Peserta P2MW 2023', en: 'P2MW 2023 Participant' },
+    title: { id: 'Peserta P2MW 2023', en: 'P2MW 2023 Participant', ja: 'P2MW 2023参加者' },
     issuer: 'Ditjen Diktiristek · Kemendikbudristek',
-    kind: { id: 'Program nasional', en: 'National program' },
-    date: { id: 'Des 2023', en: 'Dec 2023' },
+    kind: { id: 'Program nasional', en: 'National program', ja: '国家プログラム' },
+    date: { id: 'Des 2023', en: 'Dec 2023', ja: '2023年12月' },
     detail: {
       id: 'Program Pembinaan Mahasiswa Wirausaha, kategori Bisnis Digital: aplikasi marketplace untuk UMKM di lingkungan ULBI.',
       en: 'Student Entrepreneurship Development Program, Digital Business category: a marketplace app for MSMEs in the ULBI community.',
+      ja: 'インドネシア政府の学生起業家育成プログラム（P2MW）のデジタルビジネス部門に参加し、ULBIの地域の中小零細企業（UMKM）向けマーケットプレイスアプリに取り組みました。',
     },
     ref: '7358/E2/DT.01.03/2023',
     image: p2mwImg,
@@ -63,13 +66,15 @@ const certificates = [
     title: {
       id: 'Toko Online dengan CodeIgniter 3 & API Raja Ongkir',
       en: 'Online Store with CodeIgniter 3 & Raja Ongkir API',
+      ja: 'CodeIgniter 3とRaja Ongkir APIで作るオンラインストア',
     },
     issuer: 'Udemy · Padang Tekno',
-    kind: { id: 'Kursus online', en: 'Online course' },
-    date: { id: 'Agu 2023', en: 'Aug 2023' },
+    kind: { id: 'Kursus online', en: 'Online course', ja: 'オンライン講座' },
+    date: { id: 'Agu 2023', en: 'Aug 2023', ja: '2023年8月' },
     detail: {
       id: 'Kursus 21,5 jam membangun toko online lengkap dengan cek ongkir.',
       en: 'A 21.5-hour course on building a complete online store with shipping cost calculation.',
+      ja: '送料計算機能を備えたオンラインストアを一通り構築する、21.5時間の講座です。',
     },
     ref: 'UC-eebd53d3-c6d2-4898-92a8-e439588435b3',
     url: 'https://ude.my/UC-eebd53d3-c6d2-4898-92a8-e439588435b3',
@@ -78,7 +83,8 @@ const certificates = [
   },
 ]
 
-const years = certificates.map((c) => Number(t(c.date).slice(-4)))
+// Ambil 4 digit tahun di mana pun posisinya ("Jul 2025" / "2025年7月")
+const years = certificates.map((c) => Number(t(c.date).match(/\d{4}/)[0]))
 const yearRange = `${Math.min(...years)}–${Math.max(...years)}`
 
 const active = ref(0)
@@ -169,16 +175,23 @@ function preventImageAction(event) {
       <header class="section-head">
         <div class="section-head__meta">
           <span v-reveal class="section-label">
-            <span class="section-label__num">04</span> {{ t({ id: 'Sertifikat', en: 'Certificates' }) }}
+            <span class="section-label__num">04</span> {{ t({ id: 'Sertifikat', en: 'Certificates', ja: '資格・修了証' }) }}
           </span>
           <span v-reveal="80" class="section-head__note">
-            {{ String(certificates.length).padStart(2, '0') }} {{ t({ id: 'dokumen', en: 'documents' }) }}<br />{{ yearRange }}
+            {{ t({
+              id: `${String(certificates.length).padStart(2, '0')} dokumen`,
+              en: `${String(certificates.length).padStart(2, '0')} documents`,
+              ja: `書類${certificates.length}件`,
+            }) }}<br />{{ yearRange }}
           </span>
         </div>
         <div class="section-head__main">
           <h2 :key="lang" v-type="'sertifikat'" class="section-title">
             <template v-if="lang === 'en'">
               Proof that I keep <span class="serif-accent">learning</span>
+            </template>
+            <template v-else-if="lang === 'ja'">
+              <span class="serif-accent">学び</span>続けている証
             </template>
             <template v-else>
               Bukti saya terus <span class="serif-accent">belajar</span>
@@ -223,7 +236,11 @@ function preventImageAction(event) {
                 <button
                   type="button"
                   class="certs__inline-shot"
-                  :aria-label="t({ id: `Perbesar sertifikat ${t(cert.title)}`, en: `Enlarge certificate: ${t(cert.title)}` })"
+                  :aria-label="t({
+                    id: `Perbesar sertifikat ${t(cert.title)}`,
+                    en: `Enlarge certificate: ${t(cert.title)}`,
+                    ja: `修了証を拡大：${t(cert.title)}`,
+                  })"
                   @click="openLightbox(index)"
                   @contextmenu.prevent="preventImageAction"
                 >
@@ -231,7 +248,7 @@ function preventImageAction(event) {
                     :src="cert.image"
                     :width="cert.size[0]"
                     :height="cert.size[1]"
-                    :alt="t({ id: `Sertifikat ${t(cert.title)}`, en: `Certificate: ${t(cert.title)}` })"
+                    :alt="t({ id: `Sertifikat ${t(cert.title)}`, en: `Certificate: ${t(cert.title)}`, ja: `修了証：${t(cert.title)}` })"
                     loading="lazy"
                     draggable="false"
                     @dragstart.prevent="preventImageAction"
@@ -244,7 +261,7 @@ function preventImageAction(event) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {{ t({ id: 'Lihat di Udemy', en: 'View on Udemy' }) }}
+                  {{ t({ id: 'Lihat di Udemy', en: 'View on Udemy', ja: 'Udemyで見る' }) }}
                   <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                     <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
                       stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
@@ -261,8 +278,12 @@ function preventImageAction(event) {
             type="button"
             class="certs__frame"
             :class="{ 'is-tilting': tilting }"
-            :data-cursor="t({ id: 'Perbesar', en: 'Enlarge' })"
-            :aria-label="t({ id: `Perbesar sertifikat ${t(activeCert.title)}`, en: `Enlarge certificate: ${t(activeCert.title)}` })"
+            :data-cursor="t({ id: 'Perbesar', en: 'Enlarge', ja: '拡大' })"
+            :aria-label="t({
+              id: `Perbesar sertifikat ${t(activeCert.title)}`,
+              en: `Enlarge certificate: ${t(activeCert.title)}`,
+              ja: `修了証を拡大：${t(activeCert.title)}`,
+            })"
             @click="openLightbox(active)"
             @contextmenu.prevent="preventImageAction"
             @pointermove="onTiltMove"
@@ -279,7 +300,7 @@ function preventImageAction(event) {
                   :src="activeCert.image"
                   :width="activeCert.size[0]"
                   :height="activeCert.size[1]"
-                  :alt="t({ id: `Sertifikat ${t(activeCert.title)}`, en: `Certificate: ${t(activeCert.title)}` })"
+                  :alt="t({ id: `Sertifikat ${t(activeCert.title)}`, en: `Certificate: ${t(activeCert.title)}`, ja: `修了証：${t(activeCert.title)}` })"
                   class="certs__frame-img"
                   draggable="false"
                   @dragstart.prevent="preventImageAction"
@@ -305,7 +326,7 @@ function preventImageAction(event) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              {{ t({ id: 'Lihat di Udemy', en: 'View on Udemy' }) }}
+              {{ t({ id: 'Lihat di Udemy', en: 'View on Udemy', ja: 'Udemyで見る' }) }}
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
                   stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
@@ -327,7 +348,7 @@ function preventImageAction(event) {
         @click.self="closeLightbox"
         @contextmenu.prevent="preventImageAction"
       >
-        <button type="button" class="btn-close btn-close--dark cert-lightbox__close" :aria-label="t({ id: 'Tutup', en: 'Close' })" @click="closeLightbox">
+        <button type="button" class="btn-close btn-close--dark cert-lightbox__close" :aria-label="t({ id: 'Tutup', en: 'Close', ja: '閉じる' })" @click="closeLightbox">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               d="M6 6l12 12M18 6 6 18" />
@@ -338,7 +359,7 @@ function preventImageAction(event) {
           <button
             type="button"
             class="btn-close btn-close--dark cert-lightbox__nav cert-lightbox__nav--prev"
-            :aria-label="t({ id: 'Sertifikat sebelumnya', en: 'Previous certificate' })"
+            :aria-label="t({ id: 'Sertifikat sebelumnya', en: 'Previous certificate', ja: '前の修了証' })"
             @click="stepLightbox(-1)"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -351,7 +372,11 @@ function preventImageAction(event) {
             :src="certificates[lightbox].image"
             :width="certificates[lightbox].size[0]"
             :height="certificates[lightbox].size[1]"
-            :alt="t({ id: `Sertifikat ${t(certificates[lightbox].title)}`, en: `Certificate: ${t(certificates[lightbox].title)}` })"
+            :alt="t({
+              id: `Sertifikat ${t(certificates[lightbox].title)}`,
+              en: `Certificate: ${t(certificates[lightbox].title)}`,
+              ja: `修了証：${t(certificates[lightbox].title)}`,
+            })"
             class="cert-lightbox__img"
             draggable="false"
             @dragstart.prevent="preventImageAction"
@@ -359,7 +384,7 @@ function preventImageAction(event) {
           <button
             type="button"
             class="btn-close btn-close--dark cert-lightbox__nav cert-lightbox__nav--next"
-            :aria-label="t({ id: 'Sertifikat berikutnya', en: 'Next certificate' })"
+            :aria-label="t({ id: 'Sertifikat berikutnya', en: 'Next certificate', ja: '次の修了証' })"
             @click="stepLightbox(1)"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">

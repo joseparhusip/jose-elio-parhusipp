@@ -61,8 +61,8 @@ function applyMeta(to) {
   if (!page?.title) return
   // Halaman 404 jangan sampai diindeks Google
   setMeta('meta[name="robots"]', 'content', page.notFound ? 'noindex, follow' : 'index, follow')
-  // Versi Inggris dipakai saat bahasa EN aktif (meta statis untuk Google tetap Indonesia)
-  const text = lang.value === 'en' && page.en ? { ...page, ...page.en } : page
+  // Versi Inggris/Jepang dipakai saat bahasa itu aktif (meta statis untuk Google tetap Indonesia)
+  const text = lang.value !== 'id' && page[lang.value] ? { ...page, ...page[lang.value] } : page
   document.title = text.title
   if (page.notFound) return
 

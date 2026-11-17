@@ -42,7 +42,7 @@ const moreProjectsHref = 'https://github.com/joseparhusip?tab=repositories'
 const projects = [
   {
     title: 'MedCredix',
-    category: { id: 'Backend · Kesehatan', en: 'Backend · Healthcare' },
+    category: { id: 'Backend · Kesehatan', en: 'Backend · Healthcare', ja: 'バックエンド · 医療' },
     internal: true,
     desc: {
       id: [
@@ -61,19 +61,30 @@ const projects = [
         'Integrated SIMRS data through a FHIR client for resource connection testing, with a simulation mode for when the FHIR server is not yet available.',
         'Deployed with Docker Compose (PostgreSQL, API, and an Nginx web server) for dev, sandbox, and production environments on a VPS. Caddy serves as the reverse proxy with automatic HTTPS.',
       ],
+      ja: [
+        '病院の資格認定（クレデンシャリング）への対応状況を管理するプラットフォーム（複数病院対応、病院ごとにデータを分離）。バックエンドを担当し、PostgreSQLの33テーブル構成のスキーマと、Go（Gin）+ GORMによるREST APIをSwaggerドキュメント付きで構築。',
+        '病院の対応状況を評価するスコアリングエンジン（Health Score、BDCS、Trust）を構築。スコアの内訳、月次スナップショット、ユニットテストまで実装し、算出結果を経営層向けダッシュボード、リスク一覧、早期警告、改善計画に活用。',
+        '多層的なセキュリティを実装。JWT認証、ロールベースのアクセス制御（RBAC）、bcryptによるパスワードのハッシュ化、ログイン試行回数の制限、CAPTCHA、AES-256-GCMで暗号化した書類アップロードに対応。',
+        '医療従事者の資格認定ワークフロー（アップロード、審査または差し戻し、承認、前提条件の確認）を監査証跡付きで構築。資格ステータスを自動更新するジョブも実装。',
+        'FHIRクライアントを介してSIMRS（病院情報システム）のデータを連携し、リソースの接続テストを実装。FHIRサーバーが未整備の段階でも動作確認できるシミュレーションモードを用意。',
+        'Docker Compose（PostgreSQL、API、NginxによるWebサーバー）を用いて、VPS上の開発・サンドボックス・本番の各環境にデプロイ。リバースプロキシにはCaddyを採用し、HTTPSを自動化。',
+      ],
     },
     thumb: medcredixThumb,
     shots: [
       { src: medcredixThumb, caption: 'Hospital Risk Radar' },
-      { src: medcredixLogin, caption: { id: 'Halaman masuk dengan CAPTCHA', en: 'Sign-in page with CAPTCHA' } },
+      { src: medcredixLogin, caption: { id: 'Halaman masuk dengan CAPTCHA', en: 'Sign-in page with CAPTCHA', ja: 'CAPTCHA付きのログイン画面' } },
       { src: medcredixPortalEnv, caption: 'Developer Portal: Sandbox & Production' },
-      { src: medcredixPortalApi, caption: { id: 'Developer Portal: referensi API', en: 'Developer Portal: API reference' } },
+      {
+        src: medcredixPortalApi,
+        caption: { id: 'Developer Portal: referensi API', en: 'Developer Portal: API reference', ja: 'Developer Portal：APIリファレンス' },
+      },
     ],
     techStack: [{ name: 'Go (Gin)' }, { name: 'PostgreSQL' }, { name: 'Swagger' }, { name: 'Docker' }],
   },
   {
     title: 'SIMRS Dashboard',
-    category: { id: 'Frontend · Kesehatan', en: 'Frontend · Healthcare' },
+    category: { id: 'Frontend · Kesehatan', en: 'Frontend · Healthcare', ja: 'フロントエンド · 医療' },
     internal: true,
     desc: {
       id: [
@@ -92,18 +103,29 @@ const projects = [
         'Worked in a team on a backend architecture of PostgreSQL, Redis, MinIO (document storage), and Centrifugo (real-time notifications).',
         'Applied code standards and medical data privacy practices: Husky, commitlint, and Prettier for code; national ID numbers (NIK) are masked and patient data is not stored in the browser.',
       ],
+      ja: [
+        'Next.js 16、React 19、TypeScript、Tailwind CSSで構築したSIMRS（病院情報システム）のダッシュボード。受付、外来、救急、入院、検査、放射線、薬剤、手術室、会計の各モジュールを網羅。',
+        '医師のSPRI（入院指示書）を起点に、患者の同意書・拒否書（電子署名またはスキャン画像のアップロード）、病室とベッドの選択、患者用リストバンドの印刷までの入院受付フローを構築。',
+        'Swaggerの仕様に基づき、フロントエンドとGo（Gin）製バックエンドのREST APIを連携。入力データはZodで検証し、アクセス権限はユーザーのロールごとに制御。',
+        'マルチステージビルドのDockerとDocker Composeで、開発・本番環境向けにアプリをコンテナ化。非rootでの実行、読み取り専用ファイルシステム、リソース制限、ヘルスチェックによるコンテナのハードニングも実施。',
+        'PostgreSQL、Redis、MinIO（書類ストレージ）、Centrifugo（リアルタイム通知）で構成されたバックエンドのもと、チームで開発を担当。',
+        'コーディング規約と医療データのプライバシー対策を徹底。コードはHusky、commitlint、Prettierで品質を統一し、NIK（国民識別番号）はマスク表示、患者データはブラウザに保存しない設計を採用。',
+      ],
     },
     thumb: simrsThumb,
     shots: [
-      { src: simrsThumb, caption: { id: 'Daftar pasien (NIK disamarkan)', en: 'Patient list (NIK masked)' } },
-      { src: simrsSpriForm, caption: { id: 'Form SPRI dengan tanda tangan digital', en: 'SPRI form with digital signature' } },
-      { src: simrsSpriPreview, caption: { id: 'Preview surat SPRI', en: 'SPRI letter preview' } },
+      { src: simrsThumb, caption: { id: 'Daftar pasien (NIK disamarkan)', en: 'Patient list (NIK masked)', ja: '患者一覧（NIKはマスク表示）' } },
+      {
+        src: simrsSpriForm,
+        caption: { id: 'Form SPRI dengan tanda tangan digital', en: 'SPRI form with digital signature', ja: '電子署名付きのSPRIフォーム' },
+      },
+      { src: simrsSpriPreview, caption: { id: 'Preview surat SPRI', en: 'SPRI letter preview', ja: 'SPRI文書のプレビュー' } },
     ],
     techStack: [{ name: 'Next.js' }, { name: 'React' }, { name: 'TypeScript' }, { name: 'Tailwind CSS' }],
   },
   {
     title: 'Dashboard KOL',
-    category: 'Data & BI',
+    category: { id: 'Data & BI', en: 'Data & BI', ja: 'データ · BI' },
     desc: {
       id: [
         'Membangun pipeline ETL dengan Python (Pandas) untuk membersihkan dan mentransformasi data ekspor TikTok Shop.',
@@ -119,6 +141,13 @@ const projects = [
         'Built and hosted a 5-page interactive BI dashboard (Streamlit + Plotly) covering Overview, Campaign & Products, Creator Intelligence, Risk & Anomalies, and AI Insights for real-time monitoring of GMV and campaign performance.',
         'Integrated the Gemini AI API to automatically generate strategy analysis and a 30-day action plan based on monthly performance summaries.',
       ],
+      ja: [
+        'Python（Pandas）でETLパイプラインを構築し、TikTok Shopのエクスポートデータをクレンジング・変換。',
+        'viewsとlikesの指標で発生していた二重集計のバグを特定・修正し、クリエイターのパフォーマンスデータが重複して計上される問題を解消。',
+        '派生指標（GMV、Conversion Rate、GMV per View、Engagement Rate）と、外れ値に強いパーセンタイル順位ベースのクリエイタースコアリングを設計。',
+        'GMVとキャンペーン成果をリアルタイムで把握できる全5ページのインタラクティブなBIダッシュボード（Streamlit + Plotly）を構築・公開。Overview、Campaign & Products、Creator Intelligence、Risk & Anomalies、AI Insightsの5ページで構成。',
+        'Gemini AI APIを連携し、月次パフォーマンスのサマリーをもとに戦略分析と30日間のアクションプランを自動生成。',
+      ],
     },
     thumb: kolThumb,
     techStack: [
@@ -131,7 +160,7 @@ const projects = [
   },
   {
     title: 'Mobile JEC',
-    category: { id: 'Aplikasi Mobile', en: 'Mobile App' },
+    category: { id: 'Aplikasi Mobile', en: 'Mobile App', ja: 'モバイルアプリ' },
     desc: {
       id: [
         'Mengumpulkan data melalui kuesioner ke pengguna baru non-JEC sebagai dasar analisis kebutuhan aplikasi.',
@@ -149,6 +178,14 @@ const projects = [
         'Designed a relational MySQL database using the Waterfall development method combined with a User-Centered Design (UCD) approach.',
         'Implemented the UI as an Android app with Flutter & Dart, including an OCR feature that automatically reads ID card (KTP) data during registration, plus sign-in with a Google account.',
       ],
+      ja: [
+        'アプリの要件分析の土台として、JECを利用したことのない新規ユーザーを対象にアンケートを実施し、データを収集。',
+        'FigmaでアプリのUIを設計し、ユースケース図、アクティビティ図、クラス図、ERDでシステム構成を文書化。',
+        'Node.js & Express.jsでバックエンドを構築し、アプリとサーバー間のデータ通信を実装。',
+        'ユーザーデータを保護するため、認証（auth）機能とアプリのセキュリティ機能を実装。',
+        'ウォーターフォール型の開発手法にユーザー中心設計（UCD）のアプローチを組み合わせ、MySQLでリレーショナルデータベースを設計。',
+        'Flutter & DartでUIをAndroidアプリとして実装。登録時にKTP（身分証明書）の情報を自動で読み取るOCR機能や、Googleアカウントでのログインにも対応。',
+      ],
     },
     thumb: mobileJecThumb,
     techStack: [
@@ -162,7 +199,7 @@ const projects = [
   },
   {
     title: 'Dashboard JEC',
-    category: 'Web Admin',
+    category: { id: 'Web Admin', en: 'Web Admin', ja: 'Web管理画面' },
     desc: {
       id: [
         'Merancang dan mengembangkan antarmuka admin dashboard menggunakan React JS untuk mengelola data pasien, jadwal, dan operasional klinik secara terpusat.',
@@ -178,6 +215,13 @@ const projects = [
         'Used the same relational MySQL database, integrated with the Mobile JEC app, so patient and operational data stay consistent across both platforms.',
         'Provided a concise view of statistics, the patient queue, and centralized data management to simplify day-to-day clinic operations.',
       ],
+      ja: [
+        '患者データ、診療スケジュール、クリニックの運営を一元管理する管理者向けダッシュボードの画面を、React JSで設計・開発。',
+        'Mobile JECと同じエコシステムで、Node.js & Express.jsによるバックエンドを構築し、ダッシュボードとサーバー間のデータ通信を実装。',
+        '管理者データへのアクセスを保護するため、認証（auth）機能とアプリのセキュリティ機能を実装。',
+        'Mobile JECアプリと共通のMySQLリレーショナルデータベースを連携させ、患者データと運営データを両プラットフォームで一貫して管理。',
+        '統計情報、患者の受付待ち状況、データの一元管理をわかりやすくまとめた画面を用意し、日々のクリニック運営を効率化。',
+      ],
     },
     thumb: dashboardJecThumb,
     techStack: [
@@ -190,7 +234,7 @@ const projects = [
   },
   {
     title: 'Secura Kost',
-    category: 'Web App',
+    category: { id: 'Web App', en: 'Web App', ja: 'Webアプリ' },
     desc: {
       id: [
         'Mengembangkan prototype platform marketplace kost secara end-to-end, mencakup perancangan UI/UX, arsitektur komponen, dan alur navigasi antar halaman.',
@@ -208,6 +252,14 @@ const projects = [
         'Designed a responsive landing page with dynamic components: a hero carousel, solutions grid, how-it-works timeline, and target audience segments.',
         'Built a team profile module with a visual structure (tree layout) using reusable components.',
       ],
+      ja: [
+        '下宿（kost）マーケットプレイスのプロトタイプをエンドツーエンドで開発。UI/UXデザイン、コンポーネント設計、ページ間のナビゲーションフローまでを担当。',
+        'Vue.jsとTailwind CSSでフロントエンドを構築。',
+        '入居者と物件オーナーの2つのロールに対応した認証機能を構築し、動的なタブ切り替えとインタラクティブなフォームバリデーションを実装。',
+        '物件詳細ページに360°バーチャルツアー機能を実装し、情報の透明性とユーザーからの信頼を向上。',
+        'ヒーローカルーセル、ソリューション一覧のグリッド、利用の流れを示すタイムライン、ターゲット層別の紹介など、動的なコンポーネントで構成したレスポンシブなランディングページを設計。',
+        '再利用可能なコンポーネントを用いて、メンバー構成をツリー形式で可視化するチーム紹介モジュールを構築。',
+      ],
     },
     // Nama file gambarnya tertukar di folder: img-toko-kelontong.webp berisi screenshot Secura Kost
     thumb: tokoKelontongThumb,
@@ -221,7 +273,7 @@ const projects = [
   },
   {
     title: 'Toko Kelontong Online',
-    category: 'E-commerce',
+    category: { id: 'E-commerce', en: 'E-commerce', ja: 'ECサイト' },
     desc: {
       id: [
         'Mengembangkan prototype website e-commerce "Toko Kelontong Online" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi halaman.',
@@ -241,6 +293,15 @@ const projects = [
         'Built reusable components (navbar, footer, page header, promo banner, testimonial) for design consistency.',
         'Created supporting information pages (FAQ, how to order, privacy policy, terms & conditions, contact us).',
       ],
+      ja: [
+        'ECサイト「Toko Kelontong Online」（オンラインの食料雑貨店）のプロトタイプをエンドツーエンドで開発。UI/UX、コンポーネント構成、ページ間のナビゲーションフローまでを担当。',
+        'Vue.js（Composition API）とTailwind CSSでフロントエンドを構築。',
+        'Piniaによる状態管理を実装し、ショッピングカートと商品カテゴリーのフィルターをリアクティブに管理。',
+        'カテゴリーフィルター、画像読み込みエラー時の代替表示、ルピア表記の自動フォーマットを備えた動的な商品カタログを構築。',
+        'カタログから注文詳細、ユーザーの注文履歴までの一連の注文フローを設計。',
+        'デザインの一貫性を保つため、再利用可能なコンポーネント（ナビゲーションバー、フッター、ページヘッダー、プロモーションバナー、お客様の声）を構築。',
+        'よくある質問、注文方法、プライバシーポリシー、利用規約、お問い合わせといった補足情報ページを作成。',
+      ],
     },
     // Nama file gambarnya tertukar di folder: img-secura-kost.webp berisi screenshot Toko Kelontong
     thumb: securaKostThumb,
@@ -254,7 +315,7 @@ const projects = [
   },
   {
     title: 'Kindle Coffee',
-    category: 'Landing Page',
+    category: { id: 'Landing Page', en: 'Landing Page', ja: 'ランディングページ' },
     desc: {
       id: [
         'Mengembangkan prototype front end website coffee shop "Kindle Coffee" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi antar halaman (Home, Menu, Cart, History, About). Proyek ini murni prototype tampilan, belum terhubung ke backend/server sungguhan.',
@@ -273,6 +334,15 @@ const projects = [
         'Designed the ordering flow on the Cart page, including interactive table/seat number selection and a simulated checkout (a Midtrans Snap UI integration as a sample payment flow, without a real backend).',
         'Built the Order History page with a date range filter, pending order status with a countdown, and receipt/invoice printing to PDF using jsPDF.',
         'Created the Home and About pages as a landing page with a hero section, value proposition, and testimonials to strengthen the brand identity.',
+      ],
+      ja: [
+        'カフェ「Kindle Coffee」のWebサイトのフロントエンドのプロトタイプをエンドツーエンドで開発。UI/UX、コンポーネント構成、ページ間のナビゲーション（Home、Menu、Cart、History、About）までを担当。画面のみのプロトタイプで、実際のバックエンド／サーバーとは未接続。',
+        '画面全体をVue.js（Composition API、Vue Router）とTailwind CSSで構築。',
+        'Piniaによる状態管理を実装し、ショッピングカート、テーブル・座席の選択、注文履歴をリアクティブに管理。',
+        '商品カテゴリーのフィルターと、再利用可能なProductCardコンポーネントによる動的なカタログを備えたMenuページを構築。',
+        'Cartページの注文フローを設計。テーブル・座席番号をインタラクティブに選べる機能と、チェックアウトのシミュレーション（決済フローの例としてMidtrans SnapのUIを組み込み、実際のバックエンドは不使用）を実装。',
+        '期間指定フィルター、カウントダウン付きの支払い待ちステータス、jsPDFによるレシート・請求書のPDF出力機能を備えた注文履歴ページを構築。',
+        'ブランドイメージを強化するため、ヒーローセクション、バリュープロポジション、お客様の声を盛り込んだHomeページとAboutページをランディングページとして制作。',
       ],
     },
     thumb: kindleCoffeeThumb,
@@ -392,7 +462,7 @@ function preventImageAction(event) {
 
 // Domain demo ditampilkan di "address bar" mockup browser
 function hostLabel(project) {
-  return project.internal ? t({ id: 'Proyek freelance', en: 'Freelance project' }) : demoHost(project.demoHref)
+  return project.internal ? t({ id: 'Proyek freelance', en: 'Freelance project', ja: 'フリーランス案件' }) : demoHost(project.demoHref)
 }
 
 function demoHost(url) {
@@ -442,6 +512,92 @@ function onKeydown(event) {
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+
+/* ---- Putar otomatis ----
+   Garis penanda proyek aktif terisi pelan; saat penuh, galeri pindah ke
+   proyek berikutnya. Berhenti sementara saat:
+   - galeri tidak terlihat di layar / tab browser tidak aktif,
+   - kursor di atas galeri, jari sedang menyentuh, atau fokus keyboard di dalamnya,
+   - lightbox atau "Detail pengerjaan" sedang dibuka (pengunjung sedang membaca).
+   Pindah proyek manual (klik/geser) mengulang hitungan dari nol. */
+const AUTOPLAY_MS = 7000
+const autoProgress = ref(0)
+const galleryInView = ref(false)
+const pointerInside = ref(false)
+const focusInside = ref(false)
+const autoPaused = computed(
+  () =>
+    !galleryInView.value ||
+    pointerInside.value ||
+    focusInside.value ||
+    Boolean(lightboxProject.value) ||
+    detailOpen.value,
+)
+
+let autoFrame = 0
+let autoLast = 0
+let autoObserver = null
+
+function autoTick(now) {
+  autoFrame = requestAnimationFrame(autoTick)
+  const dt = Math.min(now - autoLast, 100) // tab baru aktif lagi: jangan melompat
+  autoLast = now
+  if (autoPaused.value || document.hidden) return
+  autoProgress.value = Math.min(1, autoProgress.value + dt / AUTOPLAY_MS)
+  if (autoProgress.value >= 1) next()
+}
+
+function startAuto() {
+  if (autoFrame) return
+  autoLast = performance.now()
+  autoFrame = requestAnimationFrame(autoTick)
+}
+
+function stopAuto() {
+  cancelAnimationFrame(autoFrame)
+  autoFrame = 0
+}
+
+// Setiap pindah proyek (otomatis maupun manual), garis mulai dari nol lagi
+watch(activeIndex, () => (autoProgress.value = 0))
+
+function onGalleryPointerEnter(event) {
+  if (event.pointerType === 'mouse') pointerInside.value = true
+}
+
+function onGalleryPointerLeave(event) {
+  if (event.pointerType === 'mouse') pointerInside.value = false
+}
+
+// Sentuhan: jeda selama jari menempel
+function onGalleryTouchStart() {
+  pointerInside.value = true
+}
+
+function onGalleryTouchEnd() {
+  pointerInside.value = false
+}
+
+function onGalleryFocusOut(event) {
+  if (!galleryEl.value?.contains(event.relatedTarget)) focusInside.value = false
+}
+
+onMounted(() => {
+  autoObserver = new IntersectionObserver(
+    (entries) => {
+      galleryInView.value = entries[0].isIntersecting
+      if (galleryInView.value) startAuto()
+      else stopAuto()
+    },
+    { threshold: 0.35 },
+  )
+  if (galleryEl.value) autoObserver.observe(galleryEl.value)
+})
+
+onUnmounted(() => {
+  stopAuto()
+  autoObserver?.disconnect()
+})
 </script>
 
 <template>
@@ -450,10 +606,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <header class="section-head">
         <div class="section-head__meta">
           <span v-reveal class="section-label">
-            <span class="section-label__num">03</span> {{ t({ id: 'Proyek', en: 'Projects' }) }}
+            <span class="section-label__num">03</span> {{ t({ id: 'Proyek', en: 'Projects', ja: 'プロジェクト' }) }}
           </span>
           <span v-reveal="80" class="section-head__note">
-            {{ String(total).padStart(2, '0') }} {{ t({ id: 'proyek terpilih', en: 'selected projects' }) }}<br />Web · Mobile · Data
+            {{ t({
+              id: `${String(total).padStart(2, '0')} proyek terpilih`,
+              en: `${String(total).padStart(2, '0')} selected projects`,
+              ja: `厳選プロジェクト${total}件`,
+            }) }}<br />Web · Mobile · Data
           </span>
         </div>
         <div class="section-head__main projects__head-main">
@@ -461,6 +621,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             <h2 :key="lang" v-type="'proyek'" class="section-title">
               <template v-if="lang === 'en'">
                 Things I've <span class="serif-accent">built</span>
+              </template>
+              <template v-else-if="lang === 'ja'">
+                これまで<span class="serif-accent">つくってきた</span>もの
               </template>
               <template v-else>
                 Karya yang pernah saya <span class="serif-accent">bangun</span>
@@ -470,6 +633,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               {{ t({
                 id: 'Kumpulan proyek yang menunjukkan cara saya berpikir, mulai dari menyusun struktur sampai menyelesaikan detail kecil.',
                 en: 'A collection of projects that shows how I think, from setting up the structure to polishing the final details.',
+                ja: '全体の構成づくりから細部の仕上げまで、私の考え方が伝わるプロジェクトをまとめました。',
               }) }}
             </p>
           </div>
@@ -480,7 +644,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             target="_blank"
             rel="noopener noreferrer"
           >
-            {{ t({ id: 'Lihat proyek lainnya', en: 'View more projects' }) }}
+            {{ t({ id: 'Lihat proyek lainnya', en: 'View more projects', ja: 'ほかのプロジェクトを見る' }) }}
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
               <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 stroke-linejoin="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
@@ -500,7 +664,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         }"
         role="region"
         aria-roledescription="carousel"
-        :aria-label="t({ id: 'Galeri proyek', en: 'Project gallery' })"
+        :aria-label="t({ id: 'Galeri proyek', en: 'Project gallery', ja: 'プロジェクトギャラリー' })"
+        @pointerenter="onGalleryPointerEnter"
+        @pointerleave="onGalleryPointerLeave"
+        @touchstart.passive="onGalleryTouchStart"
+        @touchend.passive="onGalleryTouchEnd"
+        @touchcancel.passive="onGalleryTouchEnd"
+        @focusin="focusInside = true"
+        @focusout="onGalleryFocusOut"
       >
         <div
           class="gallery__stage"
@@ -523,11 +694,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             :aria-hidden="Math.abs(offsetOf(index)) > 2"
             :aria-current="offsetOf(index) === 0 ? 'true' : undefined"
             :data-cursor="offsetOf(index) === 0
-              ? t({ id: 'Lihat', en: 'View' })
-              : t({ id: 'Pilih', en: 'Select' })"
+              ? t({ id: 'Lihat', en: 'View', ja: '見る' })
+              : t({ id: 'Pilih', en: 'Select', ja: '選ぶ' })"
             :aria-label="offsetOf(index) === 0
-              ? t({ id: `Perbesar gambar ${project.title}`, en: `Enlarge ${project.title} image` })
-              : t({ id: `Tampilkan proyek ${project.title}`, en: `Show ${project.title} project` })"
+              ? t({ id: `Perbesar gambar ${project.title}`, en: `Enlarge ${project.title} image`, ja: `${project.title}の画像を拡大` })
+              : t({ id: `Tampilkan proyek ${project.title}`, en: `Show ${project.title} project`, ja: `${project.title}を表示` })"
             @click="onSlideClickGuarded(index)"
             @contextmenu.prevent="preventImageAction"
           >
@@ -536,7 +707,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               <span class="gallery__no">No. {{ String(index + 1).padStart(2, '0') }}</span>
               <span class="gallery__url">{{ hostLabel(project) }}</span>
               <span v-if="project.shots?.length > 1" class="gallery__shots">
-                {{ project.shots.length }} {{ t({ id: 'foto', en: 'photos' }) }}
+                {{ t({
+                  id: `${project.shots.length} foto`,
+                  en: `${project.shots.length} photos`,
+                  ja: `写真${project.shots.length}枚`,
+                }) }}
               </span>
             </span>
             <span class="gallery__shot">
@@ -566,7 +741,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             / {{ String(total).padStart(2, '0') }}
           </span>
 
-          <div class="gallery__dots-nav" role="tablist" :aria-label="t({ id: 'Pilih proyek', en: 'Select project' })">
+          <div
+            class="gallery__dots-nav"
+            :class="{ 'is-paused': autoPaused }"
+            role="tablist"
+            :aria-label="t({ id: 'Pilih proyek', en: 'Select project', ja: 'プロジェクトを選択' })"
+          >
             <button
               v-for="(project, index) in projects"
               :key="`dot-${project.title}`"
@@ -574,20 +754,25 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               role="tab"
               class="gallery__dot"
               :class="{ 'gallery__dot--active': index === activeIndex }"
+              :style="index === activeIndex ? { '--fill': autoProgress } : null"
               :aria-selected="index === activeIndex"
-              :aria-label="t({ id: `Proyek ${index + 1}: ${project.title}`, en: `Project ${index + 1}: ${project.title}` })"
+              :aria-label="t({
+                id: `Proyek ${index + 1}: ${project.title}`,
+                en: `Project ${index + 1}: ${project.title}`,
+                ja: `プロジェクト${index + 1}：${project.title}`,
+              })"
               @click="goTo(index)"
             ></button>
           </div>
 
           <div class="gallery__arrows">
-            <button type="button" class="btn-close gallery__arrow" :aria-label="t({ id: 'Proyek sebelumnya', en: 'Previous project' })" @click="prev">
+            <button type="button" class="btn-close gallery__arrow" :aria-label="t({ id: 'Proyek sebelumnya', en: 'Previous project', ja: '前のプロジェクト' })" @click="prev">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                   stroke-linejoin="round" d="M19 12H5m6-6-6 6 6 6" />
               </svg>
             </button>
-            <button type="button" class="btn-close gallery__arrow" :aria-label="t({ id: 'Proyek berikutnya', en: 'Next project' })" @click="next">
+            <button type="button" class="btn-close gallery__arrow" :aria-label="t({ id: 'Proyek berikutnya', en: 'Next project', ja: '次のプロジェクト' })" @click="next">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                   stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
@@ -598,7 +783,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
         <!-- Info proyek aktif -->
         <Transition name="info" mode="out-in">
-          <div :key="activeProject.title" class="gallery__info" aria-live="polite">
+          <div :key="activeProject.title" class="gallery__info" :aria-live="autoPaused ? 'polite' : 'off'">
             <div class="gallery__meta">
               <span class="gallery__num" aria-hidden="true">
                 {{ String(activeIndex + 1).padStart(2, '0') }}
@@ -613,7 +798,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
               <!-- Teknologi: teks mono dipisah titik. Logo wordmark (Flutter,
                    Node.js, MySQL) tidak terbaca kalau dikecilkan jadi ikon. -->
-              <ul class="gallery__stack" :aria-label="t({ id: 'Teknologi', en: 'Technologies' })">
+              <ul class="gallery__stack" :aria-label="t({ id: 'Teknologi', en: 'Technologies', ja: '使用技術' })">
                 <li v-for="tech in activeProject.techStack" :key="tech.name" class="gallery__chip">
                   {{ tech.name }}
                 </li>
@@ -628,8 +813,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                   @click="toggleDetail"
                 >
                   {{ detailOpen
-                    ? t({ id: 'Tutup detail', en: 'Hide details' })
-                    : t({ id: 'Detail pengerjaan', en: 'Project details' }) }}
+                    ? t({ id: 'Tutup detail', en: 'Hide details', ja: '詳細を閉じる' })
+                    : t({ id: 'Detail pengerjaan', en: 'Project details', ja: '担当内容を見る' }) }}
                   <svg
                     viewBox="0 0 24 24"
                     width="15"
@@ -650,6 +835,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                       stroke-linejoin="round" d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" />
                   </svg>
                   <template v-if="lang === 'en'">Freelance project · no public demo or code</template>
+                  <template v-else-if="lang === 'ja'">フリーランス案件 · デモ・コードは非公開</template>
                   <template v-else>Proyek freelance · tanpa demo &amp; kode publik</template>
                 </span>
                 <a
@@ -661,8 +847,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                   :aria-label="t({
                     id: `Kode sumber ${activeProject.title} di GitHub`,
                     en: `${activeProject.title} source code on GitHub`,
+                    ja: `${activeProject.title}のソースコード（GitHub）`,
                   })"
-                  :title="t({ id: 'Kode Sumber', en: 'Source Code' })"
+                  :title="t({ id: 'Kode Sumber', en: 'Source Code', ja: 'ソースコード' })"
                 >
                   <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
                     <path
@@ -684,9 +871,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                   class="btn btn--primary gallery__demo"
                   target="_blank"
                   rel="noopener noreferrer"
-                  :aria-label="t({ id: `Lihat demo ${activeProject.title}`, en: `View ${activeProject.title} demo` })"
+                  :aria-label="t({
+                    id: `Lihat demo ${activeProject.title}`,
+                    en: `View ${activeProject.title} demo`,
+                    ja: `${activeProject.title}のデモを見る`,
+                  })"
                 >
-                  {{ t({ id: 'Lihat demo', en: 'View demo' }) }}
+                  {{ t({ id: 'Lihat demo', en: 'View demo', ja: 'デモを見る' }) }}
                   <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
                     <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                       stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
@@ -703,7 +894,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 :inert="!detailOpen"
               >
                 <div class="gallery__detail-inner">
-                  <span class="gallery__detail-eyebrow">{{ t({ id: 'Ringkasan pengerjaan', en: 'Work summary' }) }}</span>
+                  <span class="gallery__detail-eyebrow">{{ t({ id: 'Ringkasan pengerjaan', en: 'Work summary', ja: '担当内容' }) }}</span>
                   <ol class="gallery__detail-list">
                     <li v-for="point in t(activeProject.desc)" :key="point" class="gallery__detail-point">
                       {{ point }}
@@ -734,7 +925,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <button
           type="button"
           class="btn-close btn-close--dark project-lightbox__close"
-          :aria-label="t({ id: 'Tutup gambar', en: 'Close image' })"
+          :aria-label="t({ id: 'Tutup gambar', en: 'Close image', ja: '画像を閉じる' })"
           @click="closeLightbox"
         >
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -748,7 +939,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             v-if="lightboxShots.length > 1"
             type="button"
             class="btn-close btn-close--dark project-lightbox__nav project-lightbox__nav--prev"
-            :aria-label="t({ id: 'Foto sebelumnya', en: 'Previous photo' })"
+            :aria-label="t({ id: 'Foto sebelumnya', en: 'Previous photo', ja: '前の写真' })"
             @click.stop="stepLightbox(-1)"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -772,7 +963,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             v-if="lightboxShots.length > 1"
             type="button"
             class="btn-close btn-close--dark project-lightbox__nav project-lightbox__nav--next"
-            :aria-label="t({ id: 'Foto berikutnya', en: 'Next photo' })"
+            :aria-label="t({ id: 'Foto berikutnya', en: 'Next photo', ja: '次の写真' })"
             @click.stop="stepLightbox(1)"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -801,7 +992,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             type="button"
             class="project-lightbox__thumb"
             :class="{ 'project-lightbox__thumb--active': i === lightboxIndex }"
-            :aria-label="t({ id: `Foto ${i + 1}: ${t(shot.caption)}`, en: `Photo ${i + 1}: ${t(shot.caption)}` })"
+            :aria-label="t({
+              id: `Foto ${i + 1}: ${t(shot.caption)}`,
+              en: `Photo ${i + 1}: ${t(shot.caption)}`,
+              ja: `写真${i + 1}：${t(shot.caption)}`,
+            })"
             :aria-current="i === lightboxIndex ? 'true' : undefined"
             @click.stop="lightboxIndex = i"
           >
@@ -1130,7 +1325,28 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .gallery__dot--active::before {
   height: 4px;
   margin-top: -2px;
+  background: color-mix(in srgb, var(--color-primary) 35%, var(--color-rule));
+}
+
+/* Isian putar otomatis: memanjang dari kiri sampai penuh, lalu pindah proyek */
+.gallery__dot--active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 2px;
   background: var(--color-primary);
+  transform: scaleX(var(--fill, 0));
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+/* Sedang dijeda (kursor di galeri, dsb.): isian sedikit meredup */
+.gallery__dots-nav.is-paused .gallery__dot--active::after {
+  opacity: 0.7;
 }
 
 .gallery__arrows {

@@ -1,10 +1,13 @@
 <script setup>
 import { lang, setLang, LANGS } from '@/composables/useLang'
+
+// Nama tiap bahasa dalam bahasanya sendiri (untuk pembaca layar)
+const NAMES = { id: 'Bahasa Indonesia', en: 'English', ja: '日本語' }
 </script>
 
 <template>
   <!-- Pilihan bahasa: kenop yang meluncur ke bahasa aktif, setinggi ThemeSwitch -->
-  <div class="lang" :class="`lang--${lang}`" role="group" aria-label="Bahasa / Language">
+  <div class="lang" :class="`lang--${lang}`" role="group" aria-label="Bahasa / Language / 言語">
     <span class="lang__knob" aria-hidden="true"></span>
     <button
       v-for="code in LANGS"
@@ -13,7 +16,7 @@ import { lang, setLang, LANGS } from '@/composables/useLang'
       class="lang__opt"
       :class="{ 'lang__opt--active': lang === code }"
       :aria-pressed="lang === code"
-      :aria-label="code === 'id' ? 'Bahasa Indonesia' : 'English'"
+      :aria-label="NAMES[code]"
       :lang="code"
       @click="setLang(code)"
     >
@@ -54,6 +57,10 @@ import { lang, setLang, LANGS } from '@/composables/useLang'
 
 .lang--en .lang__knob {
   translate: var(--seg) 0;
+}
+
+.lang--ja .lang__knob {
+  translate: calc(var(--seg) * 2) 0;
 }
 
 .lang__opt {

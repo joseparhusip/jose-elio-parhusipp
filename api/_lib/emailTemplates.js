@@ -79,8 +79,8 @@ function button(href, text) {
     </table>`
 }
 
-// Teks kaki email per bahasa (lang: 'id' default, atau 'en' untuk
-// pengunjung yang memakai situs versi Inggris)
+// Teks kaki email per bahasa (lang: 'id' default, 'en' untuk pengunjung
+// situs versi Inggris, atau 'ja' untuk versi Jepang)
 const SHELL_COPY = {
   id: {
     portfolioLink: 'Lihat portofolio',
@@ -90,12 +90,16 @@ const SHELL_COPY = {
     portfolioLink: 'View portfolio',
     footer: "Sent automatically from the contact chat on Jose's portfolio. Bekasi, Indonesia.",
   },
+  ja: {
+    portfolioLink: 'ポートフォリオを見る',
+    footer: 'このメールは、Joseのポートフォリオのお問い合わせチャットから自動送信されています。インドネシア・ブカシ',
+  },
 }
 
 function emailShell({ previewText, eyebrow, bodyHtml, lang = 'id' }) {
   const copy = SHELL_COPY[lang] || SHELL_COPY.id
   return `<!doctype html>
-<html lang="${lang === 'en' ? 'en' : 'id'}">
+<html lang="${SHELL_COPY[lang] ? lang : 'id'}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -176,7 +180,7 @@ function detailRow(name, valueHtml, last = false) {
 // bahasa situs yang dipakai pengunjung (jadi Jose tahu harus membalas pakai
 // bahasa apa).
 function buildOwnerNotificationEmail({ name, email, message, lang = 'id' }) {
-  const langLabel = lang === 'en' ? 'EN (Inggris)' : 'ID (Indonesia)'
+  const langLabel = { en: 'EN (Inggris)', ja: 'JA (Jepang)' }[lang] || 'ID (Indonesia)'
   const safeName = escapeHtml(name)
   const safeEmail = escapeHtml(email)
   const safeMessage = escapeHtml(message).replace(/\n/g, '<br/>')
@@ -215,6 +219,7 @@ function buildOwnerNotificationEmail({ name, email, message, lang = 'id' }) {
 // Konfirmasi ke pengunjung, mengikuti bahasa situs yang dia pakai.
 function buildVisitorConfirmationEmail({ name, message = '', lang = 'id' }) {
   if (lang === 'en') return buildVisitorConfirmationEmailEn({ name, message })
+  if (lang === 'ja') return buildVisitorConfirmationEmailJa({ name, message })
   const safeName = escapeHtml(name)
   const safeMessage = escapeHtml(message).replace(/\n/g, '<br/>')
 
@@ -303,6 +308,52 @@ function buildVisitorConfirmationEmailEn({ name, message = '' }) {
       eyebrow: 'Message received',
       bodyHtml,
       lang: 'en',
+    }),
+    attachments: brandAttachments,
+  }
+}
+
+// Versi Jepang (bahasa email bisnis formal; nama pengunjung + 様).
+function buildVisitorConfirmationEmailJa({ name, message = '' }) {
+  const safeName = escapeHtml(name)
+  const safeMessage = escapeHtml(message).replace(/\n/g, '<br/>')
+
+  const bodyHtml = `
+    <h1 style="margin:0 0 16px; font-family:${FONT}; font-size:21px; line-height:1.3; letter-spacing:-0.01em; color:${C.ink};">
+      ${safeName}様
+    </h1>
+    <p style="margin:0 0 14px; font-family:${FONT}; font-size:15px; line-height:1.75; color:${C.text};">
+      この度は、私のポートフォリオサイトよりお問い合わせいただき、誠にありがとうございます。メッセージを確かに受け付けました。内容を拝見のうえ、24時間以内にご返信いたします。
+    </p>
+
+    ${
+      safeMessage
+        ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 20px; border-top:1px solid ${C.ink};">
+            ${detailRow('お問い合わせ内容（控え）', safeMessage, true)}
+          </table>`
+        : ''
+    }
+
+    <p style="margin:0 0 22px; font-family:${FONT}; font-size:15px; line-height:1.75; color:${C.text};">
+      ご返信までの間、ポートフォリオでほかのプロジェクトもご覧いただけます。LinkedInやInstagramからもお気軽にご連絡ください。
+    </p>
+
+    ${button(SITE_URL, 'ポートフォリオを見る &rarr;')}
+
+    <p style="margin:28px 0 0; font-family:${FONT}; font-size:14px; line-height:1.7; color:${C.soft};">
+      今後ともどうぞよろしくお願いいたします。<br /><br />
+      <strong style="color:${C.ink};">Jose Elio Parhusip</strong>
+    </p>
+  `
+
+  return {
+    subject: '【Jose Elio Parhusip】お問い合わせを受け付けました',
+    text: `${name}様\n\nこの度は、私のポートフォリオサイトよりお問い合わせいただき、誠にありがとうございます。\nメッセージを確かに受け付けました。内容を拝見のうえ、24時間以内にご返信いたします。${message ? `\n\n■お問い合わせ内容（控え）\n${message}` : ''}\n\nポートフォリオ：${SITE_URL}\n\n今後ともどうぞよろしくお願いいたします。\n\nJose Elio Parhusip`,
+    html: emailShell({
+      previewText: 'お問い合わせいただき、ありがとうございます。24時間以内にご返信いたします。',
+      eyebrow: 'お問い合わせ受付',
+      bodyHtml,
+      lang: 'ja',
     }),
     attachments: brandAttachments,
   }

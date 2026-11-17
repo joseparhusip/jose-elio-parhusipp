@@ -463,6 +463,49 @@ main > .certs + .contact {
   padding-top: var(--section-y-tight);
 }
 
+/* ---------------------------------------------------------
+   Bahasa Jepang (html lang="ja")
+   - Huruf Latin tetap memakai font situs; kana/kanji jatuh ke font
+     Jepang sistem (Hiragino / Yu Gothic / Meiryo / Noto).
+   - Font judul & aksen serif: Mincho, supaya senada dengan Fraunces.
+   - Huruf miring tidak dipakai di tipografi Jepang (kanji jadi
+     "dimiringkan" paksa & jelek), jadi aksen biru tampil tegak.
+   - Jarak antarhuruf rapat ala Latin dibuat normal untuk teks Jepang,
+     dan baris tidak dipotong di tengah kata (word-break: auto-phrase
+     di browser yang mendukung).
+   --------------------------------------------------------- */
+/* Kana/kanji tidak pernah dimiringkan paksa: browser dilarang membuat
+   versi miring palsu. Huruf Latin yang punya italic asli (Fraunces) tetap miring. */
+html:lang(ja) {
+  font-synthesis: weight;
+}
+
+/* Judul: batas lebar diukur untuk huruf Latin (ch); huruf Jepang dua kali
+   lebih lebar, jadi batasnya dilepas supaya tidak pecah jadi baris pendek */
+html:lang(ja) :is(.section-title, .contact__title) {
+  max-width: none;
+}
+
+:root:lang(ja) {
+  --font-heading: 'Fraunces', var(--font-ja-serif);
+  --font-serif: 'Fraunces', var(--font-ja-serif);
+  --font-body: 'Hanken Grotesk', var(--font-ja-sans);
+  --font-mono: 'JetBrains Mono', var(--font-ja-sans);
+}
+
+:lang(ja) body {
+  line-break: strict;
+  word-break: auto-phrase;
+}
+
+html:lang(ja) :is(.serif-accent, .footer__serif) {
+  font-style: normal;
+}
+
+:lang(ja) :is(h1, h2, h3, .section-title) {
+  letter-spacing: 0.01em;
+}
+
 /* Pop up privasi terbuka: halaman di belakang tidak ikut ter-scroll */
 html.privacy-open {
   overflow: hidden;

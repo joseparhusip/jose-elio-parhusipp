@@ -52,7 +52,7 @@ function preventImageAction(event) {
       <!-- Kolom informasi -->
       <div v-reveal.stagger="{ delay: 60, step: 90 }" class="footer__grid">
         <div class="footer__brand">
-          <a :href="navLinks[0].path" class="footer__logo" :aria-label="t({ id: 'Kembali ke beranda', en: 'Back to home' })" @click="onNavClick($event, navLinks[0])">
+          <a :href="navLinks[0].path" class="footer__logo" :aria-label="t({ id: 'Kembali ke beranda', en: 'Back to home', ja: 'ホームへ戻る' })" @click="onNavClick($event, navLinks[0])">
             <img src="/logo-navbar-footer.webp" alt="Jose Elio Parhusip" class="footer__logo-img" width="512" height="512" draggable="false" />
           </a>
           <p class="footer__statement">
@@ -60,17 +60,20 @@ function preventImageAction(event) {
               Building web apps, mobile apps, and data dashboards that
               <span class="footer__serif">people actually use.</span>
             </template>
+            <template v-else-if="lang === 'ja'">
+              Webアプリ、モバイルアプリ、データダッシュボードを開発しています。<span class="footer__serif">本当に使われるものを。</span>
+            </template>
             <template v-else>
               Membangun web, mobile, dan dashboard data yang
               <span class="footer__serif">benar-benar dipakai.</span>
             </template>
           </p>
           <button type="button" class="footer__legal" aria-haspopup="dialog" @click="openPrivacy">
-            {{ t({ id: 'Kebijakan privasi', en: 'Privacy policy' }) }}
+            {{ t({ id: 'Kebijakan privasi', en: 'Privacy policy', ja: 'プライバシーポリシー' }) }}
           </button>
         </div>
 
-        <nav class="footer__col" :aria-label="t({ id: 'Navigasi footer', en: 'Footer navigation' })">
+        <nav class="footer__col" :aria-label="t({ id: 'Navigasi footer', en: 'Footer navigation', ja: 'フッターナビゲーション' })">
           <ul class="footer__list">
             <li v-for="link in navLinks" :key="link.path">
               <a :href="link.path" class="footer__link" @click="onNavClick($event, link)">
@@ -80,7 +83,7 @@ function preventImageAction(event) {
           </ul>
         </nav>
 
-        <div class="footer__col" :aria-label="t({ id: 'Sosial media', en: 'Social media' })">
+        <div class="footer__col" :aria-label="t({ id: 'Sosial media', en: 'Social media', ja: 'SNS' })">
           <ul class="footer__list">
             <li v-for="item in socials" :key="item.name">
               <a
@@ -117,8 +120,8 @@ function preventImageAction(event) {
       class="btn-close top-btn"
       type="button"
       @click="scrollToTop"
-      :aria-label="t({ id: 'Kembali ke atas', en: 'Back to top' })"
-      :title="t({ id: 'Kembali ke atas', en: 'Back to top' })"
+      :aria-label="t({ id: 'Kembali ke atas', en: 'Back to top', ja: 'ページの先頭へ戻る' })"
+      :title="t({ id: 'Kembali ke atas', en: 'Back to top', ja: 'ページの先頭へ戻る' })"
     >
       <svg viewBox="0 0 24 24" class="top-btn__icon" aria-hidden="true">
         <path

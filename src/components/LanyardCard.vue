@@ -239,7 +239,8 @@ function drawNotFound(canvas) {
   const mono = cssVar('--font-mono')
   const pad = 14
   const innerW = CARD_W - pad * 2
-  const en = lang.value === 'en'
+  // Teks Jepang ditulis tegak (huruf Jepang tidak dimiringkan)
+  const ja = lang.value === 'ja'
   const mid = CARD_W / 2
 
   ctx.fillStyle = face
@@ -313,14 +314,14 @@ function drawNotFound(canvas) {
   ctx.textAlign = 'center'
   ctx.font = `500 5.6px ${mono}`
   ctx.fillStyle = muted
-  ctx.fillText(en ? 'PHOTO NOT FOUND' : 'FOTO TIDAK DITEMUKAN', mid, photoY + photoH - 16)
+  ctx.fillText(t({ id: 'FOTO TIDAK DITEMUKAN', en: 'PHOTO NOT FOUND', ja: '写真が見つかりません' }), mid, photoY + photoH - 16)
 
   // Judul satu baris, senada dengan kartu asli
   ctx.textAlign = 'left'
-  const first = en ? 'Page ' : 'Halaman '
-  const last = en ? 'not found' : 'tersesat'
+  const first = t({ id: 'Halaman ', en: 'Page ', ja: 'ページが' })
+  const last = t({ id: 'tersesat', en: 'not found', ja: '見つかりません' })
   const firstFont = (size) => `700 ${size}px ${heading}`
-  const lastFont = (size) => `italic 400 ${size * 1.1}px ${serif}`
+  const lastFont = (size) => `${ja ? '' : 'italic '}400 ${size * 1.1}px ${serif}`
   const widthOf = (font, text) => {
     ctx.font = font
     return ctx.measureText(text).width
@@ -349,7 +350,7 @@ function drawNotFound(canvas) {
   // Alamat yang dicari, dipotong kalau terlalu panjang
   ctx.font = `500 5.2px ${mono}`
   ctx.fillStyle = muted
-  ctx.fillText(en ? 'PATH' : 'ALAMAT', pad, 303)
+  ctx.fillText(t({ id: 'ALAMAT', en: 'PATH', ja: 'パス' }), pad, 303)
   ctx.font = `600 6.6px ${mono}`
   ctx.fillStyle = ink
   let path = (props.path || '/').toUpperCase()
@@ -364,7 +365,7 @@ function drawNotFound(canvas) {
   ctx.fillRect(0, bandY, CARD_W, CARD_H - bandY)
   ctx.font = `600 6.4px ${mono}`
   ctx.fillStyle = '#FFFFFF'
-  ctx.fillText(en ? 'LOST · INVALID PASS' : 'HILANG · TIDAK BERLAKU', pad, bandY + 16)
+  ctx.fillText(t({ id: 'HILANG · TIDAK BERLAKU', en: 'LOST · INVALID PASS', ja: '紛失・無効なカード' }), pad, bandY + 16)
 }
 
 // Sisi depan sesuai varian
@@ -387,7 +388,8 @@ function drawBack(canvas) {
   const mono = cssVar('--font-mono')
   const pad = 14
   const innerW = CARD_W - pad * 2
-  const en = lang.value === 'en'
+  // Teks Jepang ditulis tegak (huruf Jepang tidak dimiringkan)
+  const ja = lang.value === 'ja'
 
   ctx.fillStyle = face
   ctx.fillRect(0, 0, CARD_W, CARD_H)
@@ -438,14 +440,19 @@ function drawBack(canvas) {
     rule(sub ? y + 37 : y + 25)
   }
 
-  section(52, en ? 'NOW' : 'SEKARANG', 'Back End Developer', 'PT SPKD · FREELANCE')
-  section(102, en ? 'EDUCATION' : 'PENDIDIKAN', en ? 'Bachelor of Digital Business' : 'S1 Bisnis Digital', 'ULBI · 2026')
-  section(152, en ? 'FOCUS' : 'FOKUS', 'Web · Mobile · Data · AI')
+  section(52, t({ id: 'SEKARANG', en: 'NOW', ja: '現在' }), 'Back End Developer', 'PT SPKD · FREELANCE')
+  section(
+    102,
+    t({ id: 'PENDIDIKAN', en: 'EDUCATION', ja: '学歴' }),
+    t({ id: 'S1 Bisnis Digital', en: 'Bachelor of Digital Business', ja: 'デジタルビジネス学士' }),
+    'ULBI · 2026',
+  )
+  section(152, t({ id: 'FOKUS', en: 'FOCUS', ja: '専門' }), 'Web · Mobile · Data · AI')
 
   // Stack utama sebagai label kecil bergaris
   ctx.font = `500 5.4px ${mono}`
   ctx.fillStyle = muted
-  ctx.fillText(en ? 'CORE STACK' : 'STACK UTAMA', pad, 190)
+  ctx.fillText(t({ id: 'STACK UTAMA', en: 'CORE STACK', ja: '主なスキル' }), pad, 190)
   ctx.font = `600 6.4px ${mono}`
   let x = pad
   let y = 196
@@ -465,9 +472,9 @@ function drawBack(canvas) {
   }
 
   // Seperti tulisan di belakang kartu ID asli
-  ctx.font = `italic 400 12.5px ${serif}`
+  ctx.font = `${ja ? '' : 'italic '}400 12.5px ${serif}`
   ctx.fillStyle = blue
-  ctx.fillText(en ? 'Found this card?' : 'Menemukan kartu ini?', pad, 280)
+  ctx.fillText(t({ id: 'Menemukan kartu ini?', en: 'Found this card?', ja: 'このカードを拾った方へ' }), pad, 280)
   ctx.font = `600 6.6px ${mono}`
   ctx.fillStyle = ink
   ctx.fillText('JOSEPARHUSIP7@GMAIL.COM', pad, 294)
@@ -477,7 +484,7 @@ function drawBack(canvas) {
   ctx.fillRect(0, bandY, CARD_W, CARD_H - bandY)
   ctx.font = `600 6.4px ${mono}`
   ctx.fillStyle = '#FFFFFF'
-  ctx.fillText(en ? 'TAP TO FLIP' : 'KETUK UNTUK MEMBALIK', pad, bandY + 16)
+  ctx.fillText(t({ id: 'KETUK UNTUK MEMBALIK', en: 'TAP TO FLIP', ja: 'タップして裏返す' }), pad, bandY + 16)
   // Ikon panah memutar
   const cx = CARD_W - pad - 5
   const cy = bandY + 13
@@ -1179,7 +1186,7 @@ onBeforeUnmount(() => {
     :class="{ 'lanyard--static': isStatic }"
     :role="isNotFound ? undefined : 'group'"
     :aria-hidden="isNotFound ? 'true' : undefined"
-    :aria-label="isNotFound ? undefined : t({ id: 'Kartu identitas Jose Elio Parhusip', en: 'Jose Elio Parhusip ID card' })"
+    :aria-label="isNotFound ? undefined : t({ id: 'Kartu identitas Jose Elio Parhusip', en: 'Jose Elio Parhusip ID card', ja: 'Jose Elio ParhusipのIDカード' })"
   >
     <template v-if="isStatic">
       <span class="lanyard__static-strap" aria-hidden="true"></span>
@@ -1193,7 +1200,7 @@ onBeforeUnmount(() => {
         ref="hitEl"
         class="lanyard__hit"
         :class="{ 'is-grabbing': isGrabbing }"
-        :data-cursor="t({ id: 'Tarik', en: 'Drag' })"
+        :data-cursor="t({ id: 'Tarik', en: 'Drag', ja: 'ドラッグ' })"
         @pointerdown="onPointerDown"
         @pointermove="onPointerMove"
         @pointerup="onPointerUp"
@@ -1208,8 +1215,8 @@ onBeforeUnmount(() => {
         role="button"
         tabindex="0"
         :aria-pressed="flipped"
-        :aria-label="t({ id: 'Balik kartu untuk melihat info singkat', en: 'Flip the card to see a short profile' })"
-        :data-cursor="t({ id: 'Klik · Tarik', en: 'Click · Drag' })"
+        :aria-label="t({ id: 'Balik kartu untuk melihat info singkat', en: 'Flip the card to see a short profile', ja: 'カードを裏返して簡単なプロフィールを見る' })"
+        :data-cursor="t({ id: 'Klik · Tarik', en: 'Click · Drag', ja: 'クリック · ドラッグ' })"
         @keydown.enter.prevent="toggleFlip"
         @keydown.space.prevent="toggleFlip"
         @pointerdown="onPointerDown"
