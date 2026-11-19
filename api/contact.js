@@ -3,8 +3,6 @@ import { buildOwnerNotificationEmail, buildVisitorConfirmationEmail } from './_l
 
 const { EMAIL_USER, EMAIL_PASS, SMTP_HOST, SMTP_PORT } = process.env
 
-// Transporter dibuat di luar handler supaya bisa dipakai ulang antar
-// invocation selama function masih "hangat" (mengurangi cold start).
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
   port: Number(SMTP_PORT),
@@ -19,14 +17,6 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-/* ---------------------------------------------------------
-   Pengamanan endpoint (supaya akun email tidak disalahgunakan):
-   - Hanya domain sendiri yang boleh memanggil dari browser (CORS).
-   - Batas panjang isian, dan baris baru dibuang dari nama/email
-     supaya tidak bisa menyisipkan header email.
-   - Batas kiriman per IP (5 per 10 menit). Disimpan di memori function,
-     jadi bukan pengaman mutlak, tapi cukup menahan spam berulang.
---------------------------------------------------------- */
 const ALLOWED_ORIGINS = [
   'https://www.joseparhusip.com',
   'https://joseparhusip.com',
@@ -35,22 +25,20 @@ const ALLOWED_ORIGINS = [
 const LIMITS = { name: 80, email: 254, message: 3000 }
 const RATE_WINDOW_MS = 10 * 60 * 1000
 const RATE_MAX = 5
-const hits = new Map() // ip -> [timestamp, ...]
+const hits = new Map()
 
 function isRateLimited(ip) {
   const now = Date.now()
   const recent = (hits.get(ip) || []).filter((t) => now - t < RATE_WINDOW_MS)
   recent.push(now)
   hits.set(ip, recent)
-  if (hits.size > 5000) hits.clear() // jaga memori tetap kecil
+  if (hits.size > 5000) hits.clear()
   return recent.length > RATE_MAX
 }
 
 const oneLine = (text) => String(text || '').replace(/[\r\n\t]+/g, ' ').trim()
 
-// Vercel otomatis menjadikan file ini endpoint: POST /api/contact
 export default async (req, res) => {
-  // Hanya domain sendiri yang boleh memanggil dari browser
   const origin = req.headers.origin
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin)
@@ -67,7 +55,6 @@ export default async (req, res) => {
     return res.status(405).json({ ok: false, error: 'Method not allowed' })
   }
 
-  // Permintaan dari situs lain ditolak (browser selalu mengirim Origin pada POST)
   if (origin && !ALLOWED_ORIGINS.includes(origin)) {
     return res.status(403).json({ ok: false, error: 'Asal permintaan tidak diizinkan.' })
   }
@@ -82,8 +69,6 @@ export default async (req, res) => {
   const name = oneLine(req.body?.name)
   const email = oneLine(req.body?.email)
   const message = String(req.body?.message || '').trim()
-  // Bahasa pengunjung (untuk email konfirmasi): hanya 'en' dan 'ja' yang
-  // diterima, nilai lain apa pun dianggap 'id'.
   const lang = ['en', 'ja'].includes(req.body?.lang) ? req.body.lang : 'id'
 
   if (!name || !email || !message) {
@@ -101,7 +86,6 @@ export default async (req, res) => {
     const visitorEmail = buildVisitorConfirmationEmail({ name, message, lang })
 
     await transporter.sendMail({
-      // Tanda kutip dibuang supaya nama tidak merusak format alamat pengirim
       from: `"Portofolio - ${name.replace(/["\\]/g, '')}" <${EMAIL_USER}>`,
       to: EMAIL_USER,
       replyTo: email,

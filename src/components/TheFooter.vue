@@ -17,8 +17,6 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// Tombol kembali ke atas: melayang di layar, hanya muncul setelah scroll ke bawah.
-// Di HP hanya saat sedang scroll ke atas, supaya tidak menutupi isi saat membaca.
 const showTopBtn = ref(false)
 let lastScrollY = 0
 
@@ -38,7 +36,6 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
-// Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
 function preventImageAction(event) {
   event.preventDefault()
   return false
@@ -49,7 +46,6 @@ function preventImageAction(event) {
   <footer class="footer">
 
     <div class="footer__inner">
-      <!-- Kolom informasi -->
       <div v-reveal.stagger="{ delay: 60, step: 90 }" class="footer__grid">
         <div class="footer__brand">
           <a :href="navLinks[0].path" class="footer__logo" :aria-label="t({ id: 'Kembali ke beranda', en: 'Back to home', ja: 'ホームへ戻る' })" @click="onNavClick($event, navLinks[0])">
@@ -106,14 +102,11 @@ function preventImageAction(event) {
 
     </div>
 
-    <!-- Tanda tangan editorial: nama raksasa selebar layar, bagian bawah
-         hurufnya terpotong rata oleh tepi bawah footer -->
     <p class="footer__wordmark" aria-hidden="true">
       <span>Jose Elio</span> <span>Parhusip</span>
     </p>
   </footer>
 
-  <!-- Tombol kembali ke atas: melayang di pojok kanan bawah layar -->
   <Transition name="top-btn-fade">
     <button
       v-if="showTopBtn"
@@ -138,11 +131,6 @@ function preventImageAction(event) {
 </template>
 
 <style scoped>
-/* =========================================================
-   Footer "Field Notes": blok biru penuh (sama di kedua tema),
-   kolom dipisah garis tipis, dan nama
-   besar sebagai tanda tangan di bagian bawah.
-   ========================================================= */
 .footer {
   --ink: #ffffff;
   --line: rgba(255, 255, 255, 0.16);
@@ -163,7 +151,6 @@ function preventImageAction(event) {
   box-sizing: border-box;
 }
 
-/* ---- Kolom ---- */
 .footer__grid {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
@@ -301,12 +288,10 @@ function preventImageAction(event) {
   outline-offset: 3px;
 }
 
-/* ---- Nama raksasa ---- */
 .footer__wordmark {
   margin: clamp(1.5rem, 4vw, 3rem) 0 0;
   padding: 0 1.2vw;
   font-family: var(--font-heading);
-  /* Dihitung supaya "Jose Elio Parhusip" pas selebar layar */
   font-size: 13.3vw;
   font-weight: 800;
   line-height: 1;
@@ -315,7 +300,6 @@ function preventImageAction(event) {
   text-align: center;
   color: var(--ink);
   user-select: none;
-  /* Hanya ± 3/4 tinggi huruf yang terlihat: kaki huruf terpotong rata */
   height: 0.74em;
   overflow: hidden;
   border-top: 1px solid var(--line);
@@ -326,13 +310,10 @@ function preventImageAction(event) {
   display: inline;
 }
 
-/* ---- Tombol melayang kembali ke atas ---- */
 .top-btn {
   --close-size: 46px;
   position: fixed;
   right: 1.5rem;
-  /* Digeser ke atas biar gak numpuk sama bubble ChatWidget yang juga
-     fixed di pojok kanan bawah (right/bottom 1.5rem, tinggi 58px). */
   bottom: 6rem;
   z-index: 40;
 }
@@ -355,7 +336,6 @@ function preventImageAction(event) {
   transform: translateY(10px);
 }
 
-/* ---- Tablet ---- */
 @media (max-width: 960px) {
   .footer__grid {
     grid-template-columns: 1fr 1fr;
@@ -373,7 +353,6 @@ function preventImageAction(event) {
   }
 }
 
-/* ---- HP ---- */
 @media (max-width: 560px) {
   .footer__grid {
     grid-template-columns: 1fr;
@@ -388,7 +367,6 @@ function preventImageAction(event) {
     border-bottom: 1px solid var(--line);
   }
 
-  /* Menu navigasi jadi 2 kolom supaya tidak terlalu panjang */
   .footer__grid > :nth-child(2) .footer__list {
     grid-template-columns: 1fr 1fr;
   }
@@ -397,8 +375,6 @@ function preventImageAction(event) {
     height: 40px;
   }
 
-  /* HP: tetap satu baris selebar layar seperti desktop, dengan potongan
-     bawah yang sama. Jarak atas dikecilkan supaya tidak terlalu renggang. */
   .footer__wordmark {
     margin-top: 1.25rem;
     font-size: 11.3vw;

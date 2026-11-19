@@ -6,18 +6,9 @@ import * as kbId from './chatKnowledge'
 import * as kbEn from './chatKnowledge.en'
 import * as kbJa from './chatKnowledge.ja'
 
-// Basis pengetahuan + pendeteksi maksud sesuai bahasa situs. Ketiga modul
-// mengekspor nama dan bentuk yang sama (lihat chatKnowledge.en.js), jadi
-// semua logika di bawah cukup memanggil kb.value.<nama>.
 const KB_BY_LANG = { id: kbId, en: kbEn, ja: kbJa }
 const kb = computed(() => KB_BY_LANG[lang.value] || kbId)
 
-// --- Bahasa Jepang: salam sesuai waktu ---------------------------------
-// getTimeOfDay() / getUserTimeGreeting() di chatKnowledge.ja.js bisa
-// mengembalikan kata Jepang (朝/昼/夕方/夜) atau token Inggris
-// (morning/afternoon/evening/night). Keduanya dinormalkan dulu ke satu slot,
-// lalu dipetakan ke salam Jepang yang wajar (おはようございます, dst.),
-// bukan terjemahan harfiah seperti 「良い朝」.
 const JA_TIME_SLOT = {
   朝: 'morning',
   昼: 'afternoon',
@@ -49,14 +40,12 @@ function jaTimeSlot(word) {
   return JA_TIME_SLOT[String(word || '').trim().toLowerCase()] || null
 }
 
-// Salam Jepang untuk kata waktu tertentu; tanpa argumen pakai jam perangkat.
 function jaGreeting(word) {
   return JA_GREETING[jaTimeSlot(word) || jaTimeSlot(kb.value.getTimeOfDay()) || 'afternoon']
 }
 
 const chatStore = useChatWidgetStore()
 
-// Alur percakapan sederhana: name -> email -> message -> submitting -> done/error
 const step = ref('name')
 const messages = ref([])
 const inputValue = ref('')
@@ -68,29 +57,12 @@ const chatInputEl = ref(null)
 
 const form = ref({ name: '', email: '', message: '' })
 
-// Bot sedang menunggu klarifikasi untuk pertanyaan ambigu
-// "pekerjaan"/"kerjaan" (bisa berarti riwayat kerja Jose, atau user yang
-// mau nawarin kerjaan ke Jose). Nilainya string nama topik yang lagi
-// diklarifikasi (misal 'pekerjaan'), atau null kalau tidak ada yang
-// sedang diklarifikasi. Selama ada nilainya, pesan berikutnya dari user
-// diartikan dulu sebagai jawaban klarifikasi ini, BUKAN nama/email/pesan.
 const pendingClarify = ref(null)
 
-// Tawaran lanjutan dari bot yang menunggu jawaban "iya/boleh" atau "nggak",
-// misalnya setelah profil singkat: "mau aku ceritain lebih lengkap?".
-// Bentuknya { type: 'aboutFull' | 'techProjects' | 'contact', ... } atau null.
 const pendingOffer = ref(null)
 
-// --- Persist ke localStorage, khusus buat chat widget ini -----------------
-// Key sengaja dibuat spesifik (bukan cuma "chat") supaya kalau nanti ada
-// fitur lain yang juga pakai localStorage di situs ini, nggak ketimpa.
-// Riwayat disimpan per bahasa: key lama untuk Indonesia (riwayat yang sudah
-// ada tetap terbaca), dan akhiran "-en" / "-ja" untuk bahasa Inggris / Jepang.
 const STORAGE_KEY = 'jose-portfolio-chat-widget-v1'
 const storageKeyFor = (code) => (code === 'en' || code === 'ja' ? `${STORAGE_KEY}-${code}` : STORAGE_KEY)
-// Dipakai supaya proses restore dari localStorage saat pertama buka widget
-// tidak ikut ke-trigger sama watcher penyimpanan di bawah (biar nggak nyimpen
-// ulang data yang baru aja dibaca).
 let isRestoringState = false
 
 function saveChatState(key = storageKeyFor(lang.value)) {
@@ -108,8 +80,6 @@ function saveChatState(key = storageKeyFor(lang.value)) {
       }),
     )
   } catch (err) {
-    // localStorage bisa gagal (mode private/incognito, kuota penuh, dst),
-    // biarkan saja chat tetap jalan normal tanpa persist.
     console.warn('Gagal menyimpan riwayat chat:', err)
   }
 }
@@ -136,17 +106,12 @@ function clearChatState() {
 }
 
 let msgId = 0
-// type: 'text' (default) atau 'cards' (dipakai buat jawaban FAQ experience/proyek).
-// items: dipakai kalau type === 'cards', berisi array {title, subtitle, desc, tags, links}.
 function pushMessage(from, text, type = 'text', items = null) {
   msgId += 1
   messages.value.push({ id: msgId, from, text, type, items })
   nextTick(scrollToBottom)
 }
 
-/* ---- HP: tombol chat menyingkir saat halaman di-scroll ke bawah ----
-   Supaya tidak menutupi isi yang sedang dibaca. Muncul lagi saat scroll
-   ke atas, di bagian paling atas, atau saat sampai di dasar halaman. */
 const fabTucked = ref(false)
 let lastScrollY = 0
 
@@ -170,19 +135,13 @@ function scrollToBottom() {
   messagesEnd.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
 
-// Nomor "generasi" percakapan. Naik setiap kali bahasa diganti, supaya
-// balasan bot yang masih "mengetik" dari percakapan bahasa sebelumnya
-// dibuang dan tidak nyasar ke percakapan bahasa yang baru.
 let convGen = 0
 
-// Kasih jeda kecil + indikator "sedang mengetik" biar kerasa natural,
-// bukan cuma teks yang muncul instan.
 function botSay(text, delay = 600, type = 'text', items = null) {
   const gen = convGen
   return new Promise((resolve) => {
     isBotTyping.value = true
     setTimeout(() => {
-      // Percakapan sudah diganti (ganti bahasa): alur lama berhenti di sini.
       if (gen !== convGen) return
       isBotTyping.value = false
       pushMessage('bot', text, type, items)
@@ -191,10 +150,6 @@ function botSay(text, delay = 600, type = 'text', items = null) {
   })
 }
 
-// Teks dari pengunjung (mis. nama) WAJIB di-escape sebelum disisipkan ke
-// pesan bot, karena pesan bot dirender pakai v-html. Tanpa ini, nama seperti
-// <img src=x onerror=...> akan dieksekusi sebagai HTML (XSS) dan ikut
-// tersimpan di localStorage.
 function escapeHtml(value = '') {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -204,26 +159,17 @@ function escapeHtml(value = '') {
     .replace(/'/g, '&#39;')
 }
 
-// Bahasa Jepang: nama pengunjung + さん di awal kalimat ("Budiさん、…").
-// Kosong kalau nama belum diketahui.
 function jaCall() {
   return form.value.name ? `${escapeHtml(form.value.name)}さん、` : ''
 }
 
-// Pemisah antara salam balik dan kalimat berikutnya: bahasa Jepang tidak
-// memakai spasi di antara kalimat.
 function sentenceGap() {
   return lang.value === 'ja' ? '' : ' '
 }
 
-// --- Basa-basi: sapaan sesuai waktu, terima kasih, pamit, dsb. ---
-// Mengembalikan true kalau pesan sudah dijawab sebagai basa-basi.
-// Sapa balik dengan waktu yang disebut user ("selamat malam" -> "selamat
-// malam juga"), kalau user cuma bilang "halo" pakai jam di perangkatnya.
 function greetBack(text, name = '') {
   const said = kb.value.getUserTimeGreeting(text)
   if (lang.value === 'ja') {
-    // "Budiさん、こんばんは！": salam yang disebut user, atau sesuai jam perangkat
     return `${name ? jaCall() : ''}${jaGreeting(said)}！`
   }
   if (lang.value === 'en') {
@@ -257,7 +203,6 @@ async function answerSmallTalk(talk, text = '') {
         night: '夜遅くにお立ち寄りいただき、ありがとうございます。',
       },
     })
-    // Bahasa Jepang: kata waktu dari kb dinormalkan dulu ke slot morning/afternoon/...
     const extraKey = lang.value === 'ja' ? jaTimeSlot(time) || 'afternoon' : time
     await botSay(`${greetBack(text, name)}${sentenceGap()}${extras[extraKey]}`, 550)
   } else if (talk.type === 'howAreYou') {
@@ -342,11 +287,8 @@ async function answerSmallTalk(talk, text = '') {
       }),
       550,
     )
-  } else if (talk.type === 'ack') {
-    // "oke", "sip", dsb: tidak perlu dijawab panjang, cukup lanjut alurnya
   }
 
-  // Pesan sudah selesai terkirim: tidak ada pertanyaan lanjutan
   if (step.value === 'done') {
     if (talk.type !== 'thanks' && talk.type !== 'greeting') {
       await botSay(
@@ -366,19 +308,12 @@ async function answerSmallTalk(talk, text = '') {
   return true
 }
 
-// --- FAQ seputar Jose (siapa, about, kuliah, pengalaman, proyek, kontak) ---
-// Dipanggil dari handleSend kalau pesan user cocok dengan salah satu intent
-// dari matchFaqIntent(). Alur form kontak (nama/email/pesan) sama sekali
-// tidak terganggu, cuma "dijeda" sebentar buat jawab pertanyaan ini.
-// Semua teks di sini HTML siap render (dirender pakai v-html khusus
-// pesan dari bot, lihat template di bawah).
 function projectCards(list, withLinks) {
   return list.map((item) => ({
     title: item.title,
     desc: item.summary,
     image: item.image,
     tags: item.tags,
-    // Proyek internal tidak punya demo/repo publik
     links: withLinks && !item.internal
       ? [
           { label: t({ id: 'Lihat Demo', en: 'View Demo', ja: 'デモを見る' }), url: item.demoHref },
@@ -388,7 +323,6 @@ function projectCards(list, withLinks) {
   }))
 }
 
-// Pilih variasi kalimat sesuai bahasa aktif (kunci variasi sama untuk dua bahasa).
 function pick(key, variants) {
   return kb.value.pickVariant(key, t(variants))
 }
@@ -419,8 +353,6 @@ async function answerFaq(intent) {
     return
   }
 
-  // Profil: ringkas dulu, baru tawarkan versi lengkap (tidak langsung
-  // menumpahkan teks panjang, seperti orang yang ditanya "Jose itu siapa?").
   if (intent.type === 'about') {
     await botSay(
       pick('aboutLead', {
@@ -509,7 +441,7 @@ async function answerFaq(intent) {
         500,
       )
       pendingOffer.value = { type: 'projectLinks' }
-      return true // suppress prompt lanjutan form (nama/email/pesan) di giliran ini
+      return true
     }
     return false
   }
@@ -519,9 +451,6 @@ async function answerFaq(intent) {
     return false
   }
 
-  // "pekerjaan"/"kerjaan" sendirian itu ambigu (riwayat kerja Jose, atau
-  // user mau nawarin kerjaan ke Jose?), jadi nanya balik dulu daripada
-  // asal nebak. Jawabannya ditangkep di processMessage lewat pendingClarify.
   if (intent.type === 'ambiguous_pekerjaan') {
     await botSay(
       t({
@@ -532,19 +461,15 @@ async function answerFaq(intent) {
       500,
     )
     pendingClarify.value = 'pekerjaan'
-    return true // suppress prompt lanjutan, tunggu jawaban klarifikasi dulu
+    return true
   }
 
-  // Pertanyaan yang jelas di luar topik seputar Jose (resep, cuaca, dst).
   if (intent.type === 'offtopic') {
     await botSay(kb.value.OFFTOPIC_HTML)
     return false
   }
 }
 
-// --- Maksud percakapan yang lebih spesifik (lihat matchConversation) -------
-// Return true kalau pertanyaan lanjutan form (nama/email/pesan) tidak perlu
-// ditanyakan di giliran ini (mis. bot baru saja menawarkan sesuatu).
 async function answerConversation(intent, body) {
   const name = form.value.name ? `, ${escapeHtml(form.value.name)}` : ''
   const nj = jaCall()
@@ -552,7 +477,6 @@ async function answerConversation(intent, body) {
   const ja = lang.value === 'ja'
 
   if (intent.type === 'meetBot') {
-    // "aku mau kenalan sama kamu, namaku budi" -> langsung pakai namanya
     const stated = step.value === 'name' ? kb.value.matchNameStatement(body) : null
     if (stated) {
       form.value.name = stated.name
@@ -802,12 +726,10 @@ async function answerConversation(intent, body) {
           ...(projects.length
             ? [`in the ${joinList(projects.map((p) => p.title))} ${projects.length === 1 ? 'project' : 'projects'}`]
             : []),
-          // Peran yang sama (mis. dua kali Back End Developer) cukup disebut sekali
           ...[...new Set(roles.map((r) => r.role.replace(/<[^>]+>/g, '')))].map((role) => `in his work as ${/^[aeiou]/i.test(role) ? 'an' : 'a'} ${role}`),
         ]
       : ja
         ? [
-            // "MedCredixのプロジェクト", "Back End Developerとしての業務"
             ...(projects.length ? [`${joinList(projects.map((p) => p.title))}のプロジェクト`] : []),
             ...[...new Set(roles.map((r) => r.role.replace(/<[^>]+>/g, '')))].map((role) => `${role}としての業務`),
           ]
@@ -939,7 +861,6 @@ async function answerConversation(intent, body) {
     return true
   }
 
-  // --- Filter: permintaan yang memang tidak bisa / tidak pantas dilayani ---
   if (intent.type === 'money') {
     await botSay(
       pick('money', {
@@ -1046,7 +967,6 @@ async function answerConversation(intent, body) {
     return false
   }
 
-  // --- Obrolan ringan ke bot ---
   if (intent.type === 'testMsg') {
     await botSay(
       pick('testMsg', {
@@ -1059,9 +979,7 @@ async function answerConversation(intent, body) {
     return false
   }
 
-  // Jam & tanggal diambil dari perangkat pengunjung (zona waktunya sendiri)
   if (intent.type === 'timeNow') {
-    // Bahasa Inggris sengaja pakai en-GB (format 24 jam); bahasa lain dari LOCALES
     const time = new Intl.DateTimeFormat(en ? 'en-GB' : LOCALES[lang.value], { hour: '2-digit', minute: '2-digit' }).format(new Date())
     await botSay(
       en
@@ -1291,8 +1209,6 @@ async function answerConversation(intent, body) {
   return false
 }
 
-// Jawab tawaran yang sedang menunggu (pendingOffer). Return true kalau
-// pesan user memang jawaban ya/tidak untuk tawaran itu.
 async function answerPendingOffer(text) {
   const offer = pendingOffer.value
   const norm = kb.value.normalizeChat(text)
@@ -1362,16 +1278,11 @@ async function answerPendingOffer(text) {
   return true
 }
 
-// Kalimat buat "kembali" ke pertanyaan form kontak setelah FAQ dijawab,
-// supaya alur pengumpulan nama/email/pesan tetap jalan.
-// Seperti orang ngobrol: setelah ditanya, jangan ditagih lagi di setiap
-// balasan. Pertanyaan yang sama baru diulang setelah beberapa giliran.
 let userTurn = 0
 let lastAskTurn = -10
 const ASK_EVERY_TURNS = 3
 
 function stepPrompt(after = 'faq') {
-  // Mode ngobrol bebas: user belum mau kasih data, jangan ditagih terus
   if (step.value === 'chat' || !['name', 'email', 'message'].includes(step.value)) return ''
   if (after !== 'greeting' && userTurn - lastAskTurn < ASK_EVERY_TURNS) return ''
   lastAskTurn = userTurn
@@ -1436,13 +1347,10 @@ async function startConversation() {
   pendingOffer.value = null
   step.value = 'name'
   msgId = 0
-  // Sapaan sesuai waktu dulu, lalu topik yang bisa dijawab. Pertanyaan nama
-  // cuma ada sekali, di akhir pesan topik.
   await botSay(
     t({
       id: `Halo, selamat ${kb.value.getTimeOfDay()}! Makasih udah mampir ke portofolio Jose. Aku asisten chat-nya, siap nemenin ngobrol.`,
       en: `Hi, good ${kb.value.getTimeOfDay()}! Thanks for visiting Jose's portfolio. I'm his chat assistant, here to help.`,
-      // Bahasa Jepang: salam sesuai jam (おはようございます/こんにちは/こんばんは)
       ja: `${jaGreeting()}！Joseのポートフォリオにお越しいただき、ありがとうございます。Joseのチャットアシスタントです。どうぞお気軽に話しかけてください。`,
     }),
     400,
@@ -1450,8 +1358,6 @@ async function startConversation() {
   await botSay(kb.value.TOPICS_HTML, 450)
 }
 
-// Restore riwayat chat dari localStorage kalau ada, atau mulai percakapan
-// baru kalau belum pernah chat / riwayatnya sudah dihapus.
 function restoreOrStartConversation() {
   const saved = loadChatState()
   if (!saved) {
@@ -1475,9 +1381,6 @@ function restoreOrStartConversation() {
   })
 }
 
-// Tombol "hapus riwayat" di header: bersihin localStorage lalu mulai
-// percakapan baru dari nol (khusus chat widget ini saja, tidak menyentuh
-// data lain di localStorage situs).
 function clearConversation() {
   const confirmed = window.confirm(
     t({
@@ -1491,7 +1394,6 @@ function clearConversation() {
   startConversation()
 }
 
-// Kosong ('') artinya panggil /api/contact di domain yang sama (production di Vercel).
 const API_URL = import.meta.env.VITE_API_URL || ''
 
 async function submitForm() {
@@ -1502,17 +1404,13 @@ async function submitForm() {
     const res = await fetch(`${API_URL}/api/contact`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // lang dipakai server untuk memilih bahasa email konfirmasi ke pengunjung
       body: JSON.stringify({ ...form.value, lang: lang.value }),
     })
 
     const data = await res.json().catch(() => ({}))
-    // Bahasa sudah diganti selagi menunggu: percakapan ini sudah ditutup.
     if (gen !== convGen) return
 
     if (!res.ok || !data.ok) {
-      // Pesan error dari server berbahasa Indonesia, jadi di versi Inggris
-      // diganti kalimat Inggris yang setara.
       if (en) {
         const enError = new Error(
           res.status === 429
@@ -1522,7 +1420,6 @@ async function submitForm() {
         enError.userFacing = true
         throw enError
       }
-      // Versi Jepang: sama, diganti kalimat Jepang yang setara.
       if (ja) {
         const jaError = new Error(
           res.status === 429
@@ -1545,8 +1442,6 @@ async function submitForm() {
     )
   } catch (err) {
     if (gen !== convGen) return
-    // Versi Inggris/Jepang: error teknis browser (mis. "Failed to fetch") diganti
-    // kalimat yang ramah, sama seperti error dari server.
     submitError.value = en
       ? err.userFacing
         ? err.message
@@ -1576,9 +1471,6 @@ function resetConversation() {
   startConversation()
 }
 
-// Selama bot masih "mengetik" balasan, pesan baru ditahan dulu supaya
-// urutan percakapan tidak tumpang tindih (sebelumnya bisa kirim beruntun
-// dan jawaban bot jadi acak urutannya).
 const isBusy = ref(false)
 
 async function handleSend() {
@@ -1599,8 +1491,6 @@ function takeUserMessage(text) {
   inputValue.value = ''
 }
 
-// User belum mau kasih nama/email: pindah ke mode ngobrol bebas, tawarin
-// topik, dan jangan minta data lagi sampai user sendiri yang mau kirim pesan.
 async function enterChatMode(hello = '') {
   step.value = 'chat'
   const name = form.value.name ? `, ${escapeHtml(form.value.name)}` : ''
@@ -1622,7 +1512,6 @@ async function enterChatMode(hello = '') {
   await botSay(kb.value.TOPICS_MENU_HTML, 400)
 }
 
-// Lanjut ke alur kirim pesan, mulai dari data yang belum ada.
 async function resumeContact(email = '') {
   if (email && isValidEmail(email)) form.value.email = email
   if (!form.value.name) {
@@ -1655,13 +1544,9 @@ async function resumeContact(email = '') {
   }
 }
 
-// Maksud percakapan boleh dicek kalau pesannya bukan email dan, di langkah
-// "pesan", bukan isi pesan untuk Jose (kalimat panjang / berisi tawaran).
 function canMatchConversation(body) {
   if (step.value === 'error' || step.value === 'submitting' || kb.value.extractEmail(body)) return false
   const wordCount = body.split(/\s+/).filter(Boolean).length
-  // Saat ditanya nama, jawaban satu kata yang masuk akal sebagai nama
-  // ("Bagus", "Rina") diperlakukan sebagai nama, bukan pujian/maksud lain.
   if (step.value === 'name') return !(wordCount === 1 && kb.value.extractPlainName(body))
   if (step.value !== 'message') return true
   return !kb.value.looksLikeMessageToJose(body) && wordCount <= 8
@@ -1672,20 +1557,14 @@ async function processMessage(text) {
   const en = lang.value === 'en'
   const ja = lang.value === 'ja'
 
-  // 0) Jawaban "iya/boleh/nggak" untuk tawaran bot sebelumnya. Dicek paling
-  //    awal supaya "iya" tidak tertelan sebagai basa-basi.
   if (pendingOffer.value) {
     if (await answerPendingOffer(text)) return
     pendingOffer.value = null
   }
 
-  // "halo kak, aku budi" / "pagi, mau tanya proyeknya" -> sapa balik dulu,
-  // lalu proses sisa kalimatnya.
   const greeted = kbm.hasGreetingPrefix(text)
   const body = greeted ? kbm.stripGreetingPrefix(text) || text : text
 
-  // 1) Maksud percakapan spesifik: ajakan kenalan, pujian, fakta (kuliah, kerja
-  //    di mana), cek skill ("bisa Flutter?"), proyek tertentu, dst.
   if (canMatchConversation(body)) {
     const convo = kbm.matchConversation(body)
     if (convo) {
@@ -1701,8 +1580,6 @@ async function processMessage(text) {
     }
   }
 
-  // 2) Basa-basi murni ("halo", "selamat malam", "makasih", "apa kabar")
-  //    dijawab dulu, TIDAK pernah dianggap nama/email/isi pesan.
   const talk = kbm.matchSmallTalk(text)
   if (talk) {
     pendingClarify.value = null
@@ -1711,8 +1588,6 @@ async function processMessage(text) {
     return
   }
 
-  // Mode ngobrol bebas: kalau user ngetik email atau bilang mau kirim
-  // pesan, lanjutkan alur kontak.
   if (step.value === 'chat') {
     const email = kbm.extractEmail(body)
     if (email || kbm.RESUME_CONTACT_RX.test(body)) {
@@ -1722,10 +1597,6 @@ async function processMessage(text) {
     }
   }
 
-  // Di langkah nama/email/pesan, user bilang belum mau kasih atau mau
-  // bahas yang lain dulu -> jangan dibilang "format salah".
-  // Di langkah pesan cuma kalimat pendek tanpa niat ("nanti aja", "ga jadi"),
-  // supaya pesan beneran yang kebetulan ada kata "ga" tetap terkirim.
   const wordCount = body.split(/\s+/).filter(Boolean).length
   const isDecline =
     kbm.DECLINE_RX.test(body) &&
@@ -1737,9 +1608,6 @@ async function processMessage(text) {
     return
   }
 
-  // 2) Pertanyaan FAQ seputar Jose. Di langkah "pesan", hanya dianggap FAQ
-  //    kalau bentuknya pertanyaan, supaya isi pesan seperti "saya mau
-  //    nawarin project" tetap terkirim sebagai pesan, bukan dijawab FAQ.
   if (
     step.value !== 'error' &&
     (step.value !== 'message' || (kbm.looksLikeQuestion(body) && !kbm.looksLikeMessageToJose(body)))
@@ -1758,7 +1626,6 @@ async function processMessage(text) {
     }
   }
 
-  // Setelah pesan terkirim, alur form sudah selesai
   if (step.value === 'done') {
     takeUserMessage(text)
     await botSay(
@@ -1772,7 +1639,6 @@ async function processMessage(text) {
     return
   }
 
-  // 4) Jawaban klarifikasi "pekerjaan" (riwayat kerja atau nawarin kerjaan)
   if (pendingClarify.value === 'pekerjaan') {
     const wantsHistory = kbm.PEKERJAAN_CLARIFY_HISTORY_RX.test(text)
     const wantsOffer = kbm.PEKERJAAN_CLARIFY_OFFER_RX.test(text)
@@ -1788,12 +1654,8 @@ async function processMessage(text) {
     pendingClarify.value = null
   }
 
-  // Mode ngobrol bebas tapi pertanyaannya tidak dikenali
   if (step.value === 'chat') {
     takeUserMessage(text)
-    // Hanya kalau user memang minta dipilihkan ("terserah", "bingung"), bukan
-    // setiap kalimat yang kebetulan mengandung "ga"/"tidak".
-    // Bahasa Inggris & Jepang memakai PICK_ANY_RX dari basis pengetahuannya.
     const pickAnyRx = (en || ja) && kbm.PICK_ANY_RX
       ? kbm.PICK_ANY_RX
       : /^(?:terserah|bebas|apa\s*(?:aja|saja)|bingung|yang\s*lain|lain\s*aja)\b/i
@@ -1827,12 +1689,10 @@ async function processMessage(text) {
     return
   }
 
-  // 5) Alur form: nama -> email -> pesan
   if (step.value === 'name') {
     takeUserMessage(text)
     const hello = greeted ? `${greetBack(text)}${sentenceGap()}` : ''
 
-    // Ada yang langsung ngetik email di langkah nama
     const emailInName = kbm.extractEmail(body)
     if (emailInName) {
       form.value.email = emailInName
@@ -1915,7 +1775,6 @@ async function processMessage(text) {
     takeUserMessage(text)
     const email = kbm.extractEmail(body)
     if (!email) {
-      // Mungkin user baru menyebut/meralat namanya di sini
       const nameStatement = kbm.matchNameStatement(body)
       if (nameStatement) {
         form.value.name = nameStatement.name
@@ -1969,7 +1828,6 @@ async function processMessage(text) {
 
   if (step.value === 'message') {
     takeUserMessage(text)
-    // Pesan kependekan (mis. "tes", "p") jangan langsung dikirim ke email Jose
     if (body.length < 10 || body.split(/\s+/).length < 2) {
       await botSay(
         t({
@@ -1995,7 +1853,6 @@ async function processMessage(text) {
   }
 
   if (step.value === 'error') {
-    // Di step error, user diarahkan pakai tombol "Coba Lagi", input diabaikan.
     inputValue.value = ''
   }
 }
@@ -2026,10 +1883,6 @@ function toggleWidget() {
   chatStore.toggle()
 }
 
-// Restore riwayat chat (kalau ada) atau mulai percakapan baru begitu widget
-// dibuka pertama kali, dan fokuskan input supaya user bisa langsung ngetik.
-// immediate: widget dimuat belakangan (App.vue), jadi bisa saja chat sudah
-// diminta terbuka sebelum komponen ini sempat dipasang.
 watch(
   () => chatStore.isOpen,
   (open) => {
@@ -2040,25 +1893,16 @@ watch(
   { immediate: true },
 )
 
-// Simpan otomatis ke localStorage setiap kali ada perubahan pada percakapan
-// (pesan baru, ganti step, isi form, dsb), supaya kalau halaman di-refresh
-// chat-nya tidak hilang.
 watch([messages, step, form, pendingClarify, pendingOffer], saveChatState, {
   deep: true,
 })
 
-// Ganti bahasa: percakapan bahasa lama disimpan di key-nya sendiri, lalu
-// widget memuat riwayat bahasa baru (atau memulai sapaan baru). Balasan bot
-// yang masih tertunda dibuang lewat convGen, jadi tidak ada bahasa campur
-// atau alur yang setengah jalan.
 watch(lang, (next, prev) => {
   if (messages.value.length) saveChatState(storageKeyFor(prev))
   convGen += 1
   isBusy.value = false
   isBotTyping.value = false
   inputValue.value = ''
-  // Kosongkan state tanpa memicu penyimpanan (supaya riwayat bahasa baru di
-  // localStorage tidak tertimpa percakapan kosong).
   isRestoringState = true
   messages.value = []
   form.value = { name: '', email: '', message: '' }
@@ -2069,7 +1913,6 @@ watch(lang, (next, prev) => {
   msgId = 0
   const gen = convGen
   nextTick(() => {
-    // Bahasa diganti lagi sebelum sempat dimuat: biar giliran terakhir saja.
     if (gen !== convGen) return
     isRestoringState = false
     if (chatStore.isOpen) {
@@ -2301,11 +2144,9 @@ watch(lang, (next, prev) => {
   font-family: var(--font-body);
 }
 
-/* --- Tombol bulat mengambang --- */
 .chat-widget__fab {
   --close-size: 48px;
   position: relative;
-  /* `translate` terpisah dari `transform` efek tekan tombol 3D */
   transition:
     transform 0.18s var(--ease-out),
     box-shadow 0.18s var(--ease-out),
@@ -2315,7 +2156,6 @@ watch(lang, (next, prev) => {
     opacity 0.25s ease;
 }
 
-/* HP & tablet: menyingkir ke bawah layar saat scroll ke bawah */
 @media (max-width: 760px) {
   .chat-widget__fab--tucked {
     translate: 0 calc(100% + 1.5rem);
@@ -2360,7 +2200,6 @@ watch(lang, (next, prev) => {
   }
 }
 
-/* --- Panel chat --- */
 .chat-widget__panel {
   width: min(360px, calc(100vw - 2.5rem));
   height: min(520px, calc(100vh - 8rem));
@@ -2436,7 +2275,6 @@ watch(lang, (next, prev) => {
   flex-shrink: 0;
 }
 
-/* Tampilan tombol dari .btn-close--blue (main.css); header chat lebih rapat */
 .chat-widget__icon-btn {
   --close-size: 32px;
   --close-depth: 2px;
@@ -2478,7 +2316,6 @@ watch(lang, (next, prev) => {
   text-align: left;
 }
 
-/* Paragraf & list di dalam jawaban FAQ (dirender via v-html) */
 .chat-widget__msg p {
   margin: 0 0 0.55rem;
 }
@@ -2518,7 +2355,6 @@ watch(lang, (next, prev) => {
   font-weight: 700;
 }
 
-/* --- List bernomor buat jawaban FAQ "pengalaman kerja" (bukan card lagi) --- */
 .chat-widget__exp-list {
   list-style: none;
   counter-reset: chat-widget-exp-counter;
@@ -2535,7 +2371,6 @@ watch(lang, (next, prev) => {
   padding-left: 0.1rem;
 }
 
-/* Nomor urut (1, 2, 3, ...) dalam lingkaran, menggantikan titik timeline */
 .chat-widget__exp-item::before {
   content: counter(chat-widget-exp-counter);
   flex-shrink: 0;
@@ -2552,7 +2387,6 @@ watch(lang, (next, prev) => {
   box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
-/* Garis vertikal penghubung antar nomor, kecuali di item terakhir */
 .chat-widget__exp-item:not(:last-child)::after {
   content: '';
   position: absolute;
@@ -2642,7 +2476,6 @@ watch(lang, (next, prev) => {
   border-bottom-right-radius: 4px;
 }
 
-/* --- Card jawaban FAQ (pengalaman & proyek) --- */
 .chat-widget__msg-wrap {
   display: flex;
   flex-direction: column;
@@ -2665,8 +2498,6 @@ watch(lang, (next, prev) => {
   overflow: hidden;
 }
 
-/* Card proyek (punya thumbnail): sedikit lebih lebar & tanpa padding atas,
-   supaya gambar bisa menempel rapi di bagian atas card seperti di section Proyek. */
 .chat-widget__card--has-image {
   max-width: 100%;
   padding-top: 0;
@@ -2689,7 +2520,6 @@ watch(lang, (next, prev) => {
   display: block;
   width: 100%;
   height: 100%;
-  /* contain, bukan cover: seluruh gambar/kolase kelihatan, tidak kepotong */
   object-fit: contain;
   object-position: center;
   -webkit-user-select: none;
@@ -2885,7 +2715,6 @@ watch(lang, (next, prev) => {
   height: 17px;
 }
 
-/* --- Transisi buka/tutup panel --- */
 .chat-panel-enter-active,
 .chat-panel-leave-active {
   transition:
@@ -2900,7 +2729,6 @@ watch(lang, (next, prev) => {
   transform: translateY(16px) scale(0.95);
 }
 
-/* --- Transisi tiap bubble chat muncul --- */
 .chat-msg-enter-active {
   transition:
     opacity 0.25s ease,

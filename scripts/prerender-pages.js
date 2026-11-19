@@ -1,15 +1,3 @@
-/* ---------------------------------------------------------
-   Dijalankan otomatis setelah `vite build`.
-   1. Membuat dist/<halaman>/index.html untuk tiap halaman
-      (/tentang, /pengalaman, ...) dengan judul, deskripsi,
-      canonical & Open Graph masing-masing. Hasilnya: alamat itu
-      bisa dibuka/di-refresh langsung (tidak 404) dan Google
-      langsung membaca judul yang benar.
-   2. Menulis dist/404.html: Vercel otomatis mengirim file ini (dengan
-      status 404 asli) untuk alamat yang tidak ada, lalu aplikasi
-      menampilkan halaman 404 versi desain sendiri.
-   3. Menulis dist/sitemap.xml berisi semua halaman.
---------------------------------------------------------- */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -53,7 +41,6 @@ for (const page of pages) {
   console.log(`✓ ${page.path} → ${outFile.slice(distDir.length + 1)}`)
 }
 
-// Halaman 404: judul sendiri & noindex (tidak boleh masuk hasil pencarian)
 let notFoundHtml = template
 notFoundHtml = replaceOnce(
   notFoundHtml,

@@ -1,8 +1,9 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import { loaderDone } from '@/composables/useLoaderState'
 import { vReveal } from '@/directives/reveal'
 import { t } from '@/composables/useLang'
+import { christmas } from '@/composables/useChristmas'
 import AboutSection from '@/components/AboutSection.vue'
 import ExperienceSection from '@/components/ExperienceSection.vue'
 import ProjectsSection from '@/components/ProjectsSection.vue'
@@ -13,6 +14,24 @@ import instagramIcon from '@/components/icons/icons-about/instagram-2016-logo-sv
 
 const edition = new Date().getFullYear()
 
+const ChristmasOrnaments = defineAsyncComponent(() => import('@/components/ChristmasOrnaments.vue'))
+const wideQuery = window.matchMedia('(min-width: 641px)')
+const desktopQuery = window.matchMedia('(min-width: 1024px)')
+const isWide = ref(wideQuery.matches)
+const isDesktop = ref(desktopQuery.matches)
+const onWideChange = () => {
+  isWide.value = wideQuery.matches
+  isDesktop.value = desktopQuery.matches
+}
+onMounted(() => {
+  wideQuery.addEventListener('change', onWideChange)
+  desktopQuery.addEventListener('change', onWideChange)
+})
+onUnmounted(() => {
+  wideQuery.removeEventListener('change', onWideChange)
+  desktopQuery.removeEventListener('change', onWideChange)
+})
+
 const stats = [
   { value: '4+', label: { id: 'Tahun belajar teknologi', en: 'Years learning tech', ja: 'テクノロジーを学んだ年数' } },
   { value: '8', label: { id: 'Proyek dibangun', en: 'Projects built', ja: '開発したプロジェクト' } },
@@ -22,19 +41,11 @@ const stats = [
 const prefersReducedMotion =
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-/* ---------------------------------------------------------
-   Teks peran yang diketik bergantian.
-   Tetap jalan walau "kurangi animasi" aktif di OS: yang berubah
-   hanya teksnya, tidak ada elemen yang bergerak. Kursor berkedip
-   tetap dimatikan untuk mode itu (lihat CSS).
---------------------------------------------------------- */
 const roles = ['Full Stack Developer', 'Flutter Developer', 'Data Analyst', 'Business Analyst']
 const typedRole = ref('')
-const roleFull = ref(roles[0]) // peran yang sedang diketik
-const roleNo = ref(1) // nomor peran yang tampil (01 / 04)
+const roleFull = ref(roles[0])
+const roleNo = ref(1)
 
-// Huruf yang sudah diketik dibagi dua: bagian sebelum kata terakhir
-// (warna teks) dan kata terakhir (biru)
 const typedSplit = computed(() => {
   const full = roleFull.value
   const cut = full.lastIndexOf(' ') + 1
@@ -87,9 +98,6 @@ onUnmounted(() => {
   clearTimeout(timeoutId)
 })
 
-/* ---------------------------------------------------------
-   Unduh CV
---------------------------------------------------------- */
 const CV_PATH = '/CV - Jose Elio Parhusip.pdf'
 const CV_FILENAME = 'CV - Jose Elio Parhusip.pdf'
 const downloadState = ref('idle')
@@ -146,10 +154,6 @@ function preventImageAction(event) {
   return false
 }
 
-/* ---------------------------------------------------------
-   Angka statistik naik dari 0 saat terlihat di layar.
-   Format desimal pakai koma (mis. 2,5) dan akhiran (+) dipertahankan.
---------------------------------------------------------- */
 function parseStat(value) {
   const [int, dec = ''] = value.replace(/[^\d,]/g, '').split(',')
   return {
@@ -184,7 +188,6 @@ function runCountUp() {
   countFrame = requestAnimationFrame(step)
 }
 
-// Mulai hitung kalau statistik sudah terlihat DAN loader sudah selesai
 watch(
   () => statsVisible.value && loaderDone.value,
   (ready) => {
@@ -217,7 +220,6 @@ onUnmounted(() => {
     <section id="beranda" class="hero">
 
       <div class="container">
-        <!-- Strip metadata ala sampul jurnal -->
         <div class="hero__strip mono-meta" v-reveal.down.intro>
           <span>
             {{ t({ id: 'Portofolio', en: 'Portfolio', ja: 'ポートフォリオ' }) }} ·
@@ -229,9 +231,8 @@ onUnmounted(() => {
           </span>
         </div>
 
-        <!-- Tanpa foto: nama besar selebar halaman, lalu dua kolom di bawah garis -->
         <div class="hero__inner">
-            <!-- Nama tersibak per baris, baris kedua menyusul -->
+            <ChristmasOrnaments v-if="christmas && isWide" :key="isDesktop ? 'hero' : 'tablet'" :variant="isDesktop ? 'hero' : 'tablet'" />
             <h1 class="hero__title">
               <span v-reveal.clip.intro="90" class="hero__title-line">Jose Elio</span>
               <span v-reveal.clip.intro="190" class="hero__title-line hero__title-line--accent"
@@ -242,18 +243,13 @@ onUnmounted(() => {
             <div class="hero__bottom">
               <div class="hero__intro">
                 <p class="hero__role" v-reveal.intro="300">
-                  <!-- Baris label: "Saya seorang" + nomor peran yang sedang tampil -->
                   <span class="hero__role-head" aria-hidden="true">
                     <span class="hero__role-prefix">{{ t({ id: 'Saya seorang', en: 'I am a', ja: '肩書き' }) }}</span>
                     <span class="hero__role-count">
                       {{ String(roleNo).padStart(2, '0') }} / {{ String(roles.length).padStart(2, '0') }}
                     </span>
                   </span>
-                  <!-- Pembaca layar membaca daftar peran lengkap, bukan huruf yang sedang diketik -->
                   <span class="hero__sr">{{ t({ id: 'Saya seorang', en: 'I am a', ja: '肩書き' }) }} {{ roles.join(', ') }}</span>
-                  <!-- Dua warna: kata depan warna teks, kata terakhir biru
-                       (mis. "Full Stack" + "Developer") -->
-                  <!-- data-skeleton-ghost: teks contoh untuk skeleton saat reload (teks asli baru diketik setelahnya) -->
                   <span class="hero__role-word" aria-hidden="true" :data-skeleton-ghost="roleFull">
                     <span class="hero__role-typed">{{ typedSplit.head }}</span
                     ><span class="hero__role-typed hero__role-typed--accent">{{ typedSplit.tail }}</span
@@ -298,6 +294,7 @@ onUnmounted(() => {
                 </div>
 
                 <div class="hero__meta" v-reveal.intro="620">
+                  <ChristmasOrnaments v-if="christmas && !isWide" variant="compact" />
                   <div class="hero__socials">
                     <a
                       href="https://github.com/joseparhusip"
@@ -385,11 +382,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* =========================================================
-   HERO — gaya "Field Notes": sampul jurnal dengan garis tipis.
-   Tanpa foto: nama sangat besar selebar halaman ("Parhusip." rata
-   kanan), lalu peran + tagline di kiri dan tombol + sosial di kanan.
-   ========================================================= */
 .hero {
   position: relative;
   isolation: isolate;
@@ -397,7 +389,6 @@ onUnmounted(() => {
   padding: clamp(1.25rem, 3vw, 2rem) 0 clamp(2.5rem, 5vw, 3.5rem);
 }
 
-/* Teks khusus pembaca layar */
 .hero__sr {
   position: absolute;
   width: 1px;
@@ -410,7 +401,6 @@ onUnmounted(() => {
   border: 0;
 }
 
-/* ---- Strip metadata di atas ---- */
 .hero__strip {
   display: flex;
   flex-wrap: wrap;
@@ -422,7 +412,6 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--color-rule);
 }
 
-/* Label status: pelat timbul kecil, senada dengan tombol di navbar */
 .hero__strip-status {
   padding: 0.2rem 0.55rem;
   border-radius: 4px;
@@ -432,8 +421,8 @@ onUnmounted(() => {
   box-shadow: 0 2px 0 color-mix(in srgb, var(--color-text) 45%, var(--color-bg));
 }
 
-/* ---- Isi utama: nama selebar halaman, lalu dua kolom di bawah garis ---- */
 .hero__inner {
+  position: relative;
   padding-top: clamp(2.5rem, 6vw, 4.5rem);
 }
 
@@ -451,7 +440,6 @@ onUnmounted(() => {
   min-width: 0;
 }
 
-/* Tombol & sosial rata kanan, sejajar dengan ujung "Parhusip." */
 .hero__cta {
   display: flex;
   flex-direction: column;
@@ -460,9 +448,6 @@ onUnmounted(() => {
   min-width: 0;
 }
 
-/* Nama 3D "stempel timbul": sisi tebal dari tumpukan bayangan tajam ke
-   kanan bawah. --name-depth dikali tiap lapis, jadi cukup ubah satu angka untuk
-   menebalkan sisi (dipakai saat hover). Satuan em supaya ikut ukuran huruf. */
 @property --name-depth {
   syntax: '<number>';
   inherits: true;
@@ -497,7 +482,7 @@ onUnmounted(() => {
   --s1: var(--side-1);
   --s2: var(--side-2);
   display: block;
-  padding-bottom: 0.06em; /* ruang untuk ekor huruf saat clip reveal */
+  padding-bottom: 0.06em;
   transform: translate(calc((1 - var(--name-depth)) * 0.02em), calc((1 - var(--name-depth)) * 0.02em));
 }
 
@@ -537,14 +522,12 @@ onUnmounted(() => {
   color: var(--color-text);
 }
 
-/* Disorot: huruf "naik" sedikit dan sisinya menebal (hanya perangkat bermouse) */
 @media (hover: hover) {
   .hero__title:hover {
     --name-depth: 1.6;
   }
 }
 
-/* ---- Peran yang diketik ---- */
 .hero__role {
   display: grid;
   gap: 0.6rem;
@@ -552,7 +535,6 @@ onUnmounted(() => {
   max-width: 40rem;
 }
 
-/* Label kecil + nomor peran, dipisah garis putus tipis */
 .hero__role-head {
   display: flex;
   align-items: center;
@@ -578,7 +560,6 @@ onUnmounted(() => {
   font-variant-numeric: tabular-nums;
 }
 
-/* Peran besar. min-height menjaga tinggi baris saat teks terhapus habis */
 .hero__role-word {
   display: block;
   min-height: 1.05em;
@@ -597,7 +578,6 @@ onUnmounted(() => {
   color: var(--color-primary);
 }
 
-/* Kursor balok biru, setinggi huruf besar */
 .hero__cursor {
   display: inline-block;
   width: 0.08em;
@@ -622,7 +602,6 @@ onUnmounted(() => {
   text-wrap: pretty;
 }
 
-/* ---- Tombol ---- */
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
@@ -645,7 +624,6 @@ onUnmounted(() => {
   transform: translateX(3px);
 }
 
-/* Tombol unduh: isian menyapu dari kiri saat berkas disiapkan */
 .hero__btn--download {
   overflow: hidden;
   isolation: isolate;
@@ -717,8 +695,8 @@ onUnmounted(() => {
   100% { transform: scale(1); }
 }
 
-/* ---- Sosial + fokus ---- */
 .hero__meta {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -747,7 +725,6 @@ onUnmounted(() => {
   -webkit-user-drag: none;
 }
 
-/* ---- Statistik: baris bergaris dengan angka besar ---- */
 .hero__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
@@ -831,7 +808,6 @@ onUnmounted(() => {
   to { transform: translateY(100%); }
 }
 
-/* ---- Kurangi animasi ---- */
 @media (prefers-reduced-motion: reduce) {
   .hero__scroll-line::after,
   .hero__cursor {
@@ -839,7 +815,6 @@ onUnmounted(() => {
   }
 }
 
-/* ---- Tablet ---- */
 @media (max-width: 960px) {
   .hero__bottom {
     grid-template-columns: 1fr;
@@ -851,9 +826,7 @@ onUnmounted(() => {
   }
 }
 
-/* ---- HP ---- */
 @media (max-width: 640px) {
-  /* Strip tetap satu baris: kata "Edisi" dilepas supaya status muat di sebelahnya */
   .hero__strip {
     flex-wrap: nowrap;
     white-space: nowrap;
@@ -883,7 +856,6 @@ onUnmounted(() => {
     flex: 1 1 100%;
   }
 
-  /* Ikon sosial di tengah, dipisah garis tipis dari tombol di atasnya */
   .hero__meta {
     flex-direction: column;
     gap: 1.1rem;
@@ -896,8 +868,6 @@ onUnmounted(() => {
     --close-size: 48px;
   }
 
-  /* Statistik: tiga kolom berdampingan, angka besar di atas & label kecil
-     di bawahnya (mata tidak perlu melompat dari kiri ke kanan) */
   .hero__stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

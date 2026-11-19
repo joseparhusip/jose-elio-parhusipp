@@ -18,7 +18,6 @@ import mysqlIcon from './icons/icons-about/MySQL-mark.svg'
 import nodejsIcon from './icons/icons-about/Nodejs-mark.svg'
 import phpIcon from './icons/icons-about/new-php-logo.svg'
 import tailwindIcon from './icons/icons-about/Tailwind_CSS_Logo.svg'
-// Ikon simbol dari Simple Icons (CC0), diwarnai sesuai warna brand
 import nextjsIcon from './icons/icons-about/Nextjs-logo.svg'
 import typescriptIcon from './icons/icons-about/TypeScript-logo.svg'
 import goIcon from './icons/icons-about/Go-logo.svg'
@@ -30,7 +29,6 @@ import postmanIcon from './icons/icons-about/Postman-logo.svg'
 import swaggerIcon from './icons/icons-about/Swagger-logo.svg'
 import pandasIcon from './icons/icons-about/Pandas-logo.svg'
 
-// Tiga kata kunci di kalimat manifesto + catatan kakinya
 const highlights = [
   {
     title: { id: 'full-stack & mobile', en: 'full-stack & mobile apps', ja: 'フルスタック・モバイルアプリ' },
@@ -49,7 +47,6 @@ const highlights = [
   },
 ]
 
-// Kategori dipakai untuk filter di grid tools
 const categories = [
   { key: 'all', label: { id: 'Semua', en: 'All', ja: 'すべて' } },
   { key: 'fe', label: 'Frontend' },
@@ -88,13 +85,10 @@ const tools = [
   { name: 'Figma', icon: figmaIcon, cat: 'design' },
 ]
 
-// Kata kunci yang sedang disorot (kalimat & catatan kaki menyala bersamaan)
 const activeHighlight = ref(null)
 
 const activeCat = ref('all')
 
-// Tools tampil sebagai baris yang bergeser terus ke kanan; tombol
-// "Lihat semua" membuka grid lengkap (dengan filter), "Tutup" kembali.
 const showAll = ref(false)
 const half = Math.ceil(tools.length / 2)
 const toolRows = [tools.slice(0, half), tools.slice(half)]
@@ -104,7 +98,6 @@ function toggleAll() {
   showAll.value = !showAll.value
   if (!showAll.value) {
     activeCat.value = 'all'
-    // Grid lebih tinggi dari baris geser: kembalikan judul Tools ke layar
     requestAnimationFrame(() => {
       const top = stackEl.value?.getBoundingClientRect().top ?? 0
       if (top < 0) stackEl.value.scrollIntoView({ block: 'start', behavior: 'smooth' })
@@ -112,27 +105,17 @@ function toggleAll() {
   }
 }
 
-/* ---------------------------------------------------------
-   Baris Tools mengikuti arah scroll:
-   - scroll ke bawah: baris atas ke kanan, baris bawah ke kiri
-   - scroll ke atas : kebalikannya
-   Arah terakhir dipertahankan saat scroll berhenti. Saat berbalik,
-   kecepatan melambat lalu berbalik arah dengan halus (tidak loncat),
-   karena posisi dihitung sendiri di JS, bukan animasi CSS. Baris yang
-   disorot mouse berhenti. Loop hanya jalan saat bagian Tools terlihat.
---------------------------------------------------------- */
-const trackEls = [] // elemen <ul> tiap baris (diisi lewat :ref di template)
+const trackEls = []
 const hovered = [false, false]
-const offsets = [0, 0] // posisi geser tiap baris (px)
-const velocity = [0, 0] // kecepatan saat ini (px/detik, bertanda)
-const ROW_SIGN = [1, -1] // saat scroll ke bawah: atas ke kanan (+), bawah ke kiri (-)
-let scrollDir = 1 // 1 = ke bawah, -1 = ke atas
+const offsets = [0, 0]
+const velocity = [0, 0]
+const ROW_SIGN = [1, -1]
+let scrollDir = 1
 let lastScrollY = 0
 let marqueeFrame = 0
 let lastTime = 0
 let marqueeObserver = null
 
-// Lama satu putaran penuh (detik); di HP sedikit lebih cepat
 function loopSeconds() {
   return window.matchMedia('(max-width: 640px)').matches ? [38, 42] : [48, 54]
 }
@@ -144,12 +127,10 @@ function tickMarquee(now) {
 
   trackEls.forEach((el, r) => {
     if (!el) return
-    const half = el.scrollWidth / 2 // daftar diulang dua kali
+    const half = el.scrollWidth / 2
     if (!half) return
     const target = hovered[r] ? 0 : (half / secs[r]) * ROW_SIGN[r] * scrollDir
-    // Mulai langsung di kecepatan penuh; setelahnya berubah halus (± 0,3 detik)
     velocity[r] = velocity[r] === 0 && !hovered[r] ? target : velocity[r] + (target - velocity[r]) * Math.min(1, dt * 5)
-    // Posisi dijaga di rentang (-half, 0], jadi putarannya tidak pernah putus
     offsets[r] = (((offsets[r] + velocity[r] * dt) % half) - half) % half
     el.style.transform = `translate3d(${offsets[r]}px, 0, 0)`
   })
@@ -168,16 +149,13 @@ function stopMarquee() {
   marqueeFrame = 0
 }
 
-// Arah baru dipakai setelah bergerak minimal 24px ke arah berlawanan.
-// Pergeseran kecil yang bukan dari pengguna (mis. browser menyesuaikan
-// posisi saat layout berubah) tidak membalik arah baris.
 const FLIP_DISTANCE = 24
 
 function onScrollDirection() {
   const y = window.scrollY
   const delta = y - lastScrollY
   if (Math.sign(delta) === scrollDir) {
-    lastScrollY = y // searah: titik acuan ikut bergerak
+    lastScrollY = y
   } else if (Math.abs(delta) >= FLIP_DISTANCE) {
     scrollDir = -scrollDir
     lastScrollY = y
@@ -204,23 +182,18 @@ function countOf(key) {
   return key === 'all' ? tools.length : tools.filter((t) => t.cat === key).length
 }
 
-// Tools yang tidak cocok tidak dihapus, cukup diredupkan, supaya grid tidak "loncat"
 function isMatch(tool) {
   return activeCat.value === 'all' || tool.cat === activeCat.value
 }
 
-// Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
 function preventImageAction(event) {
   event.preventDefault()
   return false
 }
 
-// Kartu lanyard 3D: Three.js baru dimuat saat bagian ini hampir terlihat,
-// supaya tidak ikut memperberat loading awal
 const LanyardCard = defineAsyncComponent(() => import('./LanyardCard.vue'))
 const lanyardSlot = ref(null)
 const showLanyard = ref(false)
-// Petunjuk "Tarik kartunya" (HP), hilang setelah kartu pertama kali ditarik
 const lanyardTouched = ref(false)
 let lanyardObserver = null
 
@@ -242,8 +215,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
 <template>
   <section id="tentang" class="about">
     <div class="container">
-      <!-- Manifesto: satu kalimat menggantikan judul, perkenalan, dan daftar
-           keunggulan. Kata kunci bernomor seperti catatan kaki majalah. -->
       <header class="section-head about__head">
         <div class="section-head__meta">
           <span class="section-label" v-reveal
@@ -357,7 +328,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
         </div>
       </header>
 
-      <!-- Tools: baris bergeser; "Lihat semua" membuka grid + filter kategori -->
       <div ref="stackEl" class="about__stack">
         <div class="about__block-head about__block-head--stack" v-reveal>
           <span class="about__block-label">{{ t({ id: 'Tools', en: 'Tools', ja: 'ツール' }) }}</span>
@@ -402,8 +372,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
           </div>
         </div>
 
-        <!-- Dua baris bergeser berlawanan arah, mengikuti arah scroll (lihat
-             tickMarquee). Tiap baris diulang dua kali supaya putarannya mulus. -->
         <div v-if="!showAll" class="about__marquees" v-reveal>
           <div
             v-for="(row, r) in toolRows"
@@ -470,13 +438,11 @@ onUnmounted(() => lanyardObserver?.disconnect())
   background: var(--color-bg);
 }
 
-/* ---- Manifesto ---- */
 .about__head {
   margin-bottom: 0;
   min-height: 32rem;
 }
 
-/* Kartu tergantung dari garis atas section, di sisi kanan kolom label */
 .about__head .section-head__meta {
   position: relative;
 }
@@ -486,13 +452,11 @@ onUnmounted(() => lanyardObserver?.disconnect())
   top: -1.1rem;
   right: 0;
   z-index: 3;
-  /* Kartu sedikit lebih besar dari ukuran dasarnya (lihat LanyardCard.vue) */
   --lanyard-max-scale: 1.12;
   width: min(224px, 84%);
   height: 505px;
 }
 
-/* Tablet: kolom label sempit, tali dimulai di bawah label supaya tidak menabraknya */
 @media (max-width: 1000px) {
   .about__lanyard {
     top: 2rem;
@@ -500,14 +464,11 @@ onUnmounted(() => lanyardObserver?.disconnect())
   }
 }
 
-/* Petunjuk tarik: hanya di HP (di desktop sudah ada label kursor "Tarik") */
 .about__lanyard-hint {
   display: none;
 }
 
 @media (max-width: 760px) {
-  /* HP: urutan dibuat label -> judul -> kartu -> poin 01-03, supaya judul
-     langsung terbaca dan kartu menjadi "jeda" visual sebelum poin */
   .about__head {
     display: flex;
     flex-direction: column;
@@ -535,7 +496,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
     order: 4;
   }
 
-  /* Kartu tergantung dari garis tipis selebar konten, sedikit lebih besar supaya terbaca */
   .about__lanyard {
     --lanyard-max-scale: 1.08;
     position: relative;
@@ -606,9 +566,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
   text-decoration-color: currentColor;
 }
 
-/* Catatan kaki: nomor kecil + kata kunci mono */
-/* Catatan kaki manifesto: tiga kolom bernomor (kata kerja + kata kunci),
-   dipisah garis tipis seperti kolom majalah */
 .about__notes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -662,7 +619,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
   color: var(--color-text-soft);
 }
 
-/* Kolom kedua: serif miring biru, sama seperti kata "analitis" di judul */
 .about__note-title.serif-accent {
   font-weight: 400;
   color: var(--color-primary);
@@ -673,7 +629,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
   color: var(--color-primary);
 }
 
-/* ---- Kepala blok tools ---- */
 .about__block-head {
   display: flex;
   align-items: baseline;
@@ -691,8 +646,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
   color: var(--color-text);
 }
 
-/* ---- Tools ---- */
-/* Jarak secukupnya: tinggi kepala (32rem) sudah memberi ruang untuk kartu */
 .about__stack {
   margin-top: clamp(2.5rem, 5vw, 3.5rem);
 }
@@ -725,7 +678,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
   font-weight: 600;
   color: var(--color-text);
   cursor: pointer;
-  /* Tombol 3D (token di main.css) */
   --depth: var(--btn-depth);
   background: var(--btn-ghost-face);
   box-shadow:
@@ -748,7 +700,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
   transition-duration: 0.06s;
 }
 
-/* ---- Dua baris bergeser ---- */
 .about__marquees {
   display: grid;
   gap: 0.75rem;
@@ -759,7 +710,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
 
 .about__marquee {
   overflow: hidden;
-  /* Tepi kiri & kanan memudar supaya chip "muncul" dan "hilang" halus */
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
 }
@@ -770,11 +720,9 @@ onUnmounted(() => lanyardObserver?.disconnect())
   margin: 0;
   padding: 0;
   list-style: none;
-  /* Posisi geser diatur dari JS (tickMarquee) */
   will-change: transform;
 }
 
-/* Chip: garis tipis tanpa isi, ikon polos; menyala saat disorot */
 .about__chip {
   display: flex;
   align-items: center;
@@ -808,7 +756,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
   color: var(--color-text);
 }
 
-/* Grid lengkap muncul pelan saat dibuka */
 .about__tools {
   animation: about-grid-in 0.4s var(--ease-out);
 }
@@ -877,7 +824,6 @@ onUnmounted(() => lanyardObserver?.disconnect())
   color: var(--color-text);
 }
 
-/* Grid bergaris: garis dibagi bersama antar sel */
 .about__tools {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -932,11 +878,8 @@ onUnmounted(() => lanyardObserver?.disconnect())
   color: var(--color-text);
 }
 
-/* ---- Responsif ---- */
-/* Tablet: ketiga catatan tidak muat sejajar, jadi ditumpuk rapi */
 @media (max-width: 640px) {
 
-  /* HP: tiap catatan jadi satu baris: nomor | kata kerja + kata kunci */
   .about__notes {
     grid-template-columns: 1fr;
   }

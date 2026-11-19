@@ -1,8 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 
-/* Bar tipis di atas layar yang memanjang sesuai seberapa jauh halaman di-scroll.
-   Nilai ditulis ke CSS variable, jadi tidak memicu render ulang Vue. */
 const barEl = ref(null)
 let frame = 0
 

@@ -1,12 +1,10 @@
 <script setup>
 import { lang, setLang, LANGS } from '@/composables/useLang'
 
-// Nama tiap bahasa dalam bahasanya sendiri (untuk pembaca layar)
 const NAMES = { id: 'Bahasa Indonesia', en: 'English', ja: '日本語' }
 </script>
 
 <template>
-  <!-- Pilihan bahasa: kenop yang meluncur ke bahasa aktif, setinggi ThemeSwitch -->
   <div class="lang" :class="`lang--${lang}`" role="group" aria-label="Bahasa / Language / 言語">
     <span class="lang__knob" aria-hidden="true"></span>
     <button
@@ -42,7 +40,6 @@ const NAMES = { id: 'Bahasa Indonesia', en: 'English', ja: '日本語' }
   background: var(--color-surface);
 }
 
-/* Kenop timbul (sisi bawah tebal seperti tombol 3D) */
 .lang__knob {
   position: absolute;
   top: var(--pad);

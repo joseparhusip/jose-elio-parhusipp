@@ -1,14 +1,5 @@
-/* ---------------------------------------------------------
-   Daftar halaman situs: satu sumber untuk router, navbar,
-   footer, dan script build (scripts/prerender-pages.js).
-   File ini sengaja tanpa import Vue supaya bisa dibaca Node.
-
-   Judul & deskripsi tiap halaman inilah yang dibaca Google,
-   dan biasanya jadi teks "sitelinks" di hasil pencarian.
---------------------------------------------------------- */
 export const SITE_URL = 'https://www.joseparhusip.com'
 
-// `en` / `ja`: label menu, judul tab, & deskripsi versi Inggris / Jepang (lihat useLang.js)
 export const pages = [
   {
     path: '/',

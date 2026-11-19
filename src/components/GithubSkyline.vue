@@ -20,19 +20,6 @@ import {
 import { useTheme } from '@/composables/useTheme'
 import { t } from '@/composables/useLang'
 
-/* ---------------------------------------------------------
-   Grafik kontribusi GitHub versi 3D: tiap hari jadi balok yang
-   tingginya sesuai jumlah kontribusi, seperti miniatur kota.
-   - Diputar dengan menarik (mouse/jari). Di HP hanya geser ke samping
-     yang memutar, geser ke atas/bawah tetap men-scroll halaman.
-   - Digambar hanya saat perlu (animasi tumbuh, diputar, ganti tema),
-     bukan terus-menerus, supaya hemat baterai.
-   - Arahkan kursor ke balok: tooltip tanggal (lewat event "hover").
-   - Zoom: tombol + / − / reset, Ctrl + scroll (atau cubit di touchpad),
-     klik dua kali, atau cubit dua jari di HP. Saat diperbesar, menarik
-     menggeser tampilan (bukan memutar). Scroll biasa tetap men-scroll
-     halaman, jadi halaman tidak "tersangkut" di grafik.
---------------------------------------------------------- */
 const props = defineProps({
   weeks: { type: Array, required: true },
   label: { type: String, default: '' },
@@ -46,8 +33,8 @@ const isDragging = ref(false)
 const zoomed = ref(window.innerWidth < 640)
 const zoomHint = ref(false)
 
-const STEP = 1.25 // jarak antar balok
-const SIZE = 1 // lebar balok
+const STEP = 1.25
+const SIZE = 1
 const MAX_HEIGHT = 7
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -56,15 +43,12 @@ let scene = null
 let camera = null
 let bars = null
 let base = null
-let days = [] // urutan sama dengan indeks instance
+let days = []
 let heights = []
 let tallest = 1
 const dummy = new Object3D()
 const tmpColor = new Color()
 
-// Sudut kamera (diubah saat ditarik)
-// HP: setahun penuh terlalu kecil di layar sempit, jadi tampilan awal
-// langsung diperbesar & fokus ke bulan-bulan terbaru (ujung kanan)
 const isNarrow = window.innerWidth < 640
 const START_AZIMUTH = isNarrow ? -0.55 : -0.24
 const START_ZOOM = isNarrow ? 2.4 : 1
@@ -74,18 +58,16 @@ let growStart = 0
 let frame = 0
 let hovered = -1
 
-// Zoom & geser (satuan ruang pandang kamera)
 const MIN_ZOOM = 1
 const MAX_ZOOM = 6
 let zoom = START_ZOOM
-let panX = START_ZOOM > 1 ? Infinity : 0 // Infinity = mentok ke kanan
+let panX = START_ZOOM > 1 ? Infinity : 0
 let panY = 0
-let zoomAnim = null // { target, nx, ny }
+let zoomAnim = null
 let fit = { cx: 0, cy: 0, halfH: 1, minX: 0, maxX: 0, minY: 0, maxY: 0 }
 
 const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
-// Warna 5 tingkat, sama dengan versi 2D: color-mix(in srgb, aksen, permukaan)
 function levelColors() {
   const accent = new Color(cssVar('--color-accent')).getRGB({}, SRGBColorSpace)
   const soft = new Color(cssVar('--color-surface-soft')).getRGB({}, SRGBColorSpace)
@@ -104,14 +86,13 @@ function buildBars() {
   const max = Math.max(1, ...days.map((day) => day.count))
 
   const geometry = new BoxGeometry(SIZE, 1, SIZE)
-  geometry.translate(0, 0.5, 0) // alas balok di y = 0
+  geometry.translate(0, 0.5, 0)
   bars = new InstancedMesh(geometry, new MeshStandardMaterial({ roughness: 0.55, metalness: 0.05 }), days.length)
   heights = days.map((day) => (day.count ? 0.35 + Math.sqrt(day.count / max) * MAX_HEIGHT : 0.12))
   tallest = Math.max(1, ...heights)
   paintBars()
   scene.add(bars)
 
-  // Alas tipis di bawah semua balok
   const cols = props.weeks.length
   if (base) {
     scene.remove(base)
@@ -137,7 +118,6 @@ function paintBars() {
   if (base) base.material.color.set(cssVar('--color-surface'))
 }
 
-// Posisi & tinggi balok; progress 0..1 untuk animasi tumbuh (gelombang kiri ke kanan)
 function layoutBars(progress) {
   const cols = props.weeks.length
   days.forEach((day, i) => {
@@ -157,7 +137,6 @@ const corners = Array.from({ length: 8 }, () => new Vector3())
 let viewW = 1
 let viewH = 1
 
-// Kamera mengitari grafik, lalu zoom diatur supaya seluruh grafik selalu muat
 function placeCamera() {
   const radius = 120
   camera.position.set(
@@ -185,7 +164,6 @@ function placeCamera() {
   const cy = (minY + maxY) / 2
   fit = { cx, cy, halfH: Math.max((maxY - minY) / 2, (maxX - minX) / 2 / aspect) * pad, minX, maxX, minY, maxY }
 
-  // Saat diperbesar: tampilan tidak boleh digeser keluar dari grafik
   const halfH = fit.halfH / zoom
   const halfW = halfH * aspect
   const clamp = (value, center, min, max, half) =>
@@ -200,7 +178,6 @@ function placeCamera() {
   camera.updateProjectionMatrix()
 }
 
-// Ubah zoom dengan titik di bawah kursor (nx, ny: -1..1) tetap di tempat
 function applyZoom(next, nx = 0, ny = 0) {
   next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, next))
   const aspect = viewW / viewH
@@ -246,7 +223,6 @@ function resetView() {
   requestRender()
 }
 
-// Posisi kursor dalam koordinat -1..1 (y ke atas)
 function toNdc(clientX, clientY) {
   const rect = canvasEl.value.getBoundingClientRect()
   return {
@@ -258,7 +234,6 @@ function toNdc(clientX, clientY) {
 let hintTimer = 0
 
 function onWheel(event) {
-  // Scroll biasa: biarkan halaman bergulir, cukup beri petunjuk singkat
   if (!event.ctrlKey && !event.metaKey) {
     zoomHint.value = true
     clearTimeout(hintTimer)
@@ -317,9 +292,8 @@ function requestRender() {
   if (!frame && renderer) frame = requestAnimationFrame(draw)
 }
 
-/* ---- Memutar (atau menggeser saat diperbesar) dengan menarik ---- */
 let drag = null
-const touches = new Map() // jari yang menempel, untuk cubit dua jari
+const touches = new Map()
 let pinch = null
 
 function onPointerDown(event) {
@@ -351,7 +325,6 @@ function onPointerMove(event) {
     return
   }
   if (drag && zoom > 1) {
-    // Diperbesar: tarik untuk menggeser tampilan
     const unit = (fit.halfH / zoom) * 2 / viewH
     panX -= (event.clientX - drag.lastX) * unit
     panY += (event.clientY - drag.lastY) * unit
@@ -362,7 +335,6 @@ function onPointerMove(event) {
   }
   if (drag) {
     azimuth = Math.max(-1.1, Math.min(1.1, drag.azimuth - (event.clientX - drag.x) * 0.006))
-    // Di HP sentuhan vertikal dipakai untuk scroll, jadi hanya mouse yang mengubah kemiringan
     if (event.pointerType === 'mouse') {
       polar = Math.max(0.55, Math.min(1.3, drag.polar - (event.clientY - drag.y) * 0.004))
     }
@@ -380,14 +352,12 @@ function onPointerUp(event) {
     isDragging.value = false
     return
   }
-  // Ketukan singkat di HP: tampilkan tooltip balok yang diketuk
   const tapped = drag && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 6
   drag = null
   isDragging.value = false
   if (tapped && event.pointerType !== 'mouse') pick(event)
 }
 
-/* ---- Tooltip: balok di bawah kursor ---- */
 const raycaster = new Raycaster()
 const pointer = new Vector2()
 const top = new Vector3()
@@ -399,7 +369,6 @@ function pick(event) {
   const hit = raycaster.intersectObject(bars)[0]
   setHover(hit ? hit.instanceId : -1)
   if (!hit) return emit('hover', null)
-  // Tooltip di atas puncak balok
   const day = days[hit.instanceId]
   bars.getMatrixAt(hit.instanceId, dummy.matrix)
   top.setFromMatrixPosition(dummy.matrix)
@@ -416,7 +385,6 @@ function setHover(index) {
 }
 
 function onLeave(event) {
-  // Di HP tooltip tetap tampil setelah diketuk (pointerleave selalu menyusul pointerup)
   if (event.pointerType !== 'mouse') return
   if (!drag) setHover(-1)
   emit('hover', null)
@@ -446,7 +414,6 @@ onMounted(() => {
 })
 
 watch(() => props.weeks, () => renderer && buildBars())
-// Warna mengikuti tema (tunggu atribut data-theme diterapkan)
 watch(theme, () => setTimeout(() => {
   if (!renderer) return
   paintBars()
@@ -482,7 +449,6 @@ onBeforeUnmount(() => {
       @dblclick="onDoubleClick"
     ></canvas>
 
-    <!-- Tombol zoom (pojok kanan atas) -->
     <div class="skyline__zoom" role="group" :aria-label="t({ id: 'Zoom grafik', en: 'Graph zoom', ja: 'グラフの拡大・縮小' })">
       <button type="button" class="skyline__btn" :aria-label="t({ id: 'Perbesar', en: 'Zoom in', ja: '拡大' })" @click="zoomBy(1.6)">
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
@@ -515,7 +481,6 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   cursor: grab;
-  /* Geser vertikal tetap men-scroll halaman di HP */
   touch-action: pan-y;
 }
 
@@ -523,8 +488,6 @@ onBeforeUnmount(() => {
   cursor: grabbing;
 }
 
-/* Saat diperbesar: tarik untuk menggeser grafik. Di HP geser ke samping
-   menggeser grafik, geser atas/bawah tetap men-scroll halaman. */
 .skyline.is-zoomed .skyline__canvas {
   cursor: move;
 }
@@ -542,7 +505,6 @@ onBeforeUnmount(() => {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
 }
 
-/* Tombol kecil bergaya 3D, senada dengan sakelar 2D/3D */
 .skyline__btn {
   display: grid;
   place-items: center;
@@ -618,7 +580,6 @@ onBeforeUnmount(() => {
     height: 280px;
   }
 
-  /* HP: tombol zoom di kanan bawah supaya tidak menutupi balok terbaru */
   .skyline__zoom {
     top: auto;
     bottom: 0.25rem;

@@ -1,65 +1,32 @@
-// chatKnowledge.ja.js
-//
-// Japanese version of chatKnowledge.js: the same exports with the same shapes,
-// used by ChatWidget.vue when the site language is Japanese (lang === 'ja').
-//
-// Notes:
-// - Facts follow chatKnowledge.js / chatKnowledge.en.js (same projects, same
-//   periods, same links). Bot text is written in polite です・ます style, and
-//   Jose is referred to as 「Jose」 without さん (the bot speaks on his side).
-// - Fields containing HTML are rendered with v-html in ChatWidget.vue, ONLY
-//   for bot messages (never user input).
-// - Japanese has no spaces between words, so the matchers below do NOT rely on
-//   \b for Japanese keywords (\b is only used next to Latin tokens).
-// - Every matcher first runs NFKC normalisation (full-width ASCII -> half-width,
-//   half-width katakana -> full-width). Messages without any Japanese
-//   characters (e.g. "hello", "ｈｅｌｌｏ", "yes") are handed to the English
-//   module, so simple English still works in Japanese mode.
-// - Shared, language-neutral things (profile links, project thumbnails) come
-//   from the Indonesian module instead of being duplicated.
-
 import { PROFILE, PROJECTS as PROJECTS_ID, extractEmail as extractEmailBase } from './chatKnowledge.js'
 import * as en from './chatKnowledge.en.js'
 
 export { PROFILE }
 
-// --- Helpers ------------------------------------------------------------
-
-// Hiragana, katakana, kanji (CJK), iteration marks
 const HAS_JA_RX = /[぀-ヿ㐀-䶿一-鿿豈-﫿々〆]/
 const hasJa = (text) => HAS_JA_RX.test(text || '')
 
-// NFKC: "ｈｅｌｌｏ" -> "hello", "？" -> "?", "ｶﾀｶﾅ" -> "カタカナ"
 const baseNorm = (rawText) =>
   String(rawText || '')
     .normalize('NFKC')
     .replace(/[‘’ʼ]/g, "'")
 
-// Rough "word count" for Japanese (no spaces): Latin words + 1 per 3 Japanese characters.
 function approxWords(text) {
   const jaChars = (text.match(/[぀-ヿ㐀-鿿豈-﫿々]/g) || []).length
   const latinWords = text.replace(/[^\x20-\x7e]/g, ' ').split(/\s+/).filter(Boolean).length
   return latinWords + Math.ceil(jaChars / 3)
 }
 
-// Separator allowed between tokens in "whole message" matchers
 const SEP = '[\\s、。,.!?！？〜~ー…・]*'
 
-// Builds a regex that matches when the WHOLE message consists only of
-// `core` tokens (at least one) and optional `filler` tokens.
 function sweepRx(core, filler = '(?!)') {
   return new RegExp(`^(?:(?:${filler})${SEP})*(?:${core})(?:${SEP}(?:${core}|${filler}))*${SEP}$`, 'i')
 }
 
-// Email anywhere in the text. Japanese characters are turned into spaces first,
-// so "メールはtanaka@gmail.comです" -> "tanaka@gmail.com".
 export function extractEmail(rawText) {
   return extractEmailBase(baseNorm(rawText).replace(/[^\x20-\x7e]/g, ' '))
 }
 
-// --- Static content (HTML) ------------------------------------------------
-
-// Ready-made answer for the "about" intent (who is Jose). HTML.
 export const ABOUT_HTML = [
   '<p><strong>Jose Elio Parhusip, S.Bns.</strong>をご紹介します。</p>',
   '<p>バンドンにあるUniversitas Logistik dan Bisnis Internasional（ULBI）でデジタルビジネスの学士号を取得しました。現在はフリーランスのBack End DeveloperとしてPT Sistem Pelayanan Kesehatan dan Data（SPKD）の開発に携わり、GoでMedCredixのバックエンドを構築しています。</p>',
@@ -72,18 +39,15 @@ export const ABOUT_HTML = [
   '<p>主な使用ツール：Flutter、Figma、Power BI、Python、React、Streamlit、Vue.js、Excel、Plotly、Google Colab、PostgreSQL、MySQL、Node.js、Go、PHP。</p>',
 ].join('')
 
-// Ready-made answer for the "education" intent. HTML.
 export const EDUCATION_HTML = [
   '<p><strong>Jose Elio Parhusip, S.Bns.</strong>は、バンドンにあるUniversitas Logistik dan Bisnis Internasional（ULBI）のデジタルビジネス学科を卒業し、学士号を取得しました。</p>',
   '<p>在学中はシステム設計（UML・ERD・フローチャート）やWeb・モバイルアプリの開発を学び、SAPの認定資格も取得しています。</p>',
 ].join('')
 
-// Ready-made answer for the "contact" intent. HTML, {email} is replaced on use.
 export const CONTACT_HTML = [
   '<p>Joseに直接連絡したい場合は、<strong>{email}</strong>までメールでお問い合わせください。このままチャットを続けていただければ、メッセージをJoseにお伝えすることもできます。</p>',
 ].join('')
 
-// Topics the bot can answer, shown as the second message of a new conversation.
 export const TOPICS_HTML = [
   '<p>はじめにお伝えしておくと、私がお答えできるのは次の内容に関するご質問です。</p>',
   '<ul class="chat-widget__highlight-list">',
@@ -96,11 +60,9 @@ export const TOPICS_HTML = [
   '<p>それ以外のご質問には、対象外であることをお伝えします。それでは、お名前を教えていただけますか？</p>',
 ].join('')
 
-// Ready-made answer for off-topic questions (recipes, translation, weather, ...).
 export const OFFTOPIC_HTML =
   '<p>申し訳ありません、そのご質問はこちらではお答えできません。私がご案内できるのは、Joseのプロフィール、学歴、職務経験、プロジェクト、連絡方法についてです。よろしければ、これらについてお気軽にお聞きください。</p>'
 
-// role/company/summary are HTML.
 export const EXPERIENCES = [
   {
     period: '2026年10月〜現在',
@@ -144,7 +106,6 @@ export const EXPERIENCES = [
   },
 ]
 
-// Numbered list for the "experience" intent, rendered with v-html.
 export function buildExperienceListHtml() {
   const items = EXPERIENCES.map((item) => {
     const tagsHtml = item.tags
@@ -167,8 +128,6 @@ export function buildExperienceListHtml() {
   return `<ol class="chat-widget__exp-list">${items}</ol>`
 }
 
-// title stays the original project name. summary is HTML.
-// Thumbnails, tags, links and the internal flag come from the Indonesian module.
 const PROJECT_TEXT = {
   MedCredix: {
     summary:
@@ -211,13 +170,7 @@ export const PROJECTS = PROJECTS_ID.map((project) => ({
   ...PROJECT_TEXT[project.title],
 }))
 
-// --- Intent detection (FAQ) ------------------------------------------------
-// Keyword-based detection for Japanese. Input is normalizeChat() output
-// (NFKC, lowercase Latin, Japanese without spaces). Order matters: specific
-// intents first, the general "about" fallback last.
-
 const JOSE_RX = /jose|ジョセ|ジョゼ|ホセ|ジョーセ/
-// Jose or a pronoun that clearly points to him
 const ABOUT_JOSE_RX = /jose|ジョセ|ジョゼ|ホセ|ジョーセ|彼(?!女)|かれ(?:は|の|が|って)|この人|このひと|オーナー|作者|管理人|サイトの持ち主|\b(?:him|his|he)\b/
 
 const RX = {
@@ -225,7 +178,6 @@ const RX = {
     /学歴|大学|学校|卒業|専攻|学位|学士|学部|学科|在学|出身校|母校|大学院|学生時代|キャンパス|勉強して|何を勉強|学んだ|学んで|ulbi|\b(?:education|university|college|degree|major|graduat\w*|bachelor\w*|campus)\b/,
   projects:
     /プロジェクト|ぷろじぇくと|作品|制作物|制作実績|実績|作ったもの|作った物|つくったもの|作ったアプリ|作ったサイト|作ったシステム|開発したもの|開発したアプリ|手がけた|手掛けた|ポートフォリオ|成果物|アプリ|デモ|\b(?:projects?|portfolio|works|apps?|demo)\b/,
-  // Clear signs that the visitor wants to offer Jose work (checked before "experience")
   contactStrong:
     /依頼|頼みたい|お願いしたい|お願いできますか|案件|採用|雇い|雇う|雇え|求人|スカウト|オファー|一緒に(?:働|仕事)|発注|見積|\b(?:hire|hiring|offer)\b/,
   experience:
@@ -238,24 +190,16 @@ const RX = {
   question: /\?|か$|何|なに|なん|どう|どこ|いつ|誰|だれ|なぜ|どうして|どんな|どの|教えて|知りたい/,
   link: /リンク|url|デモ|github|ギットハブ|ソースコード|ソース|コード|リポジトリ|レポジトリ|\b(?:links?|repo|demo|code)\b/,
 
-  // "仕事" on its own is ambiguous: Jose's work history (-> 'experience') or
-  // the visitor offering Jose a job (-> 'contact'). Without a hint, the bot
-  // asks back instead of guessing (intent 'ambiguous_pekerjaan').
   pekerjaanAmbiguous: /仕事|しごと|ジョブ|\b(?:work|jobs?)\b/,
   pekerjaanHistoryHint:
     /これまで|今まで|いままで|過去|以前|前の|前に|経験|経歴|職歴|履歴|してきた|してきま|やってきた|やってきま|した仕事|していた|してた|前者|一つ目|ひとつ目|1つ目|1番|一番目|最初の|\b(?:history|experience|past|previous|career|first)\b/i,
   pekerjaanOfferHint:
     /依頼|頼み|お願い|オファー|紹介したい|募集|求人|採用|雇|案件|発注|一緒に|協業|コラボ|フリーランス|任せたい|お任せ|\b(?:offer\w*|hire|hiring|recruit\w*|freelance|collaborat\w*)\b/i,
 
-  // Common clearly off-topic requests. Not a full list.
   offtopic:
     /レシピ|料理|天気|天気予報|翻訳|訳して|歌詞|歌って|占い|星座|運勢|宿題|\b(?:recipes?|weather|translate|lyrics|horoscope)\b/,
 }
 
-/**
- * Detects whether a visitor message is an FAQ question about Jose.
- * Input: normalizeChat() output. Returns { type, ... } or null.
- */
 export function matchFaqIntent(rawText) {
   const text = normalizeChat(rawText)
   if (!text) return null
@@ -268,7 +212,6 @@ export function matchFaqIntent(rawText) {
   if (RX.contact.test(text)) return { type: 'contact' }
   if (RX.about.test(text)) return { type: 'about' }
 
-  // "Joseについて教えて", "Joseって?" -> about
   if (JOSE_RX.test(text) && (RX.aboutWithJose.test(text) || RX.question.test(text))) {
     return { type: 'about' }
   }
@@ -284,16 +227,9 @@ export function matchFaqIntent(rawText) {
   return null
 }
 
-// Answers to the clarifying question "work history, or offering a job?".
-// Tested by the widget on the raw text, so the case-insensitive flag is kept.
 export const PEKERJAAN_CLARIFY_HISTORY_RX = RX.pekerjaanHistoryHint
 export const PEKERJAAN_CLARIFY_OFFER_RX =
   /依頼|頼み|お願い|オファー|紹介したい|募集|求人|採用|雇|案件|発注|一緒に|協業|コラボ|フリーランス|任せたい|お任せ|連絡|後者|二つ目|ふたつ目|2つ目|２つ目|2番|２番|二番目|\b(?:offer\w*|hire|hiring|recruit\w*|freelance|collaborat\w*|contact|second|latter)\b/i
-
-// --- Names ----------------------------------------------------------------
-// 「田中です」「田中と申します」「田中といいます」「私は田中です」「私は田中」
-// 「名前は田中」「私の名前は佐藤です」「田中って呼んで」「Sarahです」.
-// The widget strips a greeting in front ("こんにちは、田中です" -> "田中です").
 
 const NAME_BODY = "([\\p{sc=Han}々〆ぁ-ゖァ-ヺーa-zA-Z][\\p{sc=Han}々〆ぁ-ゖァ-ヺー・a-zA-Z' .-]{0,20}?)"
 const NAME_PREFIX =
@@ -303,21 +239,15 @@ const NAME_SUFFIX =
   '(?:さん)?\\s*(?:です|でーす|だよ|だ|っす|と申します|ともうします|と申す者です|と言います|といいます|っていいます|って言います|っていう名前です|という名前です|でございます)(?:よ|ね|!)*'
 
 const NAME_PATTERNS = [
-  // 「田中です」「私は田中と申します」「私の名前は佐藤です」
   new RegExp(`^${NAME_PREFIX}${NAME_BODY}${NAME_SUFFIX}$`, 'u'),
-  // 「名前は田中」「私の名前は佐藤」 (explicit, no copula)
   new RegExp(
     `^(?:(?:私|わたし|わたくし|僕|ぼく|俺|おれ|自分|あたし)の)?(?:お?名前|なまえ)(?:は|って|:)\\s*${NAME_BODY}(?:さん)?$`,
     'u',
   ),
-  // 「私は田中」
   new RegExp(`^(?:私|わたし|わたくし|僕|ぼく|俺|おれ|あたし)は\\s*${NAME_BODY}(?:さん)?$`, 'u'),
-  // 「田中って呼んで」「タロウと呼んでください」
   new RegExp(`^${NAME_BODY}\\s*(?:と|って)呼んで(?:ください|下さい|くれ|ね|ほしい|欲しい)?$`, 'u'),
 ]
 
-// Words that look like a name in those patterns but are not one
-// (「そうです」「学生です」「大丈夫です」「エンジニアです」...).
 const JA_NOT_A_NAME = new Set(
   `
   そう そうそう 大丈夫 だいじょうぶ 結構 けっこう いい よい 良い はい いいえ うん ええ いや
@@ -337,7 +267,6 @@ const JA_NOT_A_NAME = new Set(
     .filter(Boolean),
 )
 
-// Hiragana-only words with verb/adjective/auxiliary endings are not names
 const JA_INFLECTED_RX = /(?:ます|です|ました|でした|ない|たい|ください|だよ|よね|かな|けど|から|ので|った|って|しい|てる|でる)$/
 
 function isLikelyJaName(word) {
@@ -349,10 +278,8 @@ function isLikelyJaName(word) {
   const han = /^[\p{sc=Han}々〆]{1,6}$/u.test(w)
   const hira = /^[ぁ-ゖー]{2,8}$/.test(w) && !JA_INFLECTED_RX.test(w)
   const kata = /^[ァ-ヺー・]{2,12}$/.test(w) && !/^ー/.test(w)
-  // Kanji family name + hiragana given name (「田中さくら」)
   const hanHira = /^[\p{sc=Han}々]{1,4}[ぁ-ゖ]{2,4}$/u.test(w) && !/(?:い|く|う|る|た|て|しい|ない|ます|です)$/.test(w)
   if (!han && !hira && !kata && !hanHira) return false
-  // Not a known keyword (「経歴」「大学」「スキル」「プロジェクト」...)
   if (matchFaqIntent(w) || TECHS.some((t) => t.rx.test(w.toLowerCase())) || findProjectMentions(w).length) return false
   if (/[何誰]|なに|だれ|どこ|いつ/.test(w)) return false
   if (matchSmallTalk(w) || YES_RX.test(w) || NO_RX.test(w) || matchConversation(w)) return false
@@ -369,7 +296,6 @@ export function matchNameStatement(rawText) {
   if (!text) return null
   if (!hasJa(text)) return en.matchNameStatement(text)
 
-  // Split into sentences; keep 「私は、田中です」 together.
   const sentences = text
     .replace(/(は|って|:)[、,\s]+/g, '$1')
     .split(/[。、,!?\n]+/)
@@ -389,8 +315,6 @@ export function matchNameStatement(rawText) {
   return null
 }
 
-// Name from a plain answer (「田中」「田中 太郎」「さくら」「Sarah」). Returns null
-// if the text does not look like a name: a sentence, a question, a keyword.
 export function extractPlainName(rawText) {
   const text = baseNorm(rawText).trim()
   if (!text || /^w{2,}[\s!.]*$/i.test(text)) return null
@@ -403,14 +327,6 @@ export function extractPlainName(rawText) {
   return cleanName(cleaned)
 }
 
-// --- Small talk (greetings, thanks, etc.) -----------------------------------
-
-// Greeting based on the visitor's device clock.
-// NOTE: unlike the id/en modules (which return 'pagi'/'morning' etc.), this
-// returns the full Japanese greeting so the widget can embed it directly:
-//   'おはようございます' (04:00-10:59) | 'こんにちは' (11:00-17:59) | 'こんばんは' (18:00-03:59)
-// e.g. `${getTimeOfDay()}、${name}さん！` or `${time}！`. Use these strings as keys
-// for any per-time lookup table in the widget.
 export const TIME_GREETINGS = ['おはようございます', 'こんにちは', 'こんばんは']
 
 export function getTimeOfDay(date = new Date()) {
@@ -442,15 +358,10 @@ const SMALL_TALK = {
     'ok|okay|おk|おけ|おっけー|オッケー|オーケー|了解(?:です|しました)?|りょうかい|りょ|承知(?:しました|いたしました)|かしこまりました|わかりました|分かりました|わかった|分かった|なるほど|そうなんだ|そうなんですね|そうなんですか|へー|へえ|ふーん|ふむふむ|いいね|いいですね|ほう|納得',
     'ね|です|よ|ありがとう|ありがとうございます',
   ),
-  // Questions about the bot itself, not about Jose
   aboutBot:
     /(?:あなた|貴方|君|きみ|お前|おまえ)(?:は|って)?(?:誰|だれ|何者|なにもの|なに|何|ボット|ロボット|ai|人間|本物)|(?:ボット|bot|ロボット|ai|人工知能|人間)(?:です|なの|なん)(?:か|\?|ですか)|(?:誰|だれ)と(?:話して|しゃべって|チャットして)/i,
 }
 
-/**
- * Small talk detection. Returns { type } or null.
- * type: greeting | howAreYou | thanks | bye | ack | aboutBot
- */
 export function matchSmallTalk(rawText) {
   const text = baseNorm(rawText).trim().toLowerCase()
   if (!text) return null
@@ -464,8 +375,6 @@ export function matchSmallTalk(rawText) {
   return null
 }
 
-// 「こんにちは、田中です」 -> 「田中です」 (greeting removed) so the rest of the
-// sentence can still be processed as a name or question.
 export function stripGreetingPrefix(rawText) {
   let text = baseNorm(rawText).trim()
   if (!hasJa(text)) return en.stripGreetingPrefix(text)
@@ -473,7 +382,6 @@ export function stripGreetingPrefix(rawText) {
   do {
     prev = text
     text = text.replace(SMALL_TALK.greetingPrefix, '')
-    // 「こんにちは、Joseさん」: the name right after a greeting is dropped too
     if (text !== prev) text = text.replace(/^(?:jose|ジョセ|ホセ)(?:さん|様)?(?:[\s、,!。.〜~]+|$)/i, '')
   } while (text && text !== prev)
   return text.trim()
@@ -485,8 +393,6 @@ export function hasGreetingPrefix(rawText) {
   return SMALL_TALK.greetingPrefix.test(text)
 }
 
-// A question or request for information (used at the "message" step so a
-// message like 「プロジェクトをお願いしたいです」 is not answered as an FAQ).
 const JA_QUESTION_RX =
   /\?|(?:か|かな|かしら|かね|でしょうか|ますか|ですか|の)$|何|なに|なん(?:で|の|て|と)|どう|どこ|いつ|誰|だれ|なぜ|どうして|どんな|どの|どれ|いくら|教えて|知りたい|聞きたい|見せて/
 
@@ -496,8 +402,6 @@ export function looksLikeQuestion(rawText) {
   return JA_QUESTION_RX.test(text.replace(/[。!、\s〜~]+$/, ''))
 }
 
-// Time of day the visitor used in their greeting (「こんばんは」 -> 'こんばんは'),
-// so the bot replies with the same one. Same return values as getTimeOfDay().
 export function getUserTimeGreeting(rawText) {
   const text = baseNorm(rawText).trim().toLowerCase()
   if (/おはよう|おはよ|おっはー|good\s+morning|^morning\b/.test(text)) return 'おはようございます'
@@ -506,9 +410,6 @@ export function getUserTimeGreeting(rawText) {
   return null
 }
 
-// At the "message" step: long sentences or sentences with an intent (offering
-// a project, freelance, collaboration) are the message for Jose, even when
-// phrased as a question. Do not answer them as FAQ.
 const MESSAGE_INTENT_RX =
   /依頼|お願いしたい|お願いできますか|お願いできれば|ご相談|相談したい|相談させて|案件|発注|見積|予算|費用|料金|報酬|単価|採用|雇|求人|スカウト|面接|オファー|フリーランス|協業|コラボ|一緒に(?:仕事|働|開発)|参加して|ご招待|招待|ご提案|提案|空いて|対応可能|作って(?:ほしい|欲しい|いただけ|もらえ|くれ)|開発して(?:ほしい|欲しい|いただけ|もらえ|くれ)|\b(?:offer|offering|freelance|hire|hiring|recruit\w*|interview|collaborat\w*|budget|quote|proposal|opportunit\w*)\b/i
 
@@ -519,20 +420,15 @@ export function looksLikeMessageToJose(rawText) {
   return jaChars >= 30 || approxWords(text) >= 12 || MESSAGE_INTENT_RX.test(text)
 }
 
-// The visitor does not want to share their name/email yet, or wants to talk
-// about something else first. Tested by the widget on the raw text.
 export const DECLINE_RX =
   /^(?:いいえ|いや|いえ|いいや|ううん|no|nope|nah)(?:[\s、,。!]|$)|^(?:後で|あとで|また今度|今はいい|今はちょっと|スキップ|パス)|(?:教え|言い|名乗り|書き|伝え|出し|渡し)たくない|(?:名前|なまえ|メール|メアド|アドレス)(?:は|を)?(?:ちょっと|秘密|ひみつ|内緒|ないしょ|言えな|教えられな|いいです|結構|なし|無し|ない|ありません|持って)|名乗るほど|秘密|ないしょ|内緒|匿名|やめておきます|やめとく|遠慮(?:します|しておきます|させて)|結構です|けっこうです|見てるだけ|見ているだけ|見に来ただけ|聞きたいだけ|質問だけ|先に質問|まず質問|ほかの話|他の話|別の話|話題を変え|\b(?:no\s+thanks|not\s+now|maybe\s+later|skip|rather\s+not|anonymous|just\s+(?:browsing|looking|asking))\b/i
 
-// The visitor wants to continue sending a message to Jose from free chat mode.
 export const RESUME_CONTACT_RX =
   /メッセージ(?:を)?(?:送|残|書|伝え|届け)|伝言|連絡(?:したい|を取りたい|をとりたい|します|させて)|コンタクト(?:したい|を取りたい)|問い合わせ(?:したい|します)|続けます|続けたい|続きを|再開|メール(?:アドレス)?を(?:教え|伝え|送り|お伝え)|メアドを|やっぱり(?:送|連絡|お願い)|\b(?:send\s+(?:him\s+)?(?:a\s+)?message|leave\s+(?:him\s+)?(?:a\s+)?message|contact\s+(?:him|jose)|continue|go\s+ahead)\b/i
 
-// When the visitor asks the bot to choose (「なんでもいい」「お任せ」).
 export const PICK_ANY_RX =
   /^(?:何でも|なんでも|お任せ|おまかせ|任せ|まかせ|わからない|分からない|わかんない|分かんない|特にない|特になし|どれでも|どっちでも|どちらでも|適当に|別に|ほかの|他の|anything|whatever|up\s+to\s+you|you\s+choose|not\s+sure|i\s+don'?t\s+know|dunno)/i
 
-// Short topic list for free chat mode (no name/email requested).
 export const TOPICS_MENU_HTML = [
   '<p>次のような内容をご案内できます。</p>',
   '<ul class="chat-widget__highlight-list">',
@@ -545,19 +441,6 @@ export const TOPICS_MENU_HTML = [
   '<p>「Joseはどんなプロジェクトを手がけましたか？」のように、気軽に質問を入力してください。あとでJoseにメッセージを送りたくなったら、「メッセージを送りたい」と入力してください。</p>',
 ].join('')
 
-// =====================================================================
-// Conversational layer
-// 1. normalizeChat(): tidy chat input before matching.
-// 2. matchConversation(): intents more specific than the FAQ.
-// 3. pickVariant(): random sentence without repeating the previous one.
-// =====================================================================
-
-/**
- * NFKC (full-width -> half-width ASCII, half-width katakana -> full-width),
- * lowercase Latin, 〜/～ and most punctuation removed (「?」 is kept for question
- * detection), spaces between Japanese characters removed, spaces collapsed.
- * Messages without Japanese go through the English normaliser.
- */
 export function normalizeChat(rawText) {
   const text = baseNorm(rawText)
   if (!hasJa(text)) return en.normalizeChat(text)
@@ -567,7 +450,6 @@ export function normalizeChat(rawText) {
     .replace(/[〜~]+/g, ' ')
     .replace(/ー{2,}/g, 'ー')
     .replace(/[^\p{L}\p{N}@.?\s+#'-]/gu, ' ')
-    // No spaces next to Japanese characters (「Jose さん の 経歴」 -> 「Joseさんの経歴」)
     .replace(/([^\x00-\x7f])\s+/g, '$1')
     .replace(/\s+(?=[^\x00-\x7f])/g, '')
     .replace(/\s+/g, ' ')
@@ -575,7 +457,6 @@ export function normalizeChat(rawText) {
     .trim()
 }
 
-// Random sentence, but never the same as the last pick for the same key.
 const lastVariant = {}
 export function pickVariant(key, list) {
   if (list.length === 1) return list[0]
@@ -587,9 +468,6 @@ export function pickVariant(key, list) {
   return list[index]
 }
 
-// Short "yes"/"no" answers to an offer from the bot (「見ますか？」).
-// Matched against normalizeChat() output. 「大丈夫です」 on its own is treated as
-// a polite "no thanks"; 「大丈夫、お願いします」 is a yes.
 const YES_CORE =
   'はい|はーい|うん|うむ|ええ|そう(?:です|だよ|そう|ですね)?|お願い(?:します|いたします|したいです)?|おねがい(?:します)?|よろしく(?:お願いします)?|ぜひ(?:とも)?|是非|もちろん|いいよ|いいね|いいです(?:よ|ね)|いいですとも|ok|okay|オッケー|おっけー|オーケー|了解|見たい(?:です)?|見せて(?:ください)?|見ます|見る|教えて(?:ください)?|知りたい(?:です)?|聞きたい(?:です)?|頼む|頼みます|もっと|続けて|大丈夫(?:です)?(?=.*(?:お願い|見せ|教え|ください|見たい|知りたい))|yes+|yeah|yep|yup|ya|sure|please|of\\s+course'
 const YES_FILLER = 'ください|です|ね|よ|ありがとう(?:ございます)?|ぜひ|もちろん|jose'
@@ -606,12 +484,9 @@ export const NO_RX = new RegExp(
   'i',
 )
 
-// Short summary of Jose, used before the full profile.
 export const ABOUT_SHORT_HTML =
   '<p>簡単にご紹介すると、<strong>Jose Elio Parhusip</strong>はULBI（バンドン）でデジタルビジネスを学んだ卒業生で、現在はフリーランスのBack End DeveloperとしてPT SPKDの開発に携わっています。Webアプリやモバイルアプリ、データダッシュボードの開発を得意としています。</p>'
 
-// Tools/technologies Jose knows, with recognition patterns (Latin + katakana).
-// Patterns run on lowercase normalizeChat() output.
 const TECHS = [
   { name: 'Flutter', rx: /flutter|フラッター/ },
   { name: 'Dart', rx: /\bdart\b|ダート/ },
@@ -652,7 +527,6 @@ const TECHS = [
   { name: 'OCR', rx: /\bocr\b/ },
 ]
 
-// Popular technologies that are NOT in Jose's data. The bot says so honestly.
 const UNKNOWN_TECHS = [
   ['Laravel', /laravel|ララベル/],
   ['Java', /(?<![a-z])java(?!script)(?![a-z])|ジャバ(?!スクリプト)|ジャヴァ/],
@@ -681,15 +555,12 @@ const UNKNOWN_TECHS = [
 
 const stripHtml = (html) => html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&')
 
-// Japanese list: 「AとB」, 「A、B、C」.
 function joinList(items) {
   if (items.length <= 1) return items.join('')
   if (items.length === 2) return `${items[0]}と${items[1]}`
   return items.join('、')
 }
 
-// Evidence of a technology in Jose's projects and experience.
-// A tag equal to the tech name always counts.
 export function findTechEvidence(tech) {
   const rx = new RegExp(tech.rx.source, 'i')
   const name = (tech.name || '').toLowerCase()
@@ -699,7 +570,6 @@ export function findTechEvidence(tech) {
   return { projects: PROJECTS.filter(uses), roles: EXPERIENCES.filter(uses) }
 }
 
-// A specific project mentioned by name.
 const PROJECT_ALIASES = [
   { title: 'MedCredix', rx: /med\s*credix|メドクレディックス|クレデンシャリング/ },
   { title: 'SIMRS Dashboard', rx: /simrs|病院情報システム|電子カルテ/ },
@@ -720,7 +590,6 @@ const PROJECT_ALIASES = [
 export function findProjectMentions(norm) {
   const text = (norm || '').toLowerCase()
   const found = PROJECT_ALIASES.filter((a) => a.rx.test(text)).map((a) => a.title)
-  // "jec" on its own can mean both projects
   if (!found.length && /jec/.test(text)) found.push('Mobile JEC', 'Dashboard JEC')
   return PROJECTS.filter((p) => found.includes(p.title))
 }
@@ -760,7 +629,6 @@ const CONVO = {
   skillQuestion:
     /できます|出来ます|できる|出来る|でき\?|使え|使っ|使う|つかえ|つかっ|つかう|使用|扱え|あつかえ|書け|書ける|経験|触っ|触れ|分かる|わかる|得意|知って|詳しい|スキル|実務|やったこと|やってた|\?|か$/,
 
-  // --- Light chat with the bot ---
   botActivity: /何してる|なにしてる|何をして(?:い|る)|何してるの|忙しい|いそがしい/,
   botEat: /ご飯(?:は)?食べ|ごはん(?:は)?食べ|食べた\?|食べましたか|お腹(?:すい|空い)|おなか(?:すい|空い)|寝(?:る|ない|ます)の|寝てる|眠らない|食事/,
   botGender: /性別|男の子|女の子|男性|女性|男なの|女なの|男ですか|女ですか/,
@@ -775,11 +643,9 @@ const CONVO = {
   testMsg: /^(?:test|testing|tes|テスト|てすと|check|ping|チェック)(?:\s*\d+)*[\s!.?]*$/,
   goodnight: /おやすみ|お休みなさい|もう寝(?:る|ます)|寝ますね|寝るね|寝ます$/,
 
-  // --- Time and date ---
   timeNow: /今何時|いま何時|今なんじ|いまなんじ|何時ですか|何時\?|なんじ\?|現在時刻|今の時間|今の時刻|時刻を教えて|時間を教えて/,
   dateNow: /今日は何日|何日ですか|今日の日付|日付|何曜日|なんようび|今日は何月|今何月|今年は何年|今は何年|何年ですか$|今日は何の日/,
 
-  // --- Other light chat ---
   botAge: new RegExp(`${YOU}[^]*(?:何歳|なんさい|年齢|いくつ|いつ(?:生まれ|作られ))|いつ作られた`),
   botLanguage:
     /(?:日本語|英語|インドネシア語|何語|ほかの言語|他の言語|中国語|韓国語)[^]*(?:話せ|しゃべれ|喋れ|わかる|分かる|使え|できる|対応|ok|大丈夫|でいい|でも)/,
@@ -790,7 +656,6 @@ const CONVO = {
     /^(?:すみません|すいません|あの)?\s*(?:質問(?:があります|があるんですが|があるのですが|してもいい(?:ですか)?|していい(?:ですか)?|いいですか|できますか|ある)|(?:聞いて|お聞きして|伺って)(?:も)?(?:いい|よろしい)(?:ですか|でしょうか)?|聞きたいことが(?:あります|ある|あるんですが)|ちょっといい(?:ですか)?|ちょっと質問)\??$/,
 }
 
-// --- Filter: requests the bot cannot or should not handle ---
 const GUARD = {
   inappropriate:
     /エロ|えろ|セックス|せっくす|アダルト|ヌード|裸の|風俗|ポルノ|ギャンブル|カジノ|賭博|麻薬|大麻|覚醒剤|\b(?:porn\w*|sex|sexy|nsfw|xxx)\b/,
@@ -805,8 +670,6 @@ const GUARD = {
     /(?:宿題|課題|レポート|卒論|卒業論文|論文|作文|試験|テスト問題)[^]*(?:やって|手伝って|書いて|解いて|代わりに|お願い|作って)|(?:コード|プログラム|スクリプト|関数)(?:を)?(?:書いて|作って|生成して)|バグ(?:を)?(?:直して|修正して)|デバッグして/,
 }
 
-// Topics unrelated to Jose, with a Japanese category name for a natural reply,
-// e.g. `${topic}についてはお答えできません`.
 const OFFTOPIC_TOPICS = [
   ['政治', /政治|選挙|首相|総理|大統領|政府|国会|政党|議員/],
   ['ニュースや芸能ゴシップ', /ニュース|ゴシップ|芸能|有名人|スキャンダル/],
@@ -826,7 +689,6 @@ const OFFTOPIC_TOPICS = [
   ['ほかのAIアシスタント', /chatgpt|チャットgpt|\bgpt|copilot|siri|alexa|アレクサ/],
 ]
 
-// English topic names (from the English module) -> Japanese
 const TOPIC_JA = {
   politics: '政治',
   'news and gossip': 'ニュースや芸能ゴシップ',
@@ -846,8 +708,6 @@ const TOPIC_JA = {
   'other AI assistants': 'ほかのAIアシスタント',
 }
 
-// If the sentence is clearly about Jose, it is not off topic
-// (「Joseの病院のプロジェクト」「ゲーム開発の経験はありますか」).
 const JOSE_TOPIC_RX =
   /jose|ジョセ|ホセ|プロジェクト|ポートフォリオ|経験|経歴|学歴|大学|スキル|ツール|連絡|履歴書|medcredix|simrs|jec|病院|アプリ|サイト|システム|開発|作品/
 
@@ -864,8 +724,6 @@ function matchGuard(norm) {
   return null
 }
 
-// Results from the English module refer to English data: map them to the
-// Japanese projects / tech list / topic names.
 function fromEnglish(result) {
   if (!result) return result
   if (result.projects) {
@@ -879,20 +737,14 @@ function fromEnglish(result) {
   return result
 }
 
-// Potential client: 「ホームページを作ってほしい」「アプリの見積もりをお願いしたい」
 const INQUIRY_ACTION_RX =
   /予算|費用|料金|値段|見積|いくら|単価|相場|作って(?:ほしい|欲しい|もらえ|いただけ|くれ)|作ってもらいたい|作っていただきたい|開発して(?:ほしい|欲しい|もらえ|いただけ|くれ)|制作(?:を)?(?:依頼|お願い)|開発(?:を)?(?:依頼|お願い)|作れますか|作れる\?|作ることは(?:可能|でき)/
 const INQUIRY_PRODUCT_RX =
   /サイト|ウェブ|web|ホームページ|\bhp\b|\blp\b|ランディングページ|アプリ|システム|ダッシュボード|ecサイト|通販|ネットショップ|プラットフォーム|モバイル|\b(?:website|app)\b/
 
-/**
- * Conversation intents more specific than the FAQ. Returns { type, ... } or null.
- * Checked BEFORE matchFaqIntent().
- */
 export function matchConversation(rawText) {
   const norm = normalizeChat(rawText)
   if (!norm) return null
-  // 「www」 (Japanese laughter) has no Japanese characters
   if (/^w{2,}[\s!.?]*$/.test(norm)) return { type: 'laugh' }
   if (!hasJa(norm)) return fromEnglish(en.matchConversation(norm))
   const words = approxWords(norm)
@@ -925,10 +777,8 @@ export function matchConversation(rawText) {
     return { type: 'compliment' }
   }
 
-  // 「田中です、よろしくお願いします」 is a self-introduction: leave it to the name flow
   const introducesName = /です|申します|といいます|と言います|って呼んで/.test(norm) && matchNameStatement(rawText)
   if (CONVO.meet.test(norm) && !introducesName) {
-    // 「Joseと知り合いになりたい」 -> wants to know Jose; otherwise an introduction to the bot
     return JOSE_RX.test(norm) ? { type: 'aboutJose' } : { type: 'meetBot' }
   }
   if (CONVO.askBotName.test(norm) && !aboutJose) return { type: 'askBotName' }
@@ -938,7 +788,6 @@ export function matchConversation(rawText) {
   if (CONVO.gpa.test(norm)) return { type: 'gpa' }
   if (CONVO.cert.test(norm)) return { type: 'cert' }
   if (CONVO.cv.test(norm)) return { type: 'cv' }
-  // Availability first: 「今は仕事募集中ですか」 is about availability, not the current job
   if (CONVO.availability.test(norm)) return { type: 'availability' }
   if (
     CONVO.currentJob.test(norm) &&

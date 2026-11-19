@@ -4,45 +4,25 @@ import { loaderDone, hasSeenIntro, INTRO_SEEN_KEY } from '@/composables/useLoade
 import { useTheme } from '@/composables/useTheme'
 import PageSkeleton from './PageSkeleton.vue'
 
-/* ---------------------------------------------------------
-   Layar pembuka:
-   1. Tampilan bersih: hanya logo JP di tengah + garis progres pendek
-      di bawahnya (± 1,7 detik).
-   2. Logo zoom in sangat besar (seperti kamera menembus logo) sampai
-      hilang. Latar loader tetap menutup layar selama tahap ini.
-   3. BARU SETELAH ITU latar loader memudar dan beranda (.app-stage di
-      App.vue) terlihat sebagai kartu kecil di tengah layar, lalu zoom
-      in sampai memenuhi layar. Tahap 2 dan 3 sengaja tidak bersamaan.
-   Kelas di <html>: intro-hold (kartu kecil), intro-reveal (kartu
-   membesar). Keduanya dihapus setelah selesai
-   supaya transform tidak mengganggu elemen fixed (navbar, dll).
-
-   Intro zoom di atas hanya untuk kunjungan pertama. Penanda disimpan
-   setelah intro selesai ditonton sampai habis; kunjungan berikutnya
-   (reload biasa) memakai skeleton halaman (PageSkeleton.vue) yang
-   ukurannya diukur langsung dari halaman asli.
---------------------------------------------------------- */
 const COUNT_MS = 1700
-const LOGO_ZOOM_MS = 900 // logo zoom sampai habis
-const CARD_PAUSE_MS = 450 // kartu kecil terlihat sebentar, baru membesar
+const LOGO_ZOOM_MS = 900
+const CARD_PAUSE_MS = 450
 const REVEAL_MS = 1200
 
 function markIntroSeen() {
   try {
     localStorage.setItem(INTRO_SEEN_KEY, '1')
   } catch {
-    // abaikan, kunjungan berikutnya memutar intro lagi
   }
 }
 
 const isQuick = hasSeenIntro()
 const isVisible = ref(true)
-const isExiting = ref(false) // tahap 2: logo zoom
-const isHiding = ref(false) // tahap 3: latar loader memudar
-const isFading = ref(false) // loading biasa: loader memudar
+const isExiting = ref(false)
+const isHiding = ref(false)
+const isFading = ref(false)
 const count = ref(0)
 
-// Logo mengikuti tema, sama seperti di navbar
 const { theme } = useTheme()
 const logoSrc = computed(() =>
   theme.value === 'light' ? '/logo-navbar-sebelum-scroll.webp' : '/logo-navbar-footer.webp',
@@ -54,14 +34,12 @@ const timers = []
 
 function finish() {
   isVisible.value = false
-  // #app punya transisi warna latar (main.css). Tanpa ini, latar gelap
-  // di sekitar kartu memudar pelan ke warna asli dan terlihat "berkedip".
   const app = document.getElementById('app')
   if (app) app.style.transition = 'none'
   root.classList.remove('intro-hold', 'intro-reveal')
   document.body.style.overflow = ''
   if (app) {
-    void app.offsetHeight // terapkan warna baru tanpa transisi
+    void app.offsetHeight
     requestAnimationFrame(() => {
       app.style.transition = ''
     })
@@ -70,14 +48,12 @@ function finish() {
 
 onMounted(() => {
   document.body.style.overflow = 'hidden'
-  // Reload biasa: skeleton yang mengatur waktunya sendiri (lihat onSkeletonReveal)
   if (isQuick) return
   root.classList.add('intro-hold')
 
   const start = performance.now()
   const tick = (now) => {
     const t = Math.min(1, (now - start) / COUNT_MS)
-    // Cepat di awal, melambat di akhir
     count.value = Math.round((1 - Math.pow(1 - t, 3)) * 100)
     if (t < 1) frame = requestAnimationFrame(tick)
   }
@@ -89,9 +65,6 @@ onMounted(() => {
   timers.push(
     setTimeout(() => {
       isExiting.value = true
-      // Animasi masuk hero dijalankan di balik layar loader selama logo
-      // zoom, jadi sudah selesai saat kartu beranda zoom: browser tidak
-      // berebut tenaga dan zoom kartu tetap mulus.
       loaderDone.value = true
     }, tZoom),
     setTimeout(() => {
@@ -108,7 +81,6 @@ onMounted(() => {
   )
 })
 
-// Skeleton mulai memudar: animasi masuk halaman ikut berjalan di bawahnya
 function onSkeletonReveal() {
   isFading.value = true
   loaderDone.value = true
@@ -139,7 +111,6 @@ onUnmounted(() => {
       <img :src="logoSrc" alt="" class="loader__logo" width="512" height="512" draggable="false" />
     </div>
 
-    <!-- Garis progres pendek di bawah logo -->
     <div class="loader__bar">
       <span class="loader__bar-fill" :style="{ transform: `scaleX(${count / 100})` }"></span>
     </div>
@@ -147,17 +118,11 @@ onUnmounted(() => {
 </template>
 
 <style>
-/* Panggung halaman (App.vue) selama intro. Tanpa scoped karena kelasnya
-   ada di <html> dan elemennya di luar komponen ini. Hanya layar pertama
-   yang ditampilkan (clip setinggi 100vh), jadi terlihat seperti kartu. */
 html.intro-hold #app,
 html.intro-reveal #app {
   background: color-mix(in srgb, var(--color-bg) 82%, #000);
 }
 
-/* Supaya mulus: yang dianimasikan hanya transform (dikerjakan GPU, sama
-   seperti zoom logo). Panggung dipotong setinggi satu layar dengan
-   overflow, jadi lapisan yang di-zoom kecil, bukan seluruh halaman. */
 html.intro-hold .app-stage,
 html.intro-reveal .app-stage {
   height: 100vh;
@@ -193,8 +158,6 @@ html.intro-reveal .app-stage {
   background: var(--color-bg, #0e0f11);
 }
 
-/* Setelah logo selesai zoom, latar loader memudar: yang terlihat adalah
-   kartu beranda yang sudah menunggu di tengah. */
 .loader {
   transition: background-color 0.4s ease;
 }
@@ -222,8 +185,6 @@ html.intro-reveal .app-stage {
   -webkit-user-drag: none;
 }
 
-/* Zoom in: logo membesar berkali-kali lipat seperti kamera menembus logo,
-   dan sudah hilang penuh sebelum kartu beranda terlihat */
 .loader__center {
   transition:
     transform 0.85s cubic-bezier(0.7, 0, 0.84, 0),
@@ -235,8 +196,6 @@ html.intro-reveal .app-stage {
   opacity: 0;
 }
 
-/* Garis progres: pendek, tipis, tepat di bawah logo. Logo tetap persis di
-   tengah layar karena garis ini diposisikan absolut. */
 .loader__bar {
   position: absolute;
   top: calc(50% + clamp(70px, 9vw, 105px));
@@ -250,7 +209,6 @@ html.intro-reveal .app-stage {
   transition: opacity 0.25s ease;
 }
 
-/* Garis hilang duluan sebelum logo zoom */
 .loader--exit .loader__bar {
   opacity: 0;
 }
@@ -263,7 +221,6 @@ html.intro-reveal .app-stage {
   transition: transform 0.12s linear;
 }
 
-/* Loading biasa (sudah pernah berkunjung): logo langsung tampil, tanpa zoom */
 .loader--quick .loader__logo {
   opacity: 1;
   animation: none;
@@ -288,7 +245,6 @@ html.intro-reveal .app-stage {
   }
 }
 
-/* Logo "bernapas" pelan selama menunggu */
 @keyframes loader-breathe {
   from {
     scale: 1;

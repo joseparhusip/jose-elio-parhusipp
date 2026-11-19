@@ -3,15 +3,8 @@ import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, defineAsync
 import { vReveal } from '@/directives/reveal'
 import { lang, t, LOCALES } from '@/composables/useLang'
 
-// Versi 3D (Three.js) baru diunduh saat dipakai
 const GithubSkyline = defineAsyncComponent(() => import('./GithubSkyline.vue'))
 
-/* ---------------------------------------------------------
-   Grafik kontribusi GitHub (seperti di halaman profil).
-   Data diambil dari API publik yang membaca halaman kontribusi
-   GitHub, jadi tidak perlu token. Hasil tiap tahun disimpan
-   supaya pindah tab tidak memanggil API berulang kali.
---------------------------------------------------------- */
 const USERNAME = 'joseparhusip'
 const API_URL = `https://github-contributions-api.jogruber.de/v4/${USERNAME}`
 const PROFILE_URL = `https://github.com/${USERNAME}`
@@ -62,7 +55,6 @@ async function load(key) {
       days: json.contributions,
     }
     cache.set(key, result)
-    // Abaikan respons lama kalau pengguna sudah pindah tab
     if (activeRange.value !== key) return
     data.value = result
     status.value = 'ready'
@@ -71,7 +63,6 @@ async function load(key) {
   }
 }
 
-// Data baru diambil saat grafik hampir terlihat, bukan saat halaman dibuka
 const rootEl = ref(null)
 let loadObserver = null
 
@@ -89,7 +80,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => loadObserver?.disconnect())
 
-// Susun hari ke dalam kolom minggu (Minggu di baris pertama, seperti GitHub)
 const weeks = computed(() => {
   if (!data.value) return []
   const days = data.value.days
@@ -100,7 +90,6 @@ const weeks = computed(() => {
   return result
 })
 
-// Label bulan muncul di minggu pertama tiap bulan baru
 const monthLabels = computed(() => {
   const labels = []
   let lastMonth = -1
@@ -109,7 +98,6 @@ const monthLabels = computed(() => {
     if (!day) return
     const month = new Date(`${day.date}T00:00:00`).getMonth()
     if (month !== lastMonth) {
-      // Lewati label yang terlalu mepet dengan label sebelumnya
       if (!labels.length || index - labels[labels.length - 1].col >= 3) {
         labels.push({ col: index, text: t(MONTHS)[month] })
       }
@@ -156,7 +144,6 @@ function formatDay(day) {
     : `Tidak ada kontribusi pada ${date}`
 }
 
-/* ---- Ringkasan: dihitung dari data kontribusi yang sama ---- */
 const WEEKDAYS = {
   id: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
   en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -188,13 +175,8 @@ const insights = computed(() => {
 
 const dayUnit = (n) => t({ id: 'hari', en: n === 1 ? 'day' : 'days', ja: '日' })
 
-/* Angka ringkasan "menghitung naik" dari 0 saat data tampil / ganti tab.
-   Bukan gerakan (hanya angka berubah), jadi tetap jalan walau efek animasi
-   Windows dimatikan. */
 const counted = ref({ active: 0, longest: 0, best: 0 })
 let countFrame = 0
-// Hitungan baru dimulai saat ringkasan benar-benar terlihat (data dimuat
-// lebih awal, sebelum bagian ini masuk layar)
 const insightsEl = ref(null)
 const insightsSeen = ref(false)
 let insightsObserver = null
@@ -279,9 +261,8 @@ const insightTiles = computed(() => {
   ]
 })
 
-// Sorot satu tingkat warna saat kursor di atas legenda (versi 2D)
 const focusLevel = ref(null)
-const todayKey = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD waktu lokal
+const todayKey = new Date().toLocaleDateString('en-CA')
 
 function cellClass(day) {
   if (!day) return 'is-empty'
@@ -295,14 +276,11 @@ function cellClass(day) {
   ]
 }
 
-/* ---- Tooltip saat kotak disorot ---- */
-const view = ref('2d') // tampilan grafik: '2d' atau '3d' (lihat bagian 2D / 3D di bawah)
+const view = ref('2d')
 const tooltip = ref(null)
 const graphEl = ref(null)
 const scrollEl = ref(null)
 
-// Di layar sempit grafik digeser ke ujung kanan supaya bulan terbaru langsung
-// terlihat (juga saat pindah dari tampilan 3D ke 2D)
 watch([data, view], async () => {
   await nextTick()
   if (scrollEl.value) scrollEl.value.scrollLeft = scrollEl.value.scrollWidth
@@ -323,7 +301,6 @@ function hideTooltip() {
   tooltip.value = null
 }
 
-/* ---- Tampilan 2D / 3D ---- */
 function hasWebGL() {
   try {
     const canvas = document.createElement('canvas')
@@ -382,7 +359,6 @@ function onSkylineUnsupported() {
       </div>
     </div>
 
-    <!-- Ringkasan singkat: hari aktif, streak, hari tersibuk, hari favorit -->
     <dl v-if="status !== 'error'" ref="insightsEl" class="gh__insights" :class="{ 'is-loading': status !== 'ready' }">
       <div v-for="tile in insightTiles" :key="tile.key" class="gh__insight" :class="`gh__insight--${tile.key}`">
         <dt class="gh__insight-label">{{ tile.label }}</dt>
@@ -429,7 +405,6 @@ function onSkylineUnsupported() {
             :aria-label="heading || t({ id: 'Grafik kontribusi GitHub', en: 'GitHub contribution graph', ja: 'GitHubのコントリビューショングラフ' })"
           >
             <template v-if="status === 'ready'">
-              <!-- key per rentang: ganti tab = gelombang muncul diputar ulang -->
               <div v-for="(week, w) in weeks" :key="`${activeRange}-${w}`" class="gh__week" :style="{ '--w': w }">
                 <span
                   v-for="(day, d) in week"
@@ -549,7 +524,6 @@ function onSkylineUnsupported() {
   color: var(--color-text);
 }
 
-/* Tab rentang: teks bergaris bawah */
 .gh__tabs {
   display: flex;
   flex-wrap: wrap;
@@ -601,7 +575,6 @@ function onSkylineUnsupported() {
   outline-offset: 2px;
 }
 
-/* ---- Ringkasan: empat angka bergaris, senada dengan statistik di beranda ---- */
 .gh__insights {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -643,7 +616,6 @@ function onSkylineUnsupported() {
   text-overflow: ellipsis;
 }
 
-/* Angka streak & hari tersibuk diberi warna aksen supaya "hidup" */
 .gh__insight--streak .gh__insight-value,
 .gh__insight--best .gh__insight-value {
   color: var(--color-accent);
@@ -673,7 +645,6 @@ function onSkylineUnsupported() {
   animation: gh-pulse 1.4s ease-in-out infinite;
 }
 
-/* ---- Grafik ---- */
 .gh__graph {
   position: relative;
   container-type: inline-size;
@@ -681,13 +652,11 @@ function onSkylineUnsupported() {
 
 .gh__scroll {
   overflow-x: auto;
-  /* Ruang kecil di tepi: cincin "hari ini" & kotak yang membesar saat disorot tidak terpotong */
   padding: 4px 4px 0.35rem;
   scrollbar-width: thin;
 }
 
 .gh__calendar {
-  /* Kotak membesar mengikuti lebar kolom; di layar sempit tetap 11px dan di-scroll */
   --cell: clamp(11px, calc((100cqw - 3rem - (var(--weeks) - 1) * var(--gap)) / var(--weeks)), 18px);
   display: grid;
   grid-template-columns: auto 1fr;
@@ -745,12 +714,10 @@ function onSkylineUnsupported() {
   transition: transform 0.18s var(--ease-out), opacity 0.25s ease, box-shadow 0.2s ease;
 }
 
-/* Kotak berisi kontribusi: sedikit "timbul" seperti ubin (senada tombol 3D) */
 .gh__grid .gh__cell:is(.lv-1, .lv-2, .lv-3, .lv-4) {
   box-shadow: inset 0 -1.5px 0 rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
-/* Tingkat tertinggi berpendar lembut */
 .gh__grid .gh__cell.lv-4 {
   box-shadow:
     inset 0 -1.5px 0 rgba(0, 0, 0, 0.22),
@@ -758,7 +725,6 @@ function onSkylineUnsupported() {
     0 0 9px -2px color-mix(in srgb, var(--color-accent) 75%, transparent);
 }
 
-/* Muncul bergelombang dari kiri ke kanan saat data tampil / ganti tab */
 .gh__grid.is-ready .gh__cell {
   animation: gh-pop 0.5s var(--ease-out) backwards;
   animation-delay: calc(var(--w, 0) * 12ms);
@@ -771,8 +737,6 @@ function onSkylineUnsupported() {
   }
 }
 
-/* Kilau cahaya: tiap ±6 detik, cahaya menyapu kotak berwarna dari kiri ke
-   kanan (kolom demi kolom). Hanya kecerahan yang berubah, tanpa gerak. */
 .gh__grid.is-ready .gh__cell:is(.lv-1, .lv-2, .lv-3, .lv-4) {
   animation:
     gh-pop 0.5s var(--ease-out) backwards,
@@ -805,7 +769,6 @@ function onSkylineUnsupported() {
   }
 }
 
-/* Disorot: kotak membesar dengan cincin tipis */
 .gh__grid .gh__cell:not(.is-empty):hover {
   z-index: 2;
   transform: scale(1.5);
@@ -815,7 +778,6 @@ function onSkylineUnsupported() {
     0 4px 10px -2px rgba(0, 0, 0, 0.45);
 }
 
-/* Hari tersibuk: cincin aksen yang berdenyut pelan */
 .gh__cell.is-best::after {
   content: '';
   position: absolute;
@@ -833,13 +795,11 @@ function onSkylineUnsupported() {
   }
 }
 
-/* Hari ini: garis tepi tipis */
 .gh__cell.is-today {
   outline: 1.5px solid var(--color-text);
   outline-offset: 1px;
 }
 
-/* Legenda disorot: tingkat lain meredup */
 .gh__cell.is-dim {
   opacity: 0.15;
 }
@@ -852,15 +812,12 @@ function onSkylineUnsupported() {
   visibility: hidden;
 }
 
-/* Skala warna memakai warna aksen (hijau sinyal), mirip nuansa hijau GitHub */
 .lv-0 { background: var(--color-surface-soft); }
 .lv-1 { background: color-mix(in srgb, var(--color-accent) 30%, var(--color-surface-soft)); }
 .lv-2 { background: color-mix(in srgb, var(--color-accent) 55%, var(--color-surface-soft)); }
 .lv-3 { background: color-mix(in srgb, var(--color-accent) 80%, var(--color-surface-soft)); }
 .lv-4 { background: var(--color-accent); }
 
-/* Kedip "memuat": satu animasi untuk seluruh grid (bukan 371 kotak satu per
-   satu), jauh lebih ringan, terutama di HP */
 .gh__graph.is-loading .gh__grid {
   animation: gh-pulse 1.4s ease-in-out infinite;
 }
@@ -950,7 +907,6 @@ function onSkylineUnsupported() {
   gap: 0.75rem 1.25rem;
 }
 
-/* Tombol 2D/3D: sakelar kecil bergaya tombol 3D */
 .gh__view {
   display: inline-flex;
   padding: 3px;
@@ -1025,10 +981,6 @@ function onSkylineUnsupported() {
   margin-left: 0.35rem;
 }
 
-/* "Kurangi animasi" aktif (mis. efek animasi Windows dimatikan): tanpa
-   gerak/membesar, tapi grafik tetap hidup lewat fade, kilau cahaya, dan
-   cincin yang meredup-terang. Aturan global di main.css mematikan semua
-   animasi, jadi di sini dikecualikan dengan !important. */
 @media (prefers-reduced-motion: reduce) {
   .gh__graph.is-loading .gh__grid,
   .gh__insights.is-loading .gh__insight-value {
@@ -1055,7 +1007,6 @@ function onSkylineUnsupported() {
   }
 }
 
-/* HP: ringkasan jadi 2 x 2 */
 @media (max-width: 640px) {
   .gh__insights {
     grid-template-columns: repeat(2, minmax(0, 1fr));

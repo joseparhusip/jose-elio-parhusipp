@@ -1,16 +1,12 @@
 :root {
-  /* ---- Latar & Permukaan (grafit netral) ----
-     Lihat DESIGN.md untuk aturan pemakaian warna. */
   --color-bg: #0E0F11;
   --color-surface: #15171A;
   --color-surface-soft: #1F2226;
   --color-border: rgba(230, 233, 238, 0.1);
 
-  /* ---- Teks ---- */
   --color-text: #ECEEF1;
   --color-text-soft: #9AA0A8;
 
-  /* ---- Warna utama: biru azure (hue 210°, bukan ultramarine yang keunguan). Aksen: hijau sinyal ---- */
   --color-primary: #1F7FE0;
   --color-primary-dark: #1769BF;
   --color-primary-soft: rgba(31, 127, 224, 0.16);
@@ -22,15 +18,12 @@
 
   --color-danger: #F2555A;
 
-  /* ---- Footer: blok biru azure penuh, sama di kedua tema ---- */
   --footer-bg: #0059B3;
   --footer-accent: #CFE3F7;
 
-  /* ---- Garis & tekstur (gaya "Field Notes") ---- */
   --color-rule: rgba(230, 233, 238, 0.2);
   --grain-opacity: 0.06;
 
-  /* ---- Navbar (dipisah supaya bisa beda tiap tema) ---- */
   --navbar-bg: rgba(14, 15, 17, 0.82);
   --navbar-bg-scrolled: rgba(21, 23, 26, 0.92);
   --navbar-dropdown-bg: rgba(21, 23, 26, 0.98);
@@ -41,32 +34,16 @@
 
   color-scheme: dark;
 
-  /* ---- Tipografi: "Editorial Elegan" ----
-     Heading: Fraunces (serif modern yang lembut, tebal untuk judul)
-     Aksen  : Fraunces italic (kata yang mau ditonjolkan)
-     Body   : Hanken Grotesk (bersih, hangat, enak dibaca panjang)
-     Label  : JetBrains Mono (periode, nomor, label kecil)
-
-     VERSI ASLI (untuk dikembalikan): tukar 4 baris di bawah dengan ini,
-     lalu kembalikan link Google Fonts di index.html (lihat komentar di sana).
-     --font-heading: 'Bricolage Grotesque', 'Geist', system-ui, sans-serif;
-     --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-     --font-body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
-     --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace; */
   --font-heading: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-body: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  /* Huruf Jepang: font sistem (tidak diunduh). Dipakai otomatis untuk
-     kana/kanji karena font utama tidak punya hurufnya (lihat main.css). */
   --font-ja-sans: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Yu Gothic', YuGothic, Meiryo, 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif;
   --font-ja-serif: 'Hiragino Mincho ProN', 'Yu Mincho', YuMincho, 'Noto Serif JP', 'Noto Serif CJK JP', serif;
 
-  /* ---- Ritme & bentuk ---- */
   --container: 1200px;
   --gutter: clamp(1.25rem, 4vw, 2.5rem);
   --section-y: clamp(4rem, 8vw, 6.5rem);
-  /* Jarak atas bagian yang menempel bagian lain berlatar sama (beranda) */
   --section-y-tight: clamp(2.5rem, 4.5vw, 3.5rem);
   --radius-sm: 6px;
   --radius: 10px;
@@ -75,10 +52,6 @@
   --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 24px 48px -28px rgba(0, 0, 0, 0.6);
 }
 
-/* =====================================================
-   MODE TERANG — background putih, teks tetap gelap
-   (aktif kalau <html data-theme="light">)
-   ===================================================== */
 :root[data-theme='light'] {
   --color-bg: #F4F4F1;
   --color-surface: #FFFFFF;

@@ -7,13 +7,10 @@ function getInitialTheme() {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved === 'light' || saved === 'dark') return saved
   } catch {
-    // localStorage tidak tersedia (mis. mode privat) -> pakai default
   }
-  // Default: dark (tema asli website). Ganti ke matchMedia kalau mau ikut sistem.
   return 'dark'
 }
 
-// state global (satu instance dipakai semua komponen)
 const theme = ref(getInitialTheme())
 
 function applyTheme(value) {
@@ -29,7 +26,6 @@ if (typeof document !== 'undefined') {
     try {
       localStorage.setItem(STORAGE_KEY, v)
     } catch {
-      // gagal menyimpan (storage penuh/diblokir) -> abaikan, tema tetap jalan
     }
   })
 }

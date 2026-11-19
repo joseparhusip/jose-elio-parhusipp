@@ -8,17 +8,6 @@ import smartpathImg from './img-sertifikat/smartpath-bootcamp-2024.webp'
 import p2mwImg from './img-sertifikat/p2mw-2023.jpg'
 import udemyImg from './img-sertifikat/udemy-codeigniter-2023.jpg'
 
-/* ---------------------------------------------------------
-   Sertifikat: daftar bergaris seperti arsip dokumen (bukan grid kartu).
-   - Desktop: baris di kiri, satu bingkai pratinjau di kanan yang ikut
-     berganti saat baris disorot/difokus. Klik gambar di bingkai untuk
-     melihat dokumen penuh (lightbox).
-   - HP: bingkai pratinjau disembunyikan; baris yang dipilih membuka
-     gambarnya langsung di bawah baris itu (akordeon). Klik gambarnya
-     untuk melihat dokumen penuh.
-   Klik baris hanya memilih sertifikat, tidak membuka lightbox.
-   Urutan: terbaru di atas.
---------------------------------------------------------- */
 const certificates = [
   {
     title: 'SAP01 — SAP Overview',
@@ -83,14 +72,12 @@ const certificates = [
   },
 ]
 
-// Ambil 4 digit tahun di mana pun posisinya ("Jul 2025" / "2025年7月")
 const years = certificates.map((c) => Number(t(c.date).match(/\d{4}/)[0]))
 const yearRange = `${Math.min(...years)}–${Math.max(...years)}`
 
 const active = ref(0)
 const activeCert = computed(() => certificates[active.value])
 
-// ---- Lightbox ----
 const lightbox = ref(null)
 
 function openLightbox(index) {
@@ -115,7 +102,6 @@ function onKeydown(event) {
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
-// ---- Kertas miring mengikuti kursor (hanya mouse, bukan HP) ----
 const tiltEl = ref(null)
 const tilting = ref(false)
 let canTilt = false
@@ -162,7 +148,6 @@ function onTiltLeave() {
 
 onUnmounted(() => cancelAnimationFrame(tiltFrame))
 
-// Proteksi gambar: cegah klik kanan & drag, sama seperti gambar proyek
 function preventImageAction(event) {
   event.preventDefault()
   return false
@@ -201,7 +186,6 @@ function preventImageAction(event) {
       </header>
 
       <div class="certs__body">
-        <!-- Daftar arsip -->
         <ol class="certs__list" v-reveal.stagger="{ delay: 120, step: 70 }">
           <li
             v-for="(cert, index) in certificates"
@@ -229,7 +213,6 @@ function preventImageAction(event) {
               </span>
             </button>
 
-            <!-- HP: gambar terbuka di bawah baris yang dipilih -->
             <div :id="`cert-${index}`" class="certs__inline" :inert="active !== index">
               <div class="certs__inline-inner">
                 <p class="certs__detail">{{ t(cert.detail) }}</p>
@@ -272,7 +255,6 @@ function preventImageAction(event) {
           </li>
         </ol>
 
-        <!-- Desktop: satu bingkai pratinjau yang ikut berganti -->
         <aside v-reveal.scale="160" class="certs__preview" aria-live="polite">
           <button
             type="button"
@@ -291,9 +273,7 @@ function preventImageAction(event) {
           >
             <span ref="tiltEl" class="certs__tilt">
             <Transition name="cert-fade" mode="out-in">
-              <!-- Kartu membungkus pas gambar (tegak/mendatar), garis warna di tepinya -->
               <span :key="activeCert.ref" class="certs__card">
-                <!-- Dua lembar kertas di belakang: kesan tumpukan dokumen -->
                 <span class="certs__sheet certs__sheet--1" aria-hidden="true"></span>
                 <span class="certs__sheet certs__sheet--2" aria-hidden="true"></span>
                 <img
@@ -337,7 +317,6 @@ function preventImageAction(event) {
       </div>
     </div>
 
-    <!-- Lightbox: dokumen penuh, bisa digeser kiri/kanan -->
     <Transition name="cert-lightbox">
       <div
         v-if="lightbox !== null"
@@ -408,8 +387,6 @@ function preventImageAction(event) {
 
 <style scoped>
 .certs {
-  /* Warna garis berputar: hanya palet website (biru azure + hijau aksen),
-     tanpa merah/ungu pelangi. Ikut tema karena memakai variabel warna. */
   --rgb-1: var(--color-primary);
   --rgb-2: var(--color-accent);
   --rgb-3: color-mix(in srgb, var(--color-primary) 45%, #fff);
@@ -417,26 +394,22 @@ function preventImageAction(event) {
   padding: var(--section-y) 0;
 }
 
-/* Mode terang: pendaran diredam supaya tidak norak di latar putih */
 :global(:root[data-theme='light']) .certs {
   --rgb-glow: 0.4;
 }
 
-/* Sudut gradien yang bisa dianimasikan (garis berputar mulus) */
 @property --cert-angle {
   syntax: '<angle>';
   inherits: false;
   initial-value: 0deg;
 }
 
-/* ---- Garis warna berputar di sekeliling kartu sertifikat ---- */
 .certs__card,
 .certs__inline-shot {
   position: relative;
   border-color: transparent !important;
 }
 
-/* Cincin tipis: gradien kerucut yang di-mask jadi garis tepi saja */
 .certs__card::before,
 .certs__inline-shot::before,
 .certs__card::after,
@@ -468,7 +441,6 @@ function preventImageAction(event) {
     linear-gradient(#000 0 0);
 }
 
-/* Pendaran lembut di BELAKANG kartu */
 .certs__card::after,
 .certs__inline-shot::after {
   inset: 2px;
@@ -483,7 +455,6 @@ function preventImageAction(event) {
   }
 }
 
-/* ---- Isi: daftar kiri, pratinjau kanan ---- */
 .certs__body {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
@@ -519,7 +490,6 @@ function preventImageAction(event) {
   cursor: pointer;
 }
 
-/* Garis tipis di kiri yang tumbuh pada baris aktif */
 .certs__row::before {
   content: '';
   position: absolute;
@@ -587,19 +557,15 @@ function preventImageAction(event) {
   color: var(--color-text);
 }
 
-/* Akordeon (khusus HP), tertutup di desktop */
 .certs__inline {
   display: none;
 }
 
-/* ---- Pratinjau ---- */
 .certs__preview {
   position: sticky;
   top: 6rem;
 }
 
-/* Panggung pratinjau: tinggi tetap supaya halaman tidak loncat saat
-   ganti sertifikat; kartu di tengahnya membungkus pas gambar */
 .certs__frame {
   display: grid;
   place-items: center;
@@ -611,7 +577,6 @@ function preventImageAction(event) {
   cursor: zoom-in;
 }
 
-/* Kertas miring: sudut diisi JS lewat --rx/--ry, titik kilau lewat --gx/--gy */
 .certs__tilt {
   display: inline-block;
   transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
@@ -623,7 +588,6 @@ function preventImageAction(event) {
   transition-duration: 0.12s;
 }
 
-/* Lembar di belakang kartu, sedikit miring seperti tumpukan kertas */
 .certs__sheet {
   position: absolute;
   inset: 0;
@@ -653,7 +617,6 @@ function preventImageAction(event) {
   transform: translate(-9px, 17px) rotate(-3.2deg);
 }
 
-/* Kilau cahaya di permukaan kertas */
 .certs__glare {
   position: absolute;
   inset: 0;
@@ -675,12 +638,10 @@ function preventImageAction(event) {
   opacity: 1;
 }
 
-/* Kartu terangkat: bayangan lebih panjang saat dimiringkan */
 .certs__frame.is-tilting .certs__card {
   box-shadow: 0 28px 48px -26px rgba(0, 0, 0, 0.55);
 }
 
-/* Kartu: jarak tipis antara gambar dan garis warna */
 .certs__card {
   display: block;
   padding: 7px;
@@ -754,11 +715,10 @@ function preventImageAction(event) {
   opacity: 0;
 }
 
-/* ---- Lightbox ---- */
 .cert-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 200;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -785,7 +745,6 @@ function preventImageAction(event) {
   -webkit-user-drag: none;
 }
 
-/* Tampilan tombol dari .btn-close--dark (main.css); di sini hanya posisi */
 .cert-lightbox__close {
   position: absolute;
   top: 1.25rem;
@@ -848,7 +807,6 @@ function preventImageAction(event) {
   }
 }
 
-/* ---- Tablet & HP: tanpa pratinjau, gambar terbuka di bawah baris ---- */
 @media (max-width: 900px) {
   .certs__body {
     grid-template-columns: 1fr;
@@ -881,7 +839,6 @@ function preventImageAction(event) {
     padding-bottom: 1.25rem;
   }
 
-  /* Kartu membungkus pas gambar, jadi garis warna tidak jauh dari sertifikat */
   .certs__inline-shot {
     display: block;
     width: fit-content;
@@ -908,7 +865,6 @@ function preventImageAction(event) {
 }
 
 @media (max-width: 640px) {
-  /* Tanggal & jenis pindah ke bawah judul supaya judul tidak sesak */
   .certs__row {
     grid-template-columns: 1.8rem minmax(0, 1fr);
   }
@@ -932,8 +888,6 @@ function preventImageAction(event) {
   }
 }
 
-/* Garis berputar tetap jalan walau "kurangi animasi" aktif (pelan & halus).
-   Aturan global di main.css mematikan semua animasi, jadi dikecualikan. */
 @media (prefers-reduced-motion: reduce) {
   .certs__card::before,
   .certs__card::after,

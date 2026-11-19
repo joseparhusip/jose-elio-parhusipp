@@ -1,31 +1,13 @@
-// chatKnowledge.en.js
-//
-// English version of chatKnowledge.js: the same exports with the same shapes,
-// used by ChatWidget.vue when the site language is English (lang === 'en').
-//
-// Notes:
-// - Facts and wording follow the English content on the site
-//   (ExperienceSection.vue, ProjectsSection.vue, AboutSection.vue), so the
-//   bot and the page say the same thing.
-// - Fields containing HTML are rendered with v-html in ChatWidget.vue, ONLY
-//   for bot messages (never user input).
-// - Shared, language-neutral things (profile links, project thumbnails, email
-//   extraction) come from the Indonesian module instead of being duplicated.
-
 import { PROFILE, PROJECTS as PROJECTS_ID, extractEmail } from './chatKnowledge.js'
 
 export { PROFILE, extractEmail }
 
-// Same thumbnails as the Indonesian module, looked up by project title.
-// The Indonesian module already corrects the swapped image file names
-// (see the comment in ProjectsSection.vue), so no swapping is needed here.
 const thumbOf = (title) => PROJECTS_ID.find((p) => p.title === title)?.image
 const IMAGE = {
   'Secura Kost': thumbOf('Secura Kost'),
   'Toko Kelontong Online': thumbOf('Toko Kelontong Online'),
 }
 
-// Ready-made answer for the "about" intent (who is Jose). HTML.
 export const ABOUT_HTML = [
   '<p>Meet <strong>Jose Elio Parhusip, S.Bns.</strong></p>',
   '<p>He holds a Bachelor of Digital Business from Universitas Logistik dan Bisnis Internasional (ULBI), Bandung. He currently works as a freelance Back End Developer for PT Sistem Pelayanan Kesehatan dan Data (SPKD), building the MedCredix backend with Go.</p>',
@@ -38,18 +20,15 @@ export const ABOUT_HTML = [
   '<p>Tools he works with: Flutter, Figma, Power BI, Python, React, Streamlit, Vue.js, Excel, Plotly, Google Colab, PostgreSQL, MySQL, Node.js, Go, and PHP.</p>',
 ].join('')
 
-// Ready-made answer for the "education" intent. HTML.
 export const EDUCATION_HTML = [
   '<p><strong>Jose Elio Parhusip, S.Bns.</strong> graduated with a Bachelor of Digital Business from Universitas Logistik dan Bisnis Internasional (ULBI), Bandung.</p>',
   '<p>During his studies, he learned to design systems (UML, ERD, Flowchart) and to build both web and mobile applications, and he also earned an SAP certification.</p>',
 ].join('')
 
-// Ready-made answer for the "contact" intent. HTML, {email} is replaced on use.
 export const CONTACT_HTML = [
   "<p>Want to contact Jose directly? Email him at <strong>{email}</strong>, or keep chatting here and I'll help pass your message on to him.</p>",
 ].join('')
 
-// Topics the bot can answer, shown as the second message of a new conversation.
 export const TOPICS_HTML = [
   '<p>Before we continue, just so you know, I can only help with questions about:</p>',
   '<ul class="chat-widget__highlight-list">',
@@ -62,11 +41,9 @@ export const TOPICS_HTML = [
   "<p>If you ask about something else, I'll let you know it's outside what I can help with. So, what's your name?</p>",
 ].join('')
 
-// Ready-made answer for off-topic questions (recipes, translation, weather, ...).
 export const OFFTOPIC_HTML =
   "<p>Hmm, that's outside what I can help with here. I can only tell you about Jose: his profile, education, work experience, projects, or how to contact him directly. Feel free to ask about any of those.</p>"
 
-// role/company/summary are HTML.
 export const EXPERIENCES = [
   {
     period: 'Oct 2026 – Present',
@@ -110,7 +87,6 @@ export const EXPERIENCES = [
   },
 ]
 
-// Numbered list for the "experience" intent, rendered with v-html.
 export function buildExperienceListHtml() {
   const items = EXPERIENCES.map((item) => {
     const tagsHtml = item.tags
@@ -133,8 +109,6 @@ export function buildExperienceListHtml() {
   return `<ol class="chat-widget__exp-list">${items}</ol>`
 }
 
-// title stays the original project name. summary is HTML.
-// internal: true = freelance client project, no public demo or repository.
 const PROJECT_TEXT = {
   MedCredix: {
     summary:
@@ -159,7 +133,6 @@ const PROJECT_TEXT = {
   'Secura Kost': {
     summary:
       'A boarding house (kost) marketplace prototype (Vue.js and Tailwind CSS) with a 360° virtual tour, two-role authentication (tenants and owners), and a dynamic landing page.',
-    // Same stack as the Projects section of the page
     tags: ['Vue.js', 'Tailwind CSS'],
   },
   'Toko Kelontong Online': {
@@ -179,10 +152,6 @@ export const PROJECTS = PROJECTS_ID.map((project) => ({
   ...PROJECT_TEXT[project.title],
 }))
 
-// --- Intent detection --------------------------------------------------
-// Simple keyword-based intent detection for English. Order matters: the more
-// specific intents (education, experience, projects, contact) are checked
-// before the general fallback (who/about). Input is normalizeChat() output.
 const RX = {
   education:
     /\b(education|educational|study|studies|studied|studying|degree|university|college|campus|school|major|graduat\w*|alma\s*mater|bachelor\w*|ulbi|academic\w*|uni)\b/i,
@@ -198,24 +167,16 @@ const RX = {
   question: /\?|\b(what|how|where|when|who|which|why|does|is|can)\b/i,
   link: /\b(links?|url|demo|github|repo|repository|source\s*code|code)\b/i,
 
-  // "work"/"job" on its own is ambiguous: Jose's work history (-> 'experience')
-  // or the visitor offering Jose a job (-> 'contact'). Without a hint, the bot
-  // asks back instead of guessing (intent 'ambiguous_pekerjaan').
   pekerjaanAmbiguous: /\b(work|job|jobs)\b/i,
   pekerjaanHistoryHint:
     /\b(history|experience|past|previous|before|career|background|done|former|first|his\s+(?:work|jobs?))\b/i,
   pekerjaanOfferHint:
     /\b(offer\w*|openings?|vacanc\w*|hire|hiring|recruit\w*|freelance|collaborat\w*|opportunit\w*)\b/i,
 
-  // Common clearly off-topic requests. Not a full list.
   offtopic:
     /\b(recipes?|cook(?:ing)?|baking|weather|forecast|translate|translation|lyrics|sing\s+(?:me|a)|horoscope|zodiac|fortune\s+telling|math\s+homework)\b/i,
 }
 
-/**
- * Detects whether a visitor message is an FAQ question about Jose.
- * Returns null if not (the contact form flow continues).
- */
 export function matchFaqIntent(rawText) {
   const text = (rawText || '').toLowerCase()
 
@@ -225,7 +186,6 @@ export function matchFaqIntent(rawText) {
   if (RX.contact.test(text)) return { type: 'contact' }
   if (RX.who.test(text) || RX.about.test(text)) return { type: 'about' }
 
-  // General question mentioning "jose", e.g. "what is jose like?" -> about
   if (RX.mentionsJose.test(text) && RX.question.test(text)) {
     return { type: 'about' }
   }
@@ -241,24 +201,16 @@ export function matchFaqIntent(rawText) {
   return null
 }
 
-// Answers to the clarifying question "work history, or offering a job?"
 export const PEKERJAAN_CLARIFY_HISTORY_RX = RX.pekerjaanHistoryHint
 export const PEKERJAAN_CLARIFY_OFFER_RX =
   /\b(offer\w*|openings?|vacanc\w*|hire|hiring|recruit\w*|freelance|collaborat\w*|opportunit\w*|contact|second|latter)\b/i
 
-// --- Names ----------------------------------------------------------------
-// "my name is sarah", "i'm sarah", "call me sarah", "this is sarah",
-// "hi, i am sarah" (a greeting in front is stripped by the widget).
 const NAME_STATEMENT_RX =
   /(?:^|[\s,.!])(?:my\s+name\s+is|my\s+name's|my\s+name|name\s+is|name's|you\s+can\s+call\s+me|just\s+call\s+me|call\s+me|they\s+call\s+me|i\s+go\s+by|i\s+am\s+called|i'm\s+called|i\s+am|i'm|im|this\s+is|it's|it\s+is)\s*(?::)?\s+([a-zA-Z][a-zA-Z'.\- ]{0,40})/i
 
-// Words that are clearly not a name even right after "i am"/"i'm",
-// e.g. "i'm looking for", "i am a recruiter", "i'm just browsing".
 const NOT_A_NAME_RX =
   /^(looking|interested|just|here|from|fine|good|great|well|ok|okay|not|so|very|really|also|still|currently|working|trying|curious|wondering|new|back|sorry|glad|happy|sure|ready|available|hiring|recruiter|recruiting|student|developer|engineer|designer|manager|hr|going|gonna|want|wanna|asking|checking|browsing|visiting|doing|tired|bored|busy|interested|calling|writing|reaching|contacting|in|at|on|with|of|to|for|his|her|your|my|a|an|the|no|yes|actually|only|the|reaching|hoping|planning|about|feeling|done|confused|lost|unsure|bot|human|real|me|you|it|that|this|what|who|raining|late|early)$/i
 
-// Common English words that are almost never a person's name. Prevents
-// "this is great" from being read as the name "Great".
 const COMMON_WORDS = new Set(
   `
   a an the and or but if then so because as of at by for from in into on onto to with without about over under
@@ -283,8 +235,6 @@ const COMMON_WORDS = new Set(
     .filter(Boolean),
 )
 
-// Question words: a question is not treated as introducing a name unless the
-// statement is explicit ("my name is sarah, can i ask something?").
 const QUESTION_WORD_RX =
   /\?|\b(what|who|when|where|why|how|which|whose)\b|^\s*(?:does|do|did|is|are|can|could|would|will|has|have)\b/i
 const EXPLICIT_NAME_RX = /\b(name|call\s+me|go\s+by|called)\b/i
@@ -323,14 +273,11 @@ export function matchNameStatement(rawText) {
     return { name: capitalize(firstWord) }
   }
 
-  // "sarah here"
   const here = text.match(NAME_HERE_RX)
   if (here && !isQuestion && isLikelyName(here[1])) return { name: capitalize(here[1]) }
   return null
 }
 
-// Name from a plain answer ("sarah connor" -> "Sarah"). Returns null if the
-// text does not look like a name: digits, greetings, or a whole sentence.
 export function extractPlainName(rawText) {
   const words = straightQuotes(rawText)
     .trim()
@@ -344,9 +291,6 @@ export function extractPlainName(rawText) {
   return capitalize(words[0])
 }
 
-// --- Small talk (greetings, thanks, etc.) -----------------------------------
-
-// Greeting based on the visitor's device clock.
 export function getTimeOfDay(date = new Date()) {
   const h = date.getHours()
   if (h >= 4 && h < 12) return 'morning'
@@ -358,7 +302,6 @@ const GREETING_WORD_RX =
   /^(hi+|hello+|hey+|hiya|howdy|yo|greetings|morning|afternoon|evening|there)$/i
 
 const SMALL_TALK = {
-  // The whole message is only a greeting
   greeting:
     /^(?:(?:hi+|hello+|hey+|hiya|howdy|yo|greetings|good\s+(?:morning|afternoon|evening|day)|morning|afternoon|evening)(?:\s+(?:there|again|jose|bot|everyone|all|team|friend|sir|madam|to\s+you|too))*[\s!.,~]*)+$/i,
   greetingPrefix:
@@ -369,15 +312,10 @@ const SMALL_TALK = {
     /^(?:(?:thanks|thank\s+(?:you|u)|thx|ty|tysm|cheers|much\s+appreciated|appreciate\s+it|many\s+thanks)(?:\s+(?:so|very|a\s+lot|lots|much|again|jose|bot|for\s+(?:the|your)\s+(?:help|info|information|time|answer)))*[\s!.~]*)+$/i,
   bye: /^(?:(?:bye|goodbye|good\s*bye|bye\s+bye|see\s+(?:you|ya)(?:\s+later|\s+soon)?|cya|later|take\s+care|have\s+a\s+(?:good|nice|great)\s+(?:day|one|night|evening|weekend)|catch\s+you\s+later|i\s+(?:have|need)\s+to\s+go|gotta\s+go|that's\s+all\s+for\s+now)(?:\s+(?:now|then|jose|bot|for\s+now))*[\s!.~]*)+$/i,
   ack: /^(?:ok+|okay|okey|k+|alright|all\s+right|cool|nice|great|good|got\s+it|i\s+see|understood|noted|perfect|fine|right|ah+|oh+|hmm+|haha+|wow|sounds\s+good|makes\s+sense)(?:\s+(?:then|thanks|cool|great|sure|got\s+it))*[\s!.~]*$/i,
-  // Questions about the bot itself, not about Jose
   aboutBot:
     /\b(who\s+are\s+you|what\s+are\s+you|are\s+you\s+(?:a\s+)?(?:bot|robot|ai|human|real|person|real\s+person|chatbot)|am\s+i\s+(?:talking|chatting|speaking)\s+(?:to|with)\s+(?:a\s+)?(?:bot|robot|ai|human|real\s+person|person))\b/i,
 }
 
-/**
- * Small talk detection. Returns { type } or null.
- * type: greeting | howAreYou | thanks | bye | ack | aboutBot
- */
 export function matchSmallTalk(rawText) {
   const text = straightQuotes(rawText).trim()
   if (!text) return null
@@ -390,8 +328,6 @@ export function matchSmallTalk(rawText) {
   return null
 }
 
-// "hi there, i'm sarah" -> "i'm sarah" (greeting removed) so the rest of the
-// sentence can still be processed as a name or question.
 export function stripGreetingPrefix(rawText) {
   let text = straightQuotes(rawText).trim()
   let prev
@@ -406,8 +342,6 @@ export function hasGreetingPrefix(rawText) {
   return SMALL_TALK.greetingPrefix.test(straightQuotes(rawText).trim())
 }
 
-// A question or request for information (used at the "message" step so a
-// message like "I'd like to offer him a project" is not answered as an FAQ).
 export function looksLikeQuestion(rawText) {
   const text = straightQuotes(rawText).trim().toLowerCase()
   return (
@@ -418,8 +352,6 @@ export function looksLikeQuestion(rawText) {
   )
 }
 
-// Time of day the visitor used in their greeting ("good evening" -> "evening"),
-// so the bot replies with the same one.
 export function getUserTimeGreeting(rawText) {
   const text = (rawText || '').trim()
   const match =
@@ -428,9 +360,6 @@ export function getUserTimeGreeting(rawText) {
   return match ? match[1].toLowerCase() : null
 }
 
-// At the "message" step: long sentences or sentences with an intent (offering
-// a project, freelance, collaboration) are the message for Jose, even when
-// phrased as a question. Do not answer them as FAQ.
 const MESSAGE_INTENT_RX =
   /\b(offer|offering|freelance|hire|hiring|recruit\w*|vacanc\w*|opening|interview|collaborat\w*|partnership|budget|cost|price|pricing|rate|fee|quote|services?|commission|build\s+(?:me|us)|develop\s+(?:a|an|our|my)|available|availability|join|invite|invitation|opportunit\w*|proposal)\b/i
 
@@ -440,20 +369,15 @@ export function looksLikeMessageToJose(rawText) {
   return wordCount >= 9 || MESSAGE_INTENT_RX.test(text)
 }
 
-// The visitor does not want to share their name/email yet, or wants to talk
-// about something else first: "not now", "maybe later", "skip", "i'd rather not".
 export const DECLINE_RX =
   /(?:^\s*(?:no|nope|nah)\b|\b(?:no\s+thanks|not\s+(?:now|yet|right\s+now|ready|comfortable|today)|maybe\s+later|later|skip|pass|rather\s+not|prefer\s+not|i'?d\s+rather\s+not|don'?t\s+want\s+to|do\s+not\s+want\s+to|no\s+email|without\s+(?:my\s+)?email|private|privacy|anonymous|just\s+(?:browsing|looking|asking|checking)|something\s+else|other\s+(?:things|topics?)|chat\s+first|ask\s+(?:something|questions)\s+first|look\s+around)\b)/i
 
-// The visitor wants to continue sending a message to Jose from free chat mode.
 export const RESUME_CONTACT_RX =
   /\b(?:(?:want|would\s+like|like|ready|wish|going)\s+to\s+(?:send|leave|write|drop)(?:\s+him)?\s+(?:a\s+)?(?:message|note)|send\s+(?:him\s+)?(?:a\s+)?message|leave\s+(?:him\s+)?(?:a\s+)?message|message\s+(?:him|jose)|contact\s+(?:him|jose)\s+now|let'?s\s+(?:do\s+it|continue)|continue|go\s+ahead|i'?ll\s+(?:give|share)\s+(?:you\s+)?my)\b/i
 
-// When the visitor asks the bot to choose ("anything", "up to you").
 export const PICK_ANY_RX =
   /^(?:anything|whatever|up\s+to\s+you|you\s+choose|you\s+pick|not\s+sure|i\s+don'?t\s+know|dunno|something\s+else)\b/i
 
-// Short topic list for free chat mode (no name/email requested).
 export const TOPICS_MENU_HTML = [
   '<p>I can tell you about:</p>',
   '<ul class="chat-widget__highlight-list">',
@@ -465,14 +389,6 @@ export const TOPICS_MENU_HTML = [
   '</ul>',
   '<p>Just type a question, for example "What projects has Jose worked on?". If you want to send Jose a message later, just say "send a message".</p>',
 ].join('')
-
-// =====================================================================
-// Conversational layer
-// 1. normalizeChat(): tidy chat language (contractions, abbreviations,
-//    repeated letters) before matching.
-// 2. matchConversation(): intents more specific than the FAQ.
-// 3. pickVariant(): random sentence without repeating the previous one.
-// =====================================================================
 
 const CONTRACTIONS = [
   [/\bwhat's\b/g, 'what is'],
@@ -495,7 +411,7 @@ const CONTRACTIONS = [
   [/\bcan't\b/g, 'cannot'],
   [/\bwon't\b/g, 'will not'],
   [/\b(\w+)n't\b/g, '$1 not'],
-  [/\b(\w+)'s\b/g, '$1'], // possessive: "jose's projects" -> "jose projects"
+  [/\b(\w+)'s\b/g, '$1'],
 ]
 
 const SLANG = {
@@ -511,7 +427,7 @@ const SLANG = {
 export function normalizeChat(rawText) {
   let text = straightQuotes(rawText)
     .toLowerCase()
-    .replace(/([a-z])\1{2,}/g, '$1$1') // "hiii" -> "hii", "sooo" -> "soo"
+    .replace(/([a-z])\1{2,}/g, '$1$1')
   for (const [rx, replacement] of CONTRACTIONS) text = text.replace(rx, replacement)
   return text
     .replace(/[^\p{L}\p{N}@.?\s+#-]/gu, ' ')
@@ -525,7 +441,6 @@ export function normalizeChat(rawText) {
     .trim()
 }
 
-// Random sentence, but never the same as the last pick for the same key.
 const lastVariant = {}
 export function pickVariant(key, list) {
   if (list.length === 1) return list[0]
@@ -537,18 +452,14 @@ export function pickVariant(key, list) {
   return list[index]
 }
 
-// Short "yes"/"no" answers to an offer from the bot ("Want me to tell you more?").
-// Matched against normalizeChat() output (contractions already expanded).
 export const YES_RX =
   /^(?:yes+|yeah|yea|yep|yup|ya|y|sure|ok+|okay|okey|alright|of\s+course|definitely|absolutely|certainly|please|go\s+ahead|do\s+it|let\s+us\s+do\s+it|let\s+us\s+see|why\s+not|sounds\s+good|that\s+would\s+be\s+(?:great|nice|good)|i\s+would\s+like\s+that|i\s+would\s+love\s+that|show\s+me|tell\s+me|links?|demo|repo|more|go\s+on|continue)(?:\s+(?:please|sure|thing|thanks|thank\s+you|of\s+course|show\s+me|tell\s+me|more|i\s+would\s+(?:like|love)\s+that|i\s+would|i\s+do|do\s+it|go\s+ahead|then|why\s+not|definitely|sounds\s+good|that\s+would\s+be\s+(?:great|nice|good)))*[\s!.~]*$/i
 export const NO_RX =
   /^(?:no+|nope|nah|not\s+(?:now|really|yet|today|necessary|needed)|no\s+need|not\s+interested|i\s+am\s+(?:good|fine|ok|okay)|skip|maybe\s+later|later|never\s*mind|nevermind|that\s+is\s+(?:all|enough|fine|ok)|all\s+good|i\s+will\s+pass|pass)(?:\s+(?:thanks|thank\s+you|please|for\s+now|right\s+now|then|sorry|jose|i\s+am\s+good|maybe\s+later))*[\s!.~]*$/i
 
-// Short summary of Jose, used before the full profile.
 export const ABOUT_SHORT_HTML =
   '<p>In short, <strong>Jose Elio Parhusip</strong> is a Digital Business graduate from ULBI Bandung who now works as a Back End Developer at PT SPKD. He enjoys building web and mobile apps as well as data dashboards.</p>'
 
-// Tools/technologies Jose knows, with recognition patterns.
 const TECHS = [
   { name: 'Flutter', rx: /\bflutter/ },
   { name: 'Dart', rx: /\bdart\b/ },
@@ -592,7 +503,6 @@ const TECHS = [
   { name: 'OCR', rx: /\bocr\b/ },
 ]
 
-// Popular technologies that are NOT in Jose's data. The bot says so honestly.
 const UNKNOWN_TECH_RX =
   /(?<![\w.])(laravel|java|kotlin|swift|django|flask|angular|svelte|nuxt|kubernetes|aws|azure|gcp|mongodb|firebase|ruby|rust|unity|wordpress|spring|\.net|dotnet|c\+\+|c#)(?![\w+#])/
 
@@ -604,9 +514,6 @@ function joinList(items) {
   return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`
 }
 
-// Evidence of a technology in Jose's projects and experience.
-// A tag equal to the tech name always counts (the "Go" tag does not match the
-// Go pattern, which is written to avoid the everyday word "go").
 export function findTechEvidence(tech) {
   const rx = new RegExp(tech.rx.source, 'i')
   const name = (tech.name || '').toLowerCase()
@@ -616,7 +523,6 @@ export function findTechEvidence(tech) {
   return { projects: PROJECTS.filter(uses), roles: EXPERIENCES.filter(uses) }
 }
 
-// A specific project mentioned by name.
 const PROJECT_ALIASES = [
   { title: 'MedCredix', rx: /\bmed\s*credix\b|\bcredentialing\s+(?:platform|readiness)/ },
   { title: 'SIMRS Dashboard', rx: /\bsimrs\b|\bhospital\s+information\s+system/ },
@@ -630,7 +536,6 @@ const PROJECT_ALIASES = [
 
 export function findProjectMentions(norm) {
   const found = PROJECT_ALIASES.filter((a) => a.rx.test(norm)).map((a) => a.title)
-  // "jec" on its own can mean both projects
   if (!found.length && /\bjec\b/.test(norm)) found.push('Mobile JEC', 'Dashboard JEC')
   return PROJECTS.filter((p) => found.includes(p.title))
 }
@@ -665,7 +570,6 @@ const CONVO = {
   skillQuestion:
     /\b(know|knows|use|uses|used|using|familiar|experienced|experience|skilled|proficient|can|could|does|did|do|good\s+at|work\s+with|worked\s+with|code|program|write|expert|tried)\b|\?/,
 
-  // --- Light chat with the bot ---
   botActivity: /\b(what\s+are\s+you\s+(?:doing|up\s+to)|are\s+you\s+busy|keeping\s+busy)\b/,
   botEat: /\b(have\s+you\s+(?:eaten|had\s+(?:lunch|dinner|breakfast)|slept)|did\s+you\s+eat|do\s+you\s+(?:eat|sleep|drink))\b/,
   botGender: /\b(are\s+you\s+(?:a\s+)?(?:boy|girl|man|woman|male|female|guy)|your\s+gender|what\s+gender)\b/,
@@ -678,13 +582,11 @@ const CONVO = {
   testMsg: /^(?:test|testing|tes|check|ping)(?:\s*\d+)*[\s!.?]*$/,
   goodnight: /\b(good\s*night|nighty\s*night|going\s+to\s+(?:bed|sleep)|time\s+to\s+sleep)\b/,
 
-  // --- Time and date ---
   timeNow:
     /\bwhat\s+time\s+is\s+it\b|\bwhat\s+is\s+the\s+(?:current\s+)?time\b|\bcurrent\s+time\b|\btime\s+(?:is\s+it\s+)?now\b|\bdo\s+you\s+have\s+the\s+time\b/,
   dateNow:
     /\bwhat\s+(?:is\s+)?(?:the\s+)?date\b|\bwhat\s+day\s+is\s+(?:it|today)\b|\btoday\s+date\b|\bwhat\s+is\s+today\b|\bwhich\s+day\s+is\s+it\b|\bwhat\s+(?:month|year)\s+is\s+it\b/,
 
-  // --- Other light chat ---
   botAge: /\bhow\s+old\s+are\s+you\b|\byour\s+age\b|\bwhen\s+were\s+you\s+(?:made|born|created)\b/,
   botLanguage:
     /\b(do\s+you\s+speak|can\s+you\s+speak|speak\s+(?:indonesian|bahasa|english|other\s+languages)|what\s+languages?\s+(?:do|can)\s+you|in\s+indonesian|bahasa\s+indonesia)\b/,
@@ -694,7 +596,6 @@ const CONVO = {
     /^(?:can|may|could)\s+i\s+(?:ask|have\s+a\s+question)\b|^i\s+have\s+a\s+(?:quick\s+)?question\b/,
 }
 
-// --- Filter: requests the bot cannot or should not handle ---
 const GUARD = {
   inappropriate:
     /\b(porn\w*|sex|sexy|sexual|nude\w*|naked|nsfw|xxx|onlyfans|gambl\w*|casino|betting|cocaine|heroin|meth|weed|marijuana)\b/,
@@ -708,7 +609,6 @@ const GUARD = {
     /\b(do|write|solve|finish|fix|debug|complete)\s+(?:my|our)\s+(?:homework|assignment|code|essay|thesis|exam|test|bug)\b|\b(write|generate|make)\s+(?:me\s+)?(?:a|an|some)\s+(?:code|script|program|essay|function)\b|\bhelp\s+me\s+(?:with\s+)?(?:my\s+)?(?:homework|assignment|essay|thesis|exam)\b/,
 }
 
-// Topics unrelated to Jose, with a category name for a more natural reply.
 const OFFTOPIC_TOPICS = [
   ['politics', /\b(politics|political|president|elections?|government|parliament|senator|congress|prime\s+minister|voting)\b/],
   ['news and gossip', /\b(news|gossip|celebrit\w*|headlines)\b/],
@@ -728,8 +628,6 @@ const OFFTOPIC_TOPICS = [
   ['other AI assistants', /\b(chatgpt|chat\s+gpt|gpt-?\d|copilot|siri|alexa)\b/],
 ]
 
-// If the sentence is clearly about Jose, it is not off topic
-// ("Jose's hospital projects", "does Jose have game projects").
 const JOSE_TOPIC_RX =
   /\b(jose|projects?|portfolio|experience|education|degree|skills?|tools|contact|cv|resume|medcredix|simrs|jec|hospital)\b/
 
@@ -746,10 +644,6 @@ function matchGuard(norm) {
   return null
 }
 
-/**
- * Conversation intents more specific than the FAQ. Returns { type, ... } or null.
- * Checked BEFORE matchFaqIntent().
- */
 export function matchConversation(rawText) {
   const norm = normalizeChat(rawText)
   if (!norm) return null
@@ -759,7 +653,6 @@ export function matchConversation(rawText) {
   const guard = matchGuard(norm)
   if (guard) return guard
 
-  // Potential client: "budget for a website", "can he build me an app?"
   if (
     /\b(budget|cost|costs|price|pricing|rates?|fee|fees|quote|charge|build\s+(?:me|us|a|an)|make\s+(?:me|us)\s+(?:a|an)|develop\s+(?:a|an|our|my)|create\s+(?:a|an))\b/.test(norm) &&
     /\b(website|web|site|app|application|mobile|landing\s+page|dashboard|online\s+store|e-?commerce|system|platform)\b/.test(norm)
@@ -787,7 +680,6 @@ export function matchConversation(rawText) {
   if (CONVO.compliment.test(norm) && words <= 9 && !/\?/.test(norm)) return { type: 'compliment' }
 
   if (CONVO.meet.test(norm)) {
-    // "get to know jose" -> wants to know Jose; otherwise an introduction to the bot
     return CONVO.aboutJose.test(norm) ? { type: 'aboutJose' } : { type: 'meetBot' }
   }
   if (CONVO.askBotName.test(norm)) return { type: 'askBotName' }

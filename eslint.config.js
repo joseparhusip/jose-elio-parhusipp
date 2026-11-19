@@ -13,7 +13,6 @@ export default defineConfig([
 
   globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
 
-  // Environment untuk kode frontend (browser)
   {
     name: 'app/frontend-env',
     files: ['src/**/*.{js,mjs,jsx,vue}'],
@@ -24,7 +23,6 @@ export default defineConfig([
     },
   },
 
-  // Environment untuk kode backend (Node.js / CommonJS) — serverless functions di /api
   {
     name: 'app/server-env',
     files: ['api/**/*.js'],
@@ -36,7 +34,6 @@ export default defineConfig([
     },
   },
 
-  // Script build (Node.js / ES module) di /scripts
   {
     name: 'app/scripts-env',
     files: ['scripts/**/*.js'],
@@ -49,6 +46,13 @@ export default defineConfig([
 
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
+
+  {
+    name: 'app/rules',
+    rules: {
+      'no-empty': ['error', { allowEmptyCatch: true }],
+    },
+  },
 
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 

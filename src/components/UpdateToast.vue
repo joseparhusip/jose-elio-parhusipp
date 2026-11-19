@@ -2,23 +2,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { t } from '@/composables/useLang'
 
-/* ---------------------------------------------------------
-   Notifikasi "Versi baru tersedia".
-   Setiap build menulis /version.json (lihat vite.config.js). Situs
-   mencocokkan isinya dengan versi yang sedang dipakai:
-   - saat pengunjung kembali ke tab ini,
-   - saat internet tersambung lagi,
-   - dan setiap 10 menit selama tab terbuka & terlihat.
-   Kalau beda, muncul notifikasi kecil. Halaman TIDAK di-reload paksa,
-   supaya isian chat/posisi baca pengunjung tidak hilang.
-   Hanya membaca file situs sendiri: tanpa pelacak, tanpa cookie.
-
-   Untuk melihat tampilannya tanpa menunggu deploy: buka situs dengan
-   akhiran ?cek-update (mis. joseparhusip.com/?cek-update).
---------------------------------------------------------- */
 const CURRENT = import.meta.env.VITE_APP_VERSION
 const CHECK_EVERY_MS = 10 * 60 * 1000
-const MIN_GAP_MS = 60 * 1000 // jangan cek lebih sering dari 1x per menit
+const MIN_GAP_MS = 60 * 1000
 
 const visible = ref(false)
 const reloading = ref(false)
@@ -39,7 +25,6 @@ async function check() {
       visible.value = true
     }
   } catch {
-    // Gagal cek (mis. jaringan putus): coba lagi di kesempatan berikutnya
   }
 }
 
@@ -57,7 +42,6 @@ function dismiss() {
 }
 
 onMounted(() => {
-  // Mode pratinjau: tampilkan notifikasi langsung
   if (new URLSearchParams(window.location.search).has('cek-update')) {
     setTimeout(() => (visible.value = true), 800)
   }
@@ -104,7 +88,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Pojok kiri bawah (kanan bawah sudah dipakai tombol chat & ke atas) */
 .update {
   position: fixed;
   left: 1.25rem;
@@ -162,7 +145,6 @@ onUnmounted(() => {
   --close-size: 38px;
 }
 
-/* HP: selebar layar di atas tombol mengambang, judul boleh turun baris */
 @media (max-width: 520px) {
   .update {
     left: 0.75rem;

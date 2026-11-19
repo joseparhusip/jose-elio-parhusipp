@@ -7,19 +7,15 @@ import TheFooter from './components/TheFooter.vue'
 import ScrollProgress from './components/ScrollProgress.vue'
 import CustomCursor from './components/CustomCursor.vue'
 import OfflineScreen from './components/OfflineScreen.vue'
+import SnowFall from './components/SnowFall.vue'
+import { christmas } from './composables/useChristmas'
 import UpdateToast from './components/UpdateToast.vue'
 import { useChatWidgetStore } from './stores/chatWidget'
 import { privacyOpen } from './composables/usePrivacy'
 
-// Halaman pemberitahuan (404) tampil penuh: tanpa navbar, footer, & chat
 const route = useRoute()
 const isNotice = computed(() => Boolean(route.meta.notFound))
 
-/* Widget chat & pop up privasi tidak dibutuhkan di layar pertama, jadi
-   kodenya dipisah dan baru dimuat belakangan (halaman awal lebih ringan).
-   - Chat: dimuat saat browser senggang, atau langsung saat diminta
-     (mis. tombol "Mulai Chat" diklik sebelum widget sempat dimuat).
-   - Privasi: baru dimuat saat pertama kali dibuka. */
 const ChatWidget = defineAsyncComponent(() => import('./components/ChatWidget.vue'))
 const PrivacyDialog = defineAsyncComponent(() => import('./components/PrivacyDialog.vue'))
 
@@ -37,7 +33,6 @@ watch(privacyOpen, (open) => {
   if (open) privacyReady.value = true
 })
 
-// Halaman pemberitahuan dikunci satu layar (lihat html.notice-page di main.css)
 watch(isNotice, (notice) => document.documentElement.classList.toggle('notice-page', notice), {
   immediate: true,
 })
@@ -51,20 +46,15 @@ onMounted(() => {
 <template>
   <TheLoader />
   <ScrollProgress v-if="!isNotice" />
-  <!-- Dibungkus supaya bisa "zoom" masuk saat loader selesai (lihat TheLoader.vue) -->
   <div class="app-stage">
     <TheNavbar v-if="!isNotice" />
     <RouterView />
     <TheFooter v-if="!isNotice" />
   </div>
-  <!-- Widget chat mengambang, tampil di semua halaman kecuali pemberitahuan -->
   <ChatWidget v-if="!isNotice && chatReady" />
-  <!-- Pop up kebijakan privasi (dibuka dari footer) -->
   <PrivacyDialog v-if="privacyReady" />
-  <!-- Layar "Koneksi terputus" saat internet hilang -->
+  <SnowFall v-if="christmas" />
   <OfflineScreen />
-  <!-- Notifikasi "Versi baru tersedia" setelah deploy baru -->
   <UpdateToast />
-  <!-- Kursor custom (hanya perangkat dengan mouse) -->
   <CustomCursor />
 </template>

@@ -18,9 +18,7 @@ const isLight = computed(() => theme.value === 'light')
     :title="isLight ? t({ id: 'Mode terang', en: 'Light mode', ja: 'ライトモード' }) : t({ id: 'Mode gelap', en: 'Dark mode', ja: 'ダークモード' })"
     @click="toggleTheme"
   >
-    <!-- Track cekung (3D inset) -->
     <span class="sw__track">
-      <!-- isi 3D: bintang (dark) -->
       <span class="sw__stars">
         <i class="star s1"></i>
         <i class="star s2"></i>
@@ -29,7 +27,6 @@ const isLight = computed(() => theme.value === 'light')
         <i class="star s5"></i>
       </span>
 
-      <!-- isi 3D: awan (light) -->
       <span class="sw__clouds">
         <i class="cloud c1"></i>
         <i class="cloud c2"></i>
@@ -38,7 +35,6 @@ const isLight = computed(() => theme.value === 'light')
       <span class="sw__gloss"></span>
     </span>
 
-    <!-- Bola 3D: bulan <-> matahari -->
     <span class="sw__knob">
       <span class="sw__orb sw__orb--moon">
         <i class="crater cr1"></i>
@@ -52,13 +48,11 @@ const isLight = computed(() => theme.value === 'light')
 
 <style scoped>
 .sw {
-  /* ===== ukuran ===== */
   --w: 76px;
   --h: 38px;
   --pad: 4px;
   --knob: calc(var(--h) - var(--pad) * 2);
 
-  /* ===== warna DARK ===== */
   --track-a: #0f0d0b;
   --track-b: #2e2822;
   --track-edge: rgba(230, 233, 238, 0.35);
@@ -77,7 +71,6 @@ const isLight = computed(() => theme.value === 'light')
   outline: none;
   -webkit-tap-highlight-color: transparent;
   perspective: 300px;
-  /* tombol "menonjol" dari navbar */
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
   transition: transform 0.15s ease;
 }
@@ -94,7 +87,6 @@ const isLight = computed(() => theme.value === 'light')
   box-shadow: 0 0 0 3px var(--color-primary-soft, rgba(31, 127, 224, 0.4));
 }
 
-/* ===== warna LIGHT ===== */
 .sw--light {
   --track-a: #7fc4ff;
   --track-b: #d9efff;
@@ -104,7 +96,6 @@ const isLight = computed(() => theme.value === 'light')
   filter: drop-shadow(0 4px 6px rgba(30, 60, 110, 0.3));
 }
 
-/* ================= TRACK ================= */
 .sw__track {
   position: absolute;
   inset: 0;
@@ -124,7 +115,6 @@ const isLight = computed(() => theme.value === 'light')
   transition: background 0.5s ease, box-shadow 0.5s ease;
 }
 
-/* kilau kaca di atas track */
 .sw__gloss {
   position: absolute;
   top: 2px;
@@ -136,7 +126,6 @@ const isLight = computed(() => theme.value === 'light')
   pointer-events: none;
 }
 
-/* ================= BINTANG (dark) ================= */
 .sw__stars {
   position: absolute;
   inset: 0;
@@ -169,7 +158,6 @@ const isLight = computed(() => theme.value === 'light')
   50% { opacity: 0.25; transform: scale(0.6); }
 }
 
-/* ================= AWAN (light) ================= */
 .sw__clouds {
   position: absolute;
   inset: 0;
@@ -211,7 +199,6 @@ const isLight = computed(() => theme.value === 'light')
   50% { transform: translateX(4px); }
 }
 
-/* ================= BOLA 3D ================= */
 .sw__knob {
   position: absolute;
   top: var(--pad);
@@ -233,7 +220,6 @@ const isLight = computed(() => theme.value === 'light')
   transition: opacity 0.35s ease, transform 0.55s ease;
 }
 
-/* --- BULAN 3D --- */
 .sw__orb--moon {
   background:
     radial-gradient(circle at 32% 28%, #ffffff 0%, #e4e8f5 28%, #aab2cf 62%, #6d7595 100%);
@@ -255,7 +241,6 @@ const isLight = computed(() => theme.value === 'light')
 .cr2 { width: 5px; height: 5px; right: 6px; top: 13px; }
 .cr3 { width: 6px; height: 6px; left: 12px; bottom: 5px; }
 
-/* --- MATAHARI 3D --- */
 .sw__orb--sun {
   background:
     radial-gradient(circle at 32% 28%, #fff9d6 0%, #ffd766 30%, #ffa41c 65%, #e26a00 100%);
@@ -285,7 +270,6 @@ const isLight = computed(() => theme.value === 'light')
   50% { filter: brightness(1.12); }
 }
 
-/* efek pipih saat ditekan (tombol terasa fisik) */
 .sw:active .sw__knob {
   scale: 1.06 0.94;
 }

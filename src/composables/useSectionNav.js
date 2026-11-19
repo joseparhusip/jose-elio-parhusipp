@@ -1,13 +1,6 @@
 import { useRoute, useRouter } from 'vue-router'
 import { pages } from '@/router/pages'
 
-/* ---------------------------------------------------------
-   Navigasi menu (navbar & footer).
-   Link-nya alamat asli (/tentang, /proyek, ...) supaya Google
-   mengenali tiap halaman. Tapi di beranda, klik menu tetap
-   meluncur ke bagiannya seperti biasa, tanpa pindah halaman.
---------------------------------------------------------- */
-// label: { id, en, ja }, tampilkan dengan t(link.label) dari useLang
 export const navLinks = pages.map(({ path, sectionId, label, en, ja }) => ({
   path,
   sectionId,
@@ -19,7 +12,6 @@ export function useSectionNav() {
   const router = useRouter()
 
   function onNavClick(event, link) {
-    // Ctrl/Cmd/Shift + klik atau klik tengah: biarkan browser buka tab baru
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
     event.preventDefault()
 

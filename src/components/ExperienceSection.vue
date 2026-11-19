@@ -168,7 +168,6 @@ const experiences = [
     },
     short: 'HIMABIG',
     logo: himabigLogo,
-    // Logo HIMABIG aslinya di atas latar navy (tulisannya putih)
     logoBg: '#152348',
     desc: {
       id: [
@@ -194,10 +193,6 @@ const experiences = [
   },
 ]
 
-/* ---------------------------------------------------------
-   Durasi otomatis dari teks periode, mis. "Juli 2024 — September 2024"
-   menjadi "3 bln". "Sekarang" dihitung sampai bulan berjalan.
---------------------------------------------------------- */
 const MONTHS = [
   'januari', 'februari', 'maret', 'april', 'mei', 'juni',
   'juli', 'agustus', 'september', 'oktober', 'november', 'desember',
@@ -224,7 +219,6 @@ function formatMonths(total) {
   if (!total) return ''
   const years = Math.floor(total / 12)
   const months = total % 12
-  // Jepang: "2年3か月" (tanpa spasi)
   if (lang.value === 'ja') return `${years ? `${years}年` : ''}${months ? `${months}か月` : ''}`
   const en = lang.value === 'en'
   const yearText = en ? `${years} ${years === 1 ? 'yr' : 'yrs'}` : `${years} thn`
@@ -236,7 +230,6 @@ function duration(period) {
   return formatMonths(monthsOf(period))
 }
 
-// Tahun mulai–selesai singkat untuk tab, mis. "2024" atau "2023–2024"
 function yearRange(period) {
   const [startText, endText = ''] = period.id.split('—')
   const startYear = startText.trim().split(/\s+/).pop()
@@ -244,7 +237,6 @@ function yearRange(period) {
   return startYear === endYear ? startYear : `${startYear}–${endYear}`
 }
 
-// "Solo Project — JEC Eye ..." dipecah jadi badge tipe + nama tempat
 function splitCompany(company) {
   const [first, ...rest] = company.split(' — ')
   return rest.length ? { type: first, name: rest.join(' — ') } : { type: '', name: first }
@@ -253,9 +245,6 @@ function splitCompany(company) {
 const totalMonths = experiences.reduce((sum, e) => sum + monthsOf(e.period), 0)
 const firstYear = Math.min(...experiences.map((e) => Number(e.period.id.split('—')[0].trim().split(/\s+/).pop())))
 
-/* ---------------------------------------------------------
-   Tab: pilih satu peran, detailnya tampil di panel kanan
---------------------------------------------------------- */
 const activeIndex = ref(0)
 const active = computed(() => experiences[activeIndex.value])
 const activeCompany = computed(() => splitCompany(t(active.value.company)))
@@ -272,7 +261,6 @@ function select(index, focus = false) {
   if (focus) nextTick(() => tabRefs.value[activeIndex.value]?.focus())
 }
 
-// Navigasi keyboard pola WAI-ARIA tabs: panah, Home, End
 function onTabKeydown(event) {
   const keys = {
     ArrowDown: 1,
@@ -292,7 +280,6 @@ function onTabKeydown(event) {
   }
 }
 
-// Tepi kanan baris tab memudar sebagai tanda masih bisa digeser, kecuali sudah di ujung
 const tabsAtEnd = ref(false)
 
 function onTabsScroll() {
@@ -300,7 +287,6 @@ function onTabsScroll() {
   tabsAtEnd.value = list.scrollLeft + list.clientWidth >= list.scrollWidth - 4
 }
 
-// Di HP tab berbentuk baris yang bisa digeser; tab aktif digeser ke tengah
 function scrollActiveTabIntoView() {
   const list = tablistEl.value
   const tab = tabRefs.value[activeIndex.value]
@@ -309,7 +295,6 @@ function scrollActiveTabIntoView() {
   list.scrollTo({ left, behavior: 'smooth' })
 }
 
-/* Poin panjang dilipat: tampil 4 dulu, sisanya lewat "Lihat semua" */
 const PREVIEW_COUNT = 4
 const expanded = ref(false)
 const visiblePoints = computed(() => {
@@ -380,7 +365,6 @@ const logoStyle = (item) =>
       </header>
 
       <div class="experience__layout">
-        <!-- Daftar peran (tab), disusun seperti buku besar -->
         <div v-reveal.left="120" class="experience__ledger">
           <div class="experience__ledger-head mono-meta" aria-hidden="true">
             <span>No.</span>
@@ -429,7 +413,6 @@ const logoStyle = (item) =>
           </div>
         </div>
 
-        <!-- Detail peran aktif: lembar dokumen -->
         <div
           id="exp-panel"
           v-reveal.right="240"
@@ -527,7 +510,6 @@ const logoStyle = (item) =>
             </article>
           </Transition>
 
-          <!-- Pindah ke peran sebelum/berikutnya tanpa balik ke daftar -->
           <nav class="experience__pager" :aria-label="t({ id: 'Navigasi pengalaman', en: 'Experience navigation', ja: '経歴の切り替え' })">
             <button
               type="button"
@@ -569,7 +551,6 @@ const logoStyle = (item) =>
   background: var(--color-bg);
 }
 
-/* ---- Ringkasan: baris stat bergaris ---- */
 .experience__summary {
   margin: 0.6rem 0 0;
   max-width: 15rem;
@@ -603,7 +584,6 @@ const logoStyle = (item) =>
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Layout buku besar + lembar ---- */
 .experience__layout {
   display: grid;
   grid-template-columns: minmax(0, 4.2fr) minmax(0, 7.8fr);
@@ -625,7 +605,6 @@ const logoStyle = (item) =>
   font-size: 0.66rem;
 }
 
-/* ---- Tab: baris buku besar ---- */
 .experience__tabs {
   display: grid;
 }
@@ -648,7 +627,6 @@ const logoStyle = (item) =>
   transition: color 0.25s ease, background-color 0.25s ease;
 }
 
-/* Penanda baris aktif: garis warna teks di kiri */
 .experience__tab::before {
   content: '';
   position: absolute;
@@ -725,8 +703,6 @@ const logoStyle = (item) =>
   white-space: nowrap;
 }
 
-/* ---- Logo ---- */
-/* Pelat putih: logo instansi dibuat untuk latar putih */
 .experience__logo {
   display: inline-flex;
   align-items: center;
@@ -755,7 +731,6 @@ const logoStyle = (item) =>
   pointer-events: none;
 }
 
-/* ---- Panel: lembar dokumen ---- */
 .experience__panel {
   min-width: 0;
 }
@@ -823,7 +798,6 @@ const logoStyle = (item) =>
   color: var(--color-text-soft);
 }
 
-/* Baris meta mono: periode · durasi · status */
 .experience__meta {
   display: flex;
   flex-wrap: wrap;
@@ -857,8 +831,6 @@ const logoStyle = (item) =>
   color: var(--color-accent);
 }
 
-/* Titik berdenyut untuk pekerjaan yang masih berjalan. Denyutnya lingkaran
-   terpisah yang membesar & memudar (transform + opacity: ringan untuk GPU). */
 .experience__now {
   position: relative;
   width: 6px;
@@ -884,7 +856,6 @@ const logoStyle = (item) =>
   }
 }
 
-/* Poin bernomor, dipisah garis tipis */
 .experience__points {
   list-style: none;
   counter-reset: exp-point;
@@ -984,7 +955,6 @@ const logoStyle = (item) =>
   transform: rotate(180deg);
 }
 
-/* Navigasi sebelum/berikutnya */
 .experience__pager {
   display: flex;
   align-items: center;
@@ -1012,7 +982,6 @@ const logoStyle = (item) =>
   color: var(--color-text-soft);
 }
 
-/* Transisi ganti panel */
 .panel-enter-active,
 .panel-leave-active {
   transition: opacity 0.25s ease, transform 0.35s var(--ease-out);
@@ -1039,7 +1008,6 @@ const logoStyle = (item) =>
   }
 }
 
-/* ---- Tablet & HP: buku besar jadi baris horizontal yang bisa digeser ---- */
 @media (max-width: 760px) {
   .experience__summary {
     max-width: none;
@@ -1142,7 +1110,6 @@ const logoStyle = (item) =>
 }
 
 @media (max-width: 480px) {
-  /* Status turun ke baris sendiri, tanpa titik pemisah di awal baris */
   .experience__current {
     flex-basis: 100%;
     margin-top: 0.25rem;

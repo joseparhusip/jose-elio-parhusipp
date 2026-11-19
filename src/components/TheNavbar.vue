@@ -2,6 +2,7 @@
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import ThemeSwitch from '@/components/ThemeSwitch.vue'
 import LangSwitch from '@/components/LangSwitch.vue'
+import ChristmasToggle from '@/components/ChristmasToggle.vue'
 import { lang, t } from '@/composables/useLang'
 import { useTheme } from '@/composables/useTheme'
 import { navLinks, useSectionNav } from '@/composables/useSectionNav'
@@ -28,12 +29,6 @@ function closeMenu() {
   isMenuOpen.value = false
 }
 
-/* ---------------------------------------------------------
-   Menu aktif.
-   - Di beranda (scroll-spy): bagian aktif = bagian terakhir yang
-     bagian atasnya sudah melewati 40% tinggi layar.
-   - Di halaman lain (/tentang, dst.): ikut alamat halaman.
---------------------------------------------------------- */
 let frame = 0
 
 function updateActive() {
@@ -51,14 +46,12 @@ function updateActive() {
     const el = document.getElementById(link.sectionId)
     if (el && el.getBoundingClientRect().top <= line) current = link.path
   }
-  // Sudah mentok bawah: tandai menu terakhir
   if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
     if (document.getElementById(contactLink.sectionId)) current = contactLink.path
   }
   activeHref.value = current
 }
 
-// Pindah halaman: tunggu isi halaman baru tampil, lalu hitung ulang
 watch(
   () => route.path,
   () => nextTick(updateActive),
@@ -68,10 +61,6 @@ function onScroll() {
   if (!frame) frame = requestAnimationFrame(updateActive)
 }
 
-/* ---------------------------------------------------------
-   Pill penanda yang meluncur di bawah menu aktif (desktop).
-   Saat kursor di atas menu lain, pill ikut pindah ke sana.
---------------------------------------------------------- */
 const linkEls = ref({})
 const hoverHref = ref(null)
 const pill = ref({ x: 0, w: 0, ready: false })
@@ -82,7 +71,6 @@ function setLinkRef(el, href) {
 
 function updatePill() {
   const el = linkEls.value[hoverHref.value || activeHref.value]
-  // Halaman di luar menu (mis. 404): sembunyikan pill, jangan tertinggal di "Beranda"
   if (!el) {
     pill.value = { ...pill.value, ready: false }
     return
@@ -91,20 +79,13 @@ function updatePill() {
   pill.value = { x: el.offsetLeft, w: el.offsetWidth, ready: true }
 }
 
-// Ganti bahasa mengubah lebar menu, jadi pill dihitung ulang
 watch([activeHref, hoverHref, lang], () => nextTick(updatePill))
 
-/* ---------------------------------------------------------
-   Menu HP: layar penuh, scroll halaman dikunci selama terbuka,
-   bisa ditutup dengan tombol Esc.
---------------------------------------------------------- */
 const headerEl = ref(null)
 
 watch(isMenuOpen, (open) => {
   document.documentElement.style.overflow = open ? 'hidden' : ''
-  // Tombol melayang (chat, ke atas) disembunyikan selama menu terbuka, lihat main.css
   document.documentElement.classList.toggle('nav-menu-open', open)
-  // Panel menu dimulai tepat di bawah navbar
   if (open && headerEl.value) {
     headerEl.value.style.setProperty('--nav-h', `${headerEl.value.offsetHeight}px`)
   }
@@ -114,13 +95,6 @@ function onKeydown(event) {
   if (event.key === 'Escape' && isMenuOpen.value) closeMenu()
 }
 
-/* ---------------------------------------------------------
-   Deteksi HP asli. Mode "Situs desktop" di Chrome/Safari HP membuat
-   halaman seolah selebar ±980px, jadi media query lebar layar mengira
-   ini laptop dan menampilkan menu desktop. Karena itu dicek juga
-   perangkat fisiknya: layar sentuh (pointer kasar) dengan sisi pendek
-   layar < 600px = HP (tablet mulai ±744px, jadi tetap pakai menu).
---------------------------------------------------------- */
 const isPhone = ref(false)
 
 function detectPhone() {
@@ -131,8 +105,7 @@ function detectPhone() {
 
 function onResize() {
   detectPhone()
-  // Menu ditutup kalau layar jadi lebar (mis. diputar) dan bukan HP
-  if (!isPhone.value && window.innerWidth > 640 && isMenuOpen.value) closeMenu()
+  if (!isPhone.value && window.innerWidth > 820 && isMenuOpen.value) closeMenu()
   onScroll()
   updatePill()
 }
@@ -143,7 +116,6 @@ onMounted(() => {
   window.addEventListener('resize', onResize, { passive: true })
   window.addEventListener('keydown', onKeydown)
   updateActive()
-  // Font web bisa selesai dimuat belakangan dan mengubah lebar menu
   document.fonts?.ready.then(updatePill)
   nextTick(updatePill)
 })
@@ -180,7 +152,6 @@ onUnmounted(() => {
         />
       </a>
 
-      <!-- Desktop: menu di dalam kapsul dengan pill penanda yang meluncur -->
       <ul class="navbar__links" @mouseleave="hoverHref = null">
         <span
           class="navbar__pill"
@@ -206,6 +177,7 @@ onUnmounted(() => {
       </ul>
 
       <div class="navbar__actions">
+        <ChristmasToggle />
         <LangSwitch />
         <ThemeSwitch />
         <a :href="contactLink.path" class="navbar__cta navbar__cta--desktop" @click="onLinkClick($event, contactLink)">
@@ -235,7 +207,6 @@ onUnmounted(() => {
       </div>
     </nav>
 
-    <!-- HP & tablet: menu layar penuh -->
     <Transition name="sheet">
       <div v-if="isMenuOpen" id="navbar-sheet" class="navbar__sheet">
         <span class="navbar__sheet-label">Menu</span>
@@ -280,11 +251,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* =========================================================
-   Navbar "Field Notes": bar datar, garis tipis di bawah saat
-   discroll, menu teks biasa dengan garis bawah warna teks yang
-   meluncur ke menu aktif / yang disorot.
-   ========================================================= */
 .navbar {
   position: sticky;
   top: 0;
@@ -322,7 +288,6 @@ onUnmounted(() => {
   padding-bottom: 0.6rem;
 }
 
-/* ---- Logo ---- */
 .navbar__logo {
   justify-self: start;
   display: inline-flex;
@@ -341,7 +306,6 @@ onUnmounted(() => {
   -webkit-touch-callout: none;
 }
 
-/* ---- Menu desktop: teks biasa + garis bawah ---- */
 .navbar__links {
   position: relative;
   display: flex;
@@ -352,7 +316,6 @@ onUnmounted(() => {
   padding: 0;
 }
 
-/* Penanda menu aktif: garis tipis warna teks di bawah teks */
 .navbar__pill {
   position: absolute;
   bottom: 0.15rem;
@@ -397,7 +360,6 @@ onUnmounted(() => {
   outline-offset: 2px;
 }
 
-/* ---- Aksi kanan ---- */
 .navbar__actions {
   justify-self: end;
   display: flex;
@@ -419,7 +381,6 @@ onUnmounted(() => {
   border-radius: var(--radius-sm);
   text-decoration: none;
   white-space: nowrap;
-  /* Tombol 3D: sisi tebal di bawah (token di main.css) */
   --depth: var(--btn-depth);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
@@ -454,7 +415,6 @@ onUnmounted(() => {
   transform: rotate(45deg);
 }
 
-/* ---- Tombol menu HP: dua garis yang jadi silang ---- */
 .navbar__toggle {
   display: none;
   flex-direction: column;
@@ -499,9 +459,6 @@ onUnmounted(() => {
   transform: translateY(-4px) rotate(-45deg);
 }
 
-/* ---- Menu layar penuh (HP & tablet) ---- */
-/* Panel menutup seluruh layar, di belakang isi navbar (z-index -1 di dalam
-   header), jadi logo & tombol silang tetap terlihat di atasnya */
 .navbar__sheet {
   position: fixed;
   inset: 0;
@@ -582,7 +539,6 @@ onUnmounted(() => {
   font-size: 1rem;
 }
 
-/* Animasi buka/tutup menu: panel turun, item muncul bergantian */
 .sheet-enter-active,
 .sheet-leave-active {
   transition:
@@ -614,15 +570,12 @@ onUnmounted(() => {
   }
 }
 
-/* ---- Breakpoint ---- */
 @media (max-width: 1080px) {
   .navbar__link {
     padding: 0.5rem 0.7rem;
   }
 }
 
-/* Tablet (641–900px): deretan menu tetap tampil, dibuat lebih rapat.
-   Tombol "Hubungi Saya" disembunyikan karena sudah ada menu "Kontak". */
 @media (min-width: 641px) and (max-width: 900px) {
   .navbar__link {
     padding: 0.45rem 0.5rem;
@@ -634,7 +587,6 @@ onUnmounted(() => {
   }
 }
 
-/* HP dalam mode "Situs desktop": tetap hamburger (lihat detectPhone). */
 .navbar--phone .navbar__inner {
   display: flex;
   justify-content: space-between;
@@ -655,8 +607,7 @@ onUnmounted(() => {
   -webkit-backdrop-filter: none;
 }
 
-/* HP (≤ 640px, Android/iOS): menu hamburger */
-@media (max-width: 640px) {
+@media (max-width: 820px) {
   .navbar__inner {
     display: flex;
     justify-content: space-between;
@@ -671,7 +622,6 @@ onUnmounted(() => {
     display: flex;
   }
 
-  /* Menu terbuka: navbar jadi solid supaya menyatu dengan panel */
   .navbar--menu-open {
     background: var(--color-bg);
     backdrop-filter: none;

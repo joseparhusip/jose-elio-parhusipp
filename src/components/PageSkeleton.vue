@@ -2,33 +2,16 @@
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import router from '@/router'
 
-/* ---------------------------------------------------------
-   Skeleton saat reload biasa (kunjungan pertama tetap memakai intro zoom).
-
-   Ukurannya PERSIS sama dengan halaman asli karena tidak digambar manual:
-   halaman asli sudah dirender di balik layar (tidak terlihat, tapi tetap
-   punya tata letak), lalu setiap bagian yang terlihat di layar diukur:
-   - teks: per baris (lebar & tinggi baris sebenarnya),
-   - tombol, gambar, peta, kartu foto: kotak penuh dengan sudut yang sama,
-   - kartu/panel bergaris: bingkai tipis, dan garis pemisah tetap digambar,
-   lalu digambar ulang sebagai "tulang" berkilau. Saat konten siap,
-   skeleton memudar dan halaman asli muncul tepat di tempat yang sama.
-   Diukur ulang saat layar di-resize atau posisi scroll dipulihkan browser.
---------------------------------------------------------- */
 const emit = defineEmits(['reveal', 'done'])
 
-const MIN_SHOW_MS = 750 // skeleton terlihat minimal selama ini (tidak sekadar berkedip)
-const MAX_WAIT_MS = 2600 // paling lama menunggu gambar di layar pertama
+const MIN_SHOW_MS = 750
+const MAX_WAIT_MS = 2600
 const FADE_MS = 380
 const MAX_BONES = 700
 
-// Elemen yang digambar sebagai satu kotak penuh (isinya tidak diukur lagi)
 const BLOCK_SEL = 'img, video, svg, canvas:not(.lanyard__canvas), .contact__map, .skyline, .lanyard__hit, input, textarea, select'
-// Tombol & kontrol: kotak penuh dengan sudut yang sama, teks di dalamnya tidak digambar terpisah
-// (.lang = pilihan bahasa ID/EN/JA: satu kapsul utuh)
 const CONTROL_SEL = 'button, .btn, .btn-close, [role="button"], [role="tab"], .lang'
-// Tidak pernah digambar (hiasan / lapisan transparan)
-const SKIP_SEL = '.lanyard__canvas, .scroll-progress, .custom-cursor, [data-skeleton-skip], .gh__tooltip, .skyline__hint'
+const SKIP_SEL = '.lanyard__canvas, .ornaments, .snow, .scroll-progress, .custom-cursor, [data-skeleton-skip], .gh__tooltip, .skyline__hint'
 
 const bones = ref([])
 const shown = ref(false)
@@ -64,13 +47,10 @@ function measure() {
     if (el.matches(SKIP_SEL)) return
     const cs = getComputedStyle(el)
     if (cs.display === 'none') return
-    // Huruf yang belum "diketik" (v-type) sengaja disembunyikan tapi tetap memakan tempat
     if (cs.visibility === 'hidden' && !el.classList.contains('type-rest')) return
     if (!isRoot && cs.opacity === '0') return
     const rect = el.getBoundingClientRect()
-    // Teks khusus pembaca layar (disembunyikan secara visual, ukuran 1px): lewati
     if (!isRoot && rect.width <= 1 && rect.height <= 1 && cs.overflow !== 'visible') return
-    // Di luar layar: lewati beserta isinya (kecuali elemen fixed seperti navbar)
     const outside = rect.bottom < 0 || rect.top > vh || rect.right < 0 || rect.left > vw
     if (outside && cs.position !== 'fixed') return
 
@@ -83,7 +63,6 @@ function measure() {
       return
     }
 
-    // Teks yang baru diketik setelah loading (mis. peran di hero): pakai teks contohnya
     const ghost = el.dataset.skeletonGhost
     if (ghost && inView(rect)) {
       const ctx = (measure.canvas ??= document.createElement('canvas')).getContext('2d')
@@ -101,10 +80,8 @@ function measure() {
       )
       const hasBg = !isTransparent(cs.backgroundColor) && cs.backgroundColor !== pageBg
       if ((borders.every(Boolean) || hasBg) && rect.width > 40 && rect.height > 24) {
-        // Selebar layar (latar section): cukup warnanya, tanpa bingkai di tepi layar
         add(rect.width >= vw - 2 ? 'band' : 'panel', rect, radiusOf(cs, rect))
       } else {
-        // Garis pemisah (border satu sisi) tetap digambar supaya struktur halaman terbaca
         if (borders[0]) add('line', { left: rect.left, top: rect.top, width: rect.width, height: 1 })
         if (borders[2]) add('line', { left: rect.left, top: rect.bottom - 1, width: rect.width, height: 1 })
         if (borders[3]) add('line', { left: rect.left, top: rect.top, width: 1, height: rect.height })
@@ -118,7 +95,6 @@ function measure() {
         range.selectNodeContents(child)
         for (const r of range.getClientRects()) {
           if (!inView(r) || r.width < 2) continue
-          // Batang teks setinggi ±62% baris, di tengah baris (seperti huruf kecil + kapital)
           const h = Math.max(4, r.height * 0.62)
           add('text', { left: r.left, top: r.top + (r.height - h) / 2, width: r.width, height: h }, Math.min(6, h / 2))
         }
@@ -142,7 +118,6 @@ function scheduleMeasure() {
   })
 }
 
-// Tunggu gambar yang terlihat di layar pertama selesai dimuat
 function viewportImagesReady() {
   const vh = window.innerHeight
   const pending = [...document.querySelectorAll('.app-stage img')].filter((img) => {
@@ -164,7 +139,6 @@ onMounted(async () => {
   const started = performance.now()
   root.classList.add('skeleton-hold')
 
-  // Halaman asli harus sudah dirender & font sudah dipakai, supaya ukurannya final
   await router.isReady()
   await nextTick()
   await Promise.race([document.fonts?.ready ?? Promise.resolve(), wait(1200)])
@@ -180,7 +154,6 @@ onMounted(async () => {
   await Promise.all([wait(MIN_SHOW_MS), Promise.race([viewportImagesReady(), wait(left)])])
   if (!alive) return
 
-  // Halaman asli muncul di bawah, skeleton memudar di atasnya
   fading.value = true
   root.classList.remove('skeleton-hold')
   emit('reveal')
@@ -215,8 +188,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
-/* Halaman asli dirender tapi tidak terlihat selama skeleton tampil
-   (tata letaknya tetap ada, jadi bisa diukur). */
 html.skeleton-hold .app-stage,
 html.skeleton-hold .chat-widget,
 html.skeleton-hold .top-btn {
@@ -253,9 +224,6 @@ html.skeleton-hold .top-btn {
   opacity: 1;
 }
 
-/* Kilau: satu sapuan cahaya untuk SEMUA tulang sekaligus (latar dipaku ke
-   layar), jadi terlihat seperti satu cahaya yang melintas, bukan ratusan
-   kilau terpisah. */
 .skeleton__bone--text,
 .skeleton__bone--control,
 .skeleton__bone--block {
@@ -274,13 +242,11 @@ html.skeleton-hold .top-btn {
   animation: skeleton-shine 1.6s linear infinite;
 }
 
-/* Tombol sedikit lebih tegas dari teks, seperti tombol 3D aslinya */
 .skeleton__bone--control {
   --sk-base: color-mix(in srgb, var(--color-text) 11%, var(--color-bg));
   box-shadow: 0 3px 0 color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
 }
 
-/* Kartu / panel: bingkai tipis tanpa kilau, isinya digambar terpisah */
 .skeleton__bone--panel {
   box-sizing: border-box;
   border: 1px solid color-mix(in srgb, var(--color-text) 9%, transparent);
@@ -304,9 +270,6 @@ html.skeleton-hold .top-btn {
   }
 }
 
-/* Kilau ini penanda "sedang memuat" (bukan hiasan), jadi tetap jalan
-   walau efek animasi dimatikan, hanya lebih pelan. Aturan global di
-   main.css mematikan semua animasi, jadi dikecualikan dengan !important. */
 @media (prefers-reduced-motion: reduce) {
   .skeleton__bone--text,
   .skeleton__bone--control,

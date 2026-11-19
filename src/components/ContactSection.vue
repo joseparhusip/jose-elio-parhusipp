@@ -8,27 +8,15 @@ import { lang, t } from '@/composables/useLang'
 
 const chatStore = useChatWidgetStore()
 
-// Klik "Email" ATAU kartu ajakan chat sama-sama membuka widget chat
-// mengambang di pojok kanan bawah, alih-alih membuka aplikasi email.
 function openChat() {
   chatStore.open()
 }
 
-// Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
 function preventImageAction(event) {
   event.preventDefault()
   return false
 }
 
-/* ---------------------------------------------------------
-   Animasi geser besar: kartu info + peta masuk dari KIRI, kartu
-   form masuk dari KANAN. Yang diamati IntersectionObserver adalah
-   WADAH tiap kartu (diam di tempat), bukan kartunya. Kalau kartu
-   yang meluncur yang diamati, posisinya yang di luar layar bikin
-   observer mengira "belum kelihatan" dan animasinya tidak mulai.
-   Tiap kartu punya pemicu sendiri, jadi di HP (kartu ditumpuk
-   atas-bawah) form baru meluncur saat kamu scroll sampai ke sana.
---------------------------------------------------------- */
 const infoWrap = ref(null)
 const formWrap = ref(null)
 const infoIn = ref(false)
@@ -47,8 +35,6 @@ onMounted(() => {
     },
     { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
   )
-  // Tunggu loader selesai, supaya kalau halaman di-reload tepat di bagian
-  // kontak, animasinya tidak habis di balik tirai loader
   const startObserving = () => {
     slideObserver.observe(infoWrap.value)
     slideObserver.observe(formWrap.value)
@@ -67,8 +53,6 @@ onBeforeUnmount(() => {
   slideObserver?.disconnect()
 })
 
-/* ---- Jam lokal Bekasi (WIB), berjalan langsung ----
-   Memberi gambaran kapan pesan kemungkinan dibaca, tanpa teks panjang. */
 const now = ref(new Date())
 let clockTimer = 0
 
@@ -83,7 +67,6 @@ const clockParts = computed(() => {
   return { hour: get('hour'), minute: get('minute') }
 })
 
-// Bagian hari di Bekasi: pagi / siang / sore / malam
 const dayPart = computed(() => {
   const hour = Number(clockParts.value.hour)
   if (hour >= 4 && hour < 11) return { id: 'Pagi', en: 'Morning', ja: '朝' }
@@ -95,13 +78,11 @@ const dayPart = computed(() => {
 const clockIso = computed(() => now.value.toISOString())
 
 onMounted(() => {
-  // Diperbarui tiap 15 detik: cukup untuk jam menit, ringan untuk baterai
   clockTimer = setInterval(() => (now.value = new Date()), 15000)
 })
 
 onBeforeUnmount(() => clearInterval(clockTimer))
 
-// Info singkat di bawah jam
 const facts = [
   { label: { id: 'Basis', en: 'Based in', ja: '所在地' }, value: { id: 'Bekasi, Jawa Barat', en: 'Bekasi, West Java', ja: 'インドネシア・西ジャワ州ブカシ' } },
   { label: { id: 'Saat ini', en: 'Currently', ja: '現在' }, value: 'Back End Developer · SPKD' },
@@ -113,7 +94,6 @@ const mapLocations = [
   { name: 'Bekasi', lat: -6.2383, lng: 106.9756 },
 ]
 
-// Klik nama kota di bawah peta: peta terbang ke kota itu & buka popup-nya
 const mapMarkers = []
 
 function focusLocation(index) {
@@ -128,18 +108,12 @@ let mapInstance = null
 let mapObserver = null
 let unmounted = false
 
-/* Peta (Leaflet + gambar peta OpenStreetMap) baru dimuat saat bagian Kontak
-   hampir terlihat, supaya tidak memperberat halaman di awal. */
 async function initMap() {
   const [{ default: L }] = await Promise.all([import('leaflet'), import('leaflet/dist/leaflet.css')])
   if (unmounted || !mapContainer.value) return
 
-  // Batas wilayah Jawa Barat: peta tidak bisa digeser atau di-zoom out
-  // sampai keluar provinsi (apalagi keluar Indonesia).
   const WEST_JAVA_BOUNDS = L.latLngBounds([-8.05, 105.75], [-5.6, 108.95])
 
-  // Penanda peta: pin biru buatan sendiri (gaya di .contact__pin). Ujung
-  // bawah pin tepat di lokasi, kepalanya di atas, jadi nama kota tidak tertutup.
   const pinIcon = L.divIcon({
     className: 'contact__pin',
     html: '<span class="contact__pin-head"></span>',
@@ -226,14 +200,12 @@ onBeforeUnmount(() => {
       </header>
 
       <div class="contact__grid">
-        <!-- Kiri: ajakan chat (tautan sosial sudah ada di footer) -->
         <div ref="formWrap" class="contact__col" :class="{ 'is-in': formIn }">
           <div class="contact__cta">
             <span class="contact__status mono-meta">
               {{ t({ id: 'Terbuka untuk kerja & kolaborasi', en: 'Open to work & collaboration', ja: '求職中・協業のご相談受付中' }) }}
             </span>
 
-            <!-- Jam lokal Bekasi -->
             <div class="contact__clock">
               <p class="contact__clock-label mono-meta">
                 {{ t({ id: 'Waktu lokal · Bekasi', en: 'Local time · Bekasi', ja: '現地時間 · ブカシ' }) }}
@@ -273,7 +245,6 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- Kanan: peta lokasi -->
         <div ref="infoWrap" class="contact__col" :class="{ 'is-in': infoIn }">
           <figure class="contact__map-card">
             <figcaption class="contact__map-head mono-meta">
@@ -312,7 +283,6 @@ onBeforeUnmount(() => {
   isolation: isolate;
   padding: var(--section-y) 0;
   background: var(--color-bg);
-  /* Kolom masuk dari samping: potong overflow di batas section */
   overflow-x: hidden;
   overflow-x: clip;
 }
@@ -337,13 +307,11 @@ onBeforeUnmount(() => {
   flex: 1;
 }
 
-/* ---- Kolom ajakan chat ---- */
 .contact__cta {
   display: flex;
   flex-direction: column;
 }
 
-/* Label status: lencana solid, senada dengan "Terbuka untuk kerja" di beranda */
 .contact__status {
   align-self: flex-start;
   padding: 0.2rem 0.55rem;
@@ -354,7 +322,6 @@ onBeforeUnmount(() => {
   box-shadow: 0 2px 0 color-mix(in srgb, var(--color-text) 45%, var(--color-bg));
 }
 
-/* ---- Jam lokal ---- */
 .contact__clock {
   margin-top: 2rem;
 }
@@ -381,7 +348,6 @@ onBeforeUnmount(() => {
   color: var(--color-text);
 }
 
-/* Titik dua berkedip pelan, seperti jam digital */
 .contact__clock-colon {
   display: inline-block;
   margin: 0 0.02em;
@@ -406,7 +372,6 @@ onBeforeUnmount(() => {
   color: var(--color-text);
 }
 
-/* ---- Info singkat: baris bergaris seperti buku catatan ---- */
 .contact__facts {
   margin: 1.8rem 0 0;
   border-top: 1px solid var(--color-rule);
@@ -432,13 +397,11 @@ onBeforeUnmount(() => {
   color: var(--color-text);
 }
 
-/* Tombol chat di dasar kolom: sejajar dengan bawah kartu peta */
 .contact__cta-actions {
   margin-top: auto;
   padding-top: 1.8rem;
 }
 
-/* ---- Peta ---- */
 .contact__map-card {
   display: flex;
   flex-direction: column;
@@ -468,7 +431,6 @@ onBeforeUnmount(() => {
   width: 100%;
   min-height: 260px;
   z-index: 0;
-  /* Tema gelap: peta dibalik jadi gelap. Tema terang: hitam-putih biasa. */
   --map-tiles: grayscale(1) invert(1) brightness(0.82) contrast(0.92);
   background: var(--color-surface);
 }
@@ -481,7 +443,6 @@ onBeforeUnmount(() => {
   filter: var(--map-tiles);
 }
 
-/* Kontrol, popup, & atribusi Leaflet mengikuti palet situs */
 .contact__map :deep(.leaflet-bar) {
   border: 1px solid var(--color-rule);
   border-radius: var(--radius-sm);
@@ -533,7 +494,6 @@ onBeforeUnmount(() => {
   color: var(--color-text);
 }
 
-/* Pin: kepala bulat biru + tangkai tipis; ujung tangkai = lokasi */
 .contact__map :deep(.contact__pin) {
   background: none;
   border: 0;
@@ -596,11 +556,6 @@ onBeforeUnmount(() => {
   color: var(--color-text-soft);
 }
 
-/* ---------------------------------------------------------
-   Animasi masuk kolom Kontak: kiri dari kiri, peta dari kanan.
-   Jarak geser pendek supaya tenang. Pakai `translate` (bukan
-   transform) supaya tidak bentrok dengan efek hover.
---------------------------------------------------------- */
 .contact__col:not(.is-in) > * {
   opacity: 0;
 }
@@ -633,7 +588,6 @@ onBeforeUnmount(() => {
   }
 }
 
-/* ---- Tablet & HP ---- */
 @media (max-width: 900px) {
   .contact__grid {
     grid-template-columns: minmax(0, 1fr);

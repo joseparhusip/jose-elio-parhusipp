@@ -1,34 +1,7 @@
 import { watch } from 'vue'
 import { loaderDone } from '@/composables/useLoaderState'
 
-/* ---------------------------------------------------------
-   v-type: judul "diketik" huruf demi huruf saat pertama kali terlihat.
-
-   Cara pakai:
-     <h2 v-type="'tentang'">Saya membangun <span class="serif-accent">analitis</span></h2>
-     Nilainya (string) adalah kunci unik judul.
-
-   Perilaku:
-   - Mengetik SEKALI per muat halaman (hanya maju, tidak dihapus balik).
-     Kunci yang sudah diketik disimpan di level modul, jadi kalau komponen
-     dipasang ulang (pindah halaman lalu kembali) judul langsung tampil
-     utuh. Baru mengetik lagi setelah halaman di-reload.
-   - Struktur di dalam judul tetap utuh (span biru, garis bawah, angka
-     catatan kaki): yang diubah hanya isi teksnya.
-   - Tidak menggeser layout: huruf yang belum diketik tetap memakan
-     tempat tapi tidak terlihat (visibility: hidden), jadi tinggi judul
-     sudah benar sejak awal dan konten di bawahnya tidak naik-turun.
-   - Tanpa kursor "|": garis tegak yang menempel di huruf bertangkai
-     (i, l, t, f) terlihat seperti dua garis "||".
-   - Pembaca layar membaca kalimat lengkap lewat aria-label.
-   - Tetap jalan walau "kurangi animasi" aktif: yang berubah hanya teks,
-     tidak ada elemen yang bergerak (sama seperti teks peran di hero).
---------------------------------------------------------- */
-
-const CHAR_MS = 32 // jeda per huruf
-// Judul panjang (mis. manifesto di Tentang) diketik lebih cepat supaya
-// selesai paling lama ~1,1 detik: pengunjung yang scroll cepat tidak sempat
-// melihat kalimat terpotong.
+const CHAR_MS = 32
 const MAX_TOTAL_MS = 1100
 const START_DELAY = 120
 const typedKeys = new Set()
@@ -46,7 +19,6 @@ if (!ready) {
   })
 }
 
-// Kumpulkan semua node teks yang berisi huruf, berurutan
 function textNodesOf(el) {
   const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
     acceptNode: (n) => (n.data.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
@@ -124,7 +96,6 @@ export const vType = {
           typedKeys.add(key)
           run(el, state)
         },
-        // Mulai saat judul sudah cukup masuk layar (bukan baru mengintip)
         { threshold: 0.4, rootMargin: '0px 0px -10% 0px' },
       )
       el._typeObserver.observe(el)

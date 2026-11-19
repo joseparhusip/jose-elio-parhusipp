@@ -3,23 +3,11 @@ import { nextTick, ref, watch } from 'vue'
 import { privacyOpen, closePrivacy } from '@/composables/usePrivacy'
 import { lang, t, LOCALES } from '@/composables/useLang'
 
-/* ---------------------------------------------------------
-   Pop up kebijakan privasi, dibuka dari tautan di footer.
-   Isinya harus sesuai dengan yang benar-benar dilakukan situs:
-   kalau menambah analitik, cookie, atau layanan pihak ketiga baru,
-   perbarui ringkasan, tabel, & daftar di bawah, lalu ganti UPDATED.
-
-   Sengaja bukan <dialog> bawaan: elemen itu naik ke "top layer"
-   di atas kursor custom, sehingga kursor tidak terlihat.
---------------------------------------------------------- */
 const UPDATED = { iso: '2026-11-07', label: { id: '7 Nov 2026', en: 'Nov 7, 2026' } }
-// Versi Jepang dibentuk dari tanggal ISO (hasil: 2026年11月7日)
 UPDATED.label.ja = new Intl.DateTimeFormat(LOCALES.ja, { dateStyle: 'long' }).format(new Date(`${UPDATED.iso}T00:00:00`))
 const CONTACT_EMAIL = 'joseparhusip7@gmail.com'
-// Dipisah di "@" supaya kalau harus turun baris, patahnya di situ (bukan di tengah kata)
 const [MAIL_USER, MAIL_DOMAIN] = CONTACT_EMAIL.split('@')
 
-// Ringkasan sekilas di bagian atas
 const glance = [
   { value: '0', label: { id: 'Cookie', en: 'Cookies', ja: 'Cookie' } },
   { value: '0', label: { id: 'Iklan', en: 'Ads', ja: '広告' } },
@@ -27,7 +15,6 @@ const glance = [
   { value: '4', label: { id: 'Layanan pihak ketiga', en: 'Third-party services', ja: '外部サービス' } },
 ]
 
-// Daftar isi (urutannya sama dengan bagian di bawah)
 const toc = [
   { key: 'data', label: { id: 'Data tersimpan', en: 'Stored data', ja: '保存するデータ' } },
   { key: 'chat', label: { id: 'Chat & pesan', en: 'Chat & messages', ja: 'チャットとメッセージ' } },
@@ -37,10 +24,9 @@ const toc = [
   { key: 'changes', label: { id: 'Perubahan', en: 'Changes', ja: '改定' } },
 ]
 
-// Semua data yang pernah disimpan situs ini
 const ledger = [
   {
-    data: { id: 'Pilihan tema, bahasa, & penanda intro', en: 'Theme, language & intro marker', ja: 'テーマ・言語の設定、イントロ表示済みの記録' },
+    data: { id: 'Pilihan tema, bahasa, tema Natal, & penanda intro', en: 'Theme, language, holiday theme & intro marker', ja: 'テーマ・言語・クリスマス演出の設定、イントロ表示済みの記録' },
     where: { id: 'Browser kamu', en: 'Your browser', ja: 'お使いのブラウザー' },
     until: { id: 'Sampai kamu menghapusnya', en: 'Until you delete it', ja: '削除されるまで' },
     erase: { id: 'Hapus data situs di pengaturan browser', en: 'Clear site data in your browser settings', ja: 'ブラウザーの設定からサイトデータを消去' },
@@ -103,12 +89,9 @@ const closeBtn = ref(null)
 const scroller = ref(null)
 const progress = ref(0)
 const activeSection = ref(toc[0].key)
-// Bagian yang dipilih lewat daftar isi tetap ditandai walau dokumen mentok di
-// bawah; lepas lagi begitu pengunjung menggulir sendiri
 let pinnedSection = null
 let lastFocus = null
 
-// Cara pengunjung terakhir berinteraksi: 'keyboard' atau 'pointer'
 let lastInput = 'pointer'
 window.addEventListener('keydown', () => (lastInput = 'keyboard'), { capture: true, passive: true })
 window.addEventListener('pointerdown', () => (lastInput = 'pointer'), { capture: true, passive: true })
@@ -121,7 +104,6 @@ function onScroll() {
   const el = scroller.value
   const max = el.scrollHeight - el.clientHeight
   progress.value = max > 0 ? el.scrollTop / max : 1
-  // Bagian aktif di daftar isi: bagian terakhir yang sudah melewati sepertiga atas
   const line = el.scrollTop + el.clientHeight * 0.33
   let current = toc[0].key
   for (const section of sectionEls()) {
@@ -143,7 +125,6 @@ function goTo(key) {
   scroller.value.scrollTo({ top: target.offsetTop - 16, behavior: 'smooth' })
 }
 
-// Esc menutup; Tab berputar di dalam pop up saja
 function onKeydown(event) {
   if (event.key === 'Escape') {
     closePrivacy()
@@ -165,12 +146,9 @@ function onKeydown(event) {
 }
 
 watch(privacyOpen, async (open) => {
-  // Halaman di belakang tidak ikut ter-scroll; chat & tombol ke atas disembunyikan
   document.documentElement.classList.toggle('privacy-open', open)
   if (open) {
     lastFocus = document.activeElement
-    // Garis fokus hanya kalau dibuka dengan keyboard; dibuka dengan klik tetap
-    // memindah fokus ke tombol tutup, tapi tanpa garis (lihat main.css :focus-visible)
     const openedByKeyboard = lastInput === 'keyboard'
     progress.value = 0
     activeSection.value = toc[0].key
@@ -198,7 +176,6 @@ watch(privacyOpen, async (open) => {
         >
           <header class="privacy__bar">
             <div class="privacy__meta">
-              <!-- Di HP awalan "Dokumen ·" disembunyikan supaya tanggal muat di sebelah tombol tutup -->
               <span class="mono-meta privacy__label">
                 <span class="privacy__label-prefix">{{ t({ id: 'Dokumen · ', en: 'Document · ', ja: '文書 · ' }) }}</span>{{ t({ id: 'Privasi', en: 'Privacy', ja: 'プライバシー' }) }}
               </span>
@@ -217,7 +194,6 @@ watch(privacyOpen, async (open) => {
                 <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18" />
               </svg>
             </button>
-            <!-- Garis baca: seberapa jauh dokumen sudah di-scroll -->
             <span class="privacy__progress" :style="{ transform: `scaleX(${progress})` }" aria-hidden="true"></span>
           </header>
 
@@ -230,7 +206,6 @@ watch(privacyOpen, async (open) => {
             @keydown="unpin"
           >
             <div class="privacy__layout">
-              <!-- Daftar isi (desktop): menandai bagian yang sedang dibaca -->
               <nav class="privacy__toc" :aria-label="t({ id: 'Daftar isi', en: 'Contents', ja: '目次' })">
                 <span class="privacy__toc-label mono-meta">{{ t({ id: 'Isi', en: 'Contents', ja: '目次' }) }}</span>
                 <ol class="privacy__toc-list">
@@ -269,7 +244,6 @@ watch(privacyOpen, async (open) => {
                   </template>
                 </p>
 
-                <!-- Ringkasan sekilas -->
                 <dl class="glance">
                   <div v-for="item in glance" :key="item.label.en" class="glance__item">
                     <dt class="glance__label">{{ t(item.label) }}</dt>
@@ -457,13 +431,6 @@ watch(privacyOpen, async (open) => {
 </template>
 
 <style scoped>
-/* =========================================================
-   Pop up "lembar dokumen": satu lembar bergaris tipis seperti
-   halaman jurnal di beranda. Kepala & kaki tetap, isi di tengah
-   bisa di-scroll; di desktop ada daftar isi di kiri.
-   Di HP muncul dari bawah (bottom sheet).
-   z-index di bawah grain (9999) & kursor custom (10000).
-   ========================================================= */
 .privacy {
   position: fixed;
   inset: 0;
@@ -492,7 +459,6 @@ watch(privacyOpen, async (open) => {
   overflow: hidden;
 }
 
-/* ---- Kepala ---- */
 .privacy__bar {
   position: relative;
   display: flex;
@@ -502,7 +468,6 @@ watch(privacyOpen, async (open) => {
   border-bottom: 1px solid var(--color-rule);
 }
 
-/* Label di kiri, tanggal di kanan dekat tombol tutup */
 .privacy__meta {
   display: flex;
   flex: 1;
@@ -528,9 +493,8 @@ watch(privacyOpen, async (open) => {
   transition: transform 0.1s linear;
 }
 
-/* ---- Isi ---- */
 .privacy__scroll {
-  position: relative; /* acuan offsetTop untuk daftar isi */
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -550,7 +514,6 @@ watch(privacyOpen, async (open) => {
   min-width: 0;
 }
 
-/* ---- Daftar isi ---- */
 .privacy__toc {
   position: sticky;
   top: 0;
@@ -647,7 +610,6 @@ watch(privacyOpen, async (open) => {
   color: var(--color-primary);
 }
 
-/* ---- Ringkasan sekilas: empat angka dipisah garis ---- */
 .glance {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -691,7 +653,6 @@ watch(privacyOpen, async (open) => {
   color: var(--color-text-soft);
 }
 
-/* Blok bernomor: angka mono di kiri, isi di kanan */
 .privacy__block {
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr);
@@ -743,7 +704,6 @@ watch(privacyOpen, async (open) => {
   line-height: 1.6;
 }
 
-/* ---- Ringkasan data ---- */
 .ledger {
   list-style: none;
   margin: 0;
@@ -787,7 +747,6 @@ watch(privacyOpen, async (open) => {
   color: var(--color-text-soft);
 }
 
-/* ---- Pihak ketiga ---- */
 .services {
   margin: 0.9rem 0 0;
   border-top: 1px solid var(--color-rule);
@@ -843,7 +802,6 @@ watch(privacyOpen, async (open) => {
   opacity: 0.8;
 }
 
-/* ---- Kaki ---- */
 .privacy__foot {
   display: flex;
   align-items: center;
@@ -885,7 +843,6 @@ watch(privacyOpen, async (open) => {
   outline-offset: 3px;
 }
 
-/* ---- Buka & tutup: lembar naik sedikit, latar meredup ---- */
 .privacy-enter-active .privacy__backdrop {
   transition: opacity 0.3s ease;
 }
@@ -910,7 +867,6 @@ watch(privacyOpen, async (open) => {
   transform: translateY(18px) scale(0.985);
 }
 
-/* ---- Layar sedang: daftar isi disembunyikan ---- */
 @media (max-width: 860px) {
   .privacy__layout {
     grid-template-columns: minmax(0, 1fr);
@@ -921,7 +877,6 @@ watch(privacyOpen, async (open) => {
   }
 }
 
-/* ---- HP: lembar dari bawah, selebar layar ---- */
 @media (max-width: 640px) {
   .privacy {
     place-items: end stretch;
@@ -971,7 +926,6 @@ watch(privacyOpen, async (open) => {
     padding: 0 0 0.4rem;
   }
 
-  /* Fakta tiap data: label di kiri, nilai di kanan */
   .ledger__facts {
     grid-template-columns: 1fr;
     gap: 0.3rem;

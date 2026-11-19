@@ -5,7 +5,6 @@ import { vType } from '@/directives/type'
 import { lang, t } from '@/composables/useLang'
 import GithubContributions from './GithubContributions.vue'
 
-// Tech stack icons
 import pythonIcon from './icons/icons-about/Python-logo-notext.svg'
 import streamlitIcon from './icons/icons-about/Streamlit.svg'
 import excelIcon from './icons/icons-about/excel-logo.svg'
@@ -17,7 +16,6 @@ import reactIcon from './icons/icons-about/React-icon.svg'
 import tailwindIcon from './icons/icons-about/Tailwind_CSS_Logo.svg'
 import vueIcon from './icons/icons-about/Vue.js_Logo_2.svg'
 
-// Thumbnail proyek
 import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.webp'
 import mobileJecThumb from './img-proyek/img-jec/IMG-JEC-1.jpeg'
 import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.webp'
@@ -32,13 +30,8 @@ import medcredixPortalApi from './img-proyek/img-medcredix/img-medcredix-portal-
 import simrsSpriForm from './img-proyek/img-simrs/img-simrs-spri-form.webp'
 import simrsSpriPreview from './img-proyek/img-simrs/img-simrs-spri-preview.webp'
 
-// Link tombol "Lihat proyek lainnya" di kanan atas
 const moreProjectsHref = 'https://github.com/joseparhusip?tab=repositories'
 
-// Proyek internal (internal: true) tidak punya demo publik maupun repo,
-// jadi tombol "Lihat demo" & GitHub-nya diganti keterangan "Proyek internal".
-// shots (opsional): foto tambahan. Galeri tetap menampilkan thumb saja supaya
-// layout semua proyek sama; foto lainnya dibuka lewat lightbox (geser kiri/kanan).
 const projects = [
   {
     title: 'MedCredix',
@@ -261,9 +254,7 @@ const projects = [
         '再利用可能なコンポーネントを用いて、メンバー構成をツリー形式で可視化するチーム紹介モジュールを構築。',
       ],
     },
-    // Nama file gambarnya tertukar di folder: img-toko-kelontong.webp berisi screenshot Secura Kost
     thumb: tokoKelontongThumb,
-    // Disamakan dengan deskripsi (Vue.js + Tailwind CSS)
     techStack: [
       { name: 'Vue.js', icon: vueIcon },
       { name: 'Tailwind CSS', icon: tailwindIcon },
@@ -303,9 +294,7 @@ const projects = [
         'よくある質問、注文方法、プライバシーポリシー、利用規約、お問い合わせといった補足情報ページを作成。',
       ],
     },
-    // Nama file gambarnya tertukar di folder: img-secura-kost.webp berisi screenshot Toko Kelontong
     thumb: securaKostThumb,
-    // Disamakan dengan deskripsi (Vue.js + Tailwind CSS)
     techStack: [
       { name: 'Vue.js', icon: vueIcon },
       { name: 'Tailwind CSS', icon: tailwindIcon },
@@ -357,13 +346,9 @@ const projects = [
 
 const total = projects.length
 
-// ---- Galeri (coverflow) ----
-// Index proyek yang sedang di tengah
 const activeIndex = ref(0)
 const activeProject = computed(() => projects[activeIndex.value])
 
-// Jarak tiap slide dari slide tengah, melingkar (proyek terakhir ada di kiri proyek pertama).
-// Hasil: 0 = tengah, -1/1 = samping, -2/2 = paling luar, sisanya disembunyikan.
 function offsetOf(index) {
   let d = (index - activeIndex.value + total) % total
   if (d > total / 2) d -= total
@@ -382,13 +367,11 @@ function prev() {
   goTo(activeIndex.value - 1)
 }
 
-// Klik gambar: kalau slide samping → geser ke tengah, kalau slide tengah → buka lightbox
 function onSlideClick(index) {
   if (index === activeIndex.value) openLightbox(projects[index])
   else goTo(index)
 }
 
-// Geser dengan swipe (HP) atau drag mouse
 let pointerStartX = null
 let pointerMoved = false
 
@@ -407,7 +390,6 @@ function onPointerUp(event) {
   else prev()
 }
 
-// Klik yang terjadi tepat setelah swipe diabaikan supaya tidak ikut membuka lightbox
 function onSlideClickGuarded(index) {
   if (pointerMoved) {
     pointerMoved = false
@@ -416,20 +398,16 @@ function onSlideClickGuarded(index) {
   onSlideClick(index)
 }
 
-// ---- Detail pengerjaan (daftar poin di bawah judul) ----
 const detailOpen = ref(false)
 
 function toggleDetail() {
   detailOpen.value = !detailOpen.value
 }
 
-// Tutup detail setiap pindah proyek supaya tampilan tetap ringkas
 watch(activeIndex, () => {
   detailOpen.value = false
 })
 
-// ---- Lightbox: klik gambar tengah untuk melihat versi penuhnya ----
-// Proyek dengan beberapa foto bisa digeser di dalam lightbox.
 const lightboxProject = ref(null)
 const lightboxIndex = ref(0)
 
@@ -454,13 +432,11 @@ function stepLightbox(dir) {
   lightboxIndex.value = (lightboxIndex.value + dir + n) % n
 }
 
-// Proteksi gambar: cegah klik kanan (save as) & drag gambar keluar dari halaman
 function preventImageAction(event) {
   event.preventDefault()
   return false
 }
 
-// Domain demo ditampilkan di "address bar" mockup browser
 function hostLabel(project) {
   return project.internal ? t({ id: 'Proyek freelance', en: 'Freelance project', ja: 'フリーランス案件' }) : demoHost(project.demoHref)
 }
@@ -474,11 +450,9 @@ function demoHost(url) {
   }
 }
 
-// Keyboard: Esc menutup lightbox/detail, panah kiri/kanan menggeser galeri
 const galleryEl = ref(null)
 
-// Galeri mulai "tertumpuk" di tengah, lalu terbuka seperti kipas saat pertama terlihat
-const galleryState = ref('folded') // folded -> opening -> open
+const galleryState = ref('folded')
 let galleryOpenTimer = null
 
 function openGallery() {
@@ -499,7 +473,6 @@ function onKeydown(event) {
     else if (lightboxShots.value.length > 1 && event.key === 'ArrowLeft') stepLightbox(-1)
     return
   }
-  // Panah hanya aktif kalau fokus sedang ada di galeri, supaya tidak bentrok dengan scroll halaman
   if (!galleryEl.value || !galleryEl.value.contains(document.activeElement)) return
   if (event.key === 'ArrowRight') {
     event.preventDefault()
@@ -513,13 +486,6 @@ function onKeydown(event) {
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
-/* ---- Putar otomatis ----
-   Garis penanda proyek aktif terisi pelan; saat penuh, galeri pindah ke
-   proyek berikutnya. Berhenti sementara saat:
-   - galeri tidak terlihat di layar / tab browser tidak aktif,
-   - kursor di atas galeri, jari sedang menyentuh, atau fokus keyboard di dalamnya,
-   - lightbox atau "Detail pengerjaan" sedang dibuka (pengunjung sedang membaca).
-   Pindah proyek manual (klik/geser) mengulang hitungan dari nol. */
 const AUTOPLAY_MS = 7000
 const autoProgress = ref(0)
 const galleryInView = ref(false)
@@ -540,7 +506,7 @@ let autoObserver = null
 
 function autoTick(now) {
   autoFrame = requestAnimationFrame(autoTick)
-  const dt = Math.min(now - autoLast, 100) // tab baru aktif lagi: jangan melompat
+  const dt = Math.min(now - autoLast, 100)
   autoLast = now
   if (autoPaused.value || document.hidden) return
   autoProgress.value = Math.min(1, autoProgress.value + dt / AUTOPLAY_MS)
@@ -558,7 +524,6 @@ function stopAuto() {
   autoFrame = 0
 }
 
-// Setiap pindah proyek (otomatis maupun manual), garis mulai dari nol lagi
 watch(activeIndex, () => (autoProgress.value = 0))
 
 function onGalleryPointerEnter(event) {
@@ -569,7 +534,6 @@ function onGalleryPointerLeave(event) {
   if (event.pointerType === 'mouse') pointerInside.value = false
 }
 
-// Sentuhan: jeda selama jari menempel
 function onGalleryTouchStart() {
   pointerInside.value = true
 }
@@ -653,7 +617,6 @@ onUnmounted(() => {
         </div>
       </header>
 
-      <!-- Galeri coverflow -->
       <div
         ref="galleryEl"
         v-reveal.scale="{ delay: 120, onReveal: openGallery }"
@@ -702,7 +665,6 @@ onUnmounted(() => {
             @click="onSlideClickGuarded(index)"
             @contextmenu.prevent="preventImageAction"
           >
-            <!-- Mockup jendela browser -->
             <span class="gallery__chrome" aria-hidden="true">
               <span class="gallery__no">No. {{ String(index + 1).padStart(2, '0') }}</span>
               <span class="gallery__url">{{ hostLabel(project) }}</span>
@@ -734,7 +696,6 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <!-- Bar kontrol: nomor, penanda posisi, tombol geser -->
         <div class="gallery__controls">
           <span class="gallery__counter mono-meta">
             No. <strong>{{ String(activeIndex + 1).padStart(2, '0') }}</strong>
@@ -781,7 +742,6 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Info proyek aktif -->
         <Transition name="info" mode="out-in">
           <div :key="activeProject.title" class="gallery__info" :aria-live="autoPaused ? 'polite' : 'off'">
             <div class="gallery__meta">
@@ -796,8 +756,6 @@ onUnmounted(() => {
               <h3 class="gallery__title">{{ activeProject.title }}</h3>
               <p class="gallery__summary">{{ t(activeProject.desc)[0] }}</p>
 
-              <!-- Teknologi: teks mono dipisah titik. Logo wordmark (Flutter,
-                   Node.js, MySQL) tidak terbaca kalau dikecilkan jadi ikon. -->
               <ul class="gallery__stack" :aria-label="t({ id: 'Teknologi', en: 'Technologies', ja: '使用技術' })">
                 <li v-for="tech in activeProject.techStack" :key="tech.name" class="gallery__chip">
                   {{ tech.name }}
@@ -828,7 +786,6 @@ onUnmounted(() => {
                   </svg>
                 </button>
 
-                <!-- Proyek internal: tanpa repo & demo publik -->
                 <span v-if="activeProject.internal" class="gallery__private">
                   <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                     <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
@@ -885,7 +842,6 @@ onUnmounted(() => {
                 </a>
               </div>
 
-              <!-- Detail pengerjaan -->
               <div
                 id="project-detail"
                 class="gallery__detail"
@@ -907,11 +863,9 @@ onUnmounted(() => {
         </Transition>
       </div>
 
-      <!-- Grafik kontribusi GitHub -->
       <GithubContributions />
     </div>
 
-    <!-- Lightbox: menampilkan gambar proyek secara penuh -->
     <Transition name="lightbox">
       <div
         v-if="lightboxProject"
@@ -984,7 +938,6 @@ onUnmounted(() => {
           <small v-if="lightboxShot.caption">{{ t(lightboxShot.caption) }}</small>
         </p>
 
-        <!-- Deretan thumbnail untuk lompat ke foto tertentu -->
         <div v-if="lightboxShots.length > 1" class="project-lightbox__thumbs">
           <button
             v-for="(shot, i) in lightboxShots"
@@ -1012,7 +965,7 @@ onUnmounted(() => {
 .projects {
   padding: var(--section-y) 0;
   background: var(--color-surface);
-  overflow: hidden; /* slide paling luar tidak bikin scroll horizontal */
+  overflow: hidden;
 }
 
 .projects__head-main {
@@ -1031,10 +984,9 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-/* ---- Galeri ---- */
 .gallery {
   --slide-w: min(460px, 46%);
-  --slide-gap: 66%; /* jarak geser tiap slide, relatif terhadap lebar slide */
+  --slide-gap: 66%;
   position: relative;
 }
 
@@ -1042,7 +994,7 @@ onUnmounted(() => {
   position: relative;
   height: clamp(230px, 27vw, 330px);
   perspective: 1400px;
-  touch-action: pan-y; /* scroll vertikal tetap jalan, swipe horizontal untuk galeri */
+  touch-action: pan-y;
   user-select: none;
 }
 
@@ -1067,7 +1019,6 @@ onUnmounted(() => {
     border-color 0.3s ease;
 }
 
-/* Sebelum terlihat: semua slide menumpuk di tengah, lalu menyebar ke posisinya */
 .gallery--folded .gallery__slide {
   transform: translate(-50%, -50%) scale(calc(var(--scale) * 0.92));
 }
@@ -1076,13 +1027,11 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* Saat membuka: slide yang lebih jauh menyusul sedikit belakangan */
 .gallery--opening .gallery__slide {
   transition-duration: 0.95s, 0.7s, 0.3s;
   transition-delay: calc(var(--abs) * 90ms + 150ms);
 }
 
-/* Lapisan redup di slide samping supaya slide tengah menonjol */
 .gallery__slide::after {
   content: '';
   position: absolute;
@@ -1096,15 +1045,9 @@ onUnmounted(() => {
 .gallery__slide--active {
   cursor: zoom-in;
   border-color: transparent;
-  /* Pendaran lembut warna palet. Sengaja diam (tidak berganti warna):
-     animasi box-shadow dihitung ulang tiap frame dan memberatkan HP. */
   box-shadow: 0 0 34px -6px color-mix(in srgb, var(--rgb-1) var(--rgb-glow), transparent);
 }
 
-/* ---- Garis warna berputar di slide aktif ----
-   Hanya palet website (biru azure + hijau aksen), tanpa merah/ungu pelangi,
-   sama seperti kartu sertifikat. Slide memakai overflow: hidden, jadi
-   garisnya digambar di tepi DALAM slide dan pendarannya lewat box-shadow. */
 .gallery {
   --rgb-1: var(--color-primary);
   --rgb-2: var(--color-accent);
@@ -1175,7 +1118,6 @@ onUnmounted(() => {
   outline-offset: 3px;
 }
 
-/* Bingkai atas: nomor arsip + alamat demo */
 .gallery__chrome {
   display: flex;
   align-items: center;
@@ -1262,7 +1204,6 @@ onUnmounted(() => {
   transform: none;
 }
 
-/* ---- Bar kontrol: nomor | penanda posisi | tombol geser ---- */
 .gallery__controls {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
@@ -1316,7 +1257,6 @@ onUnmounted(() => {
   background: var(--color-text-soft);
 }
 
-/* Proyek aktif: garis lebih panjang, tebal, & biru supaya jelas posisinya */
 .gallery__dot--active {
   flex-grow: 2.4;
   max-width: 128px;
@@ -1328,7 +1268,6 @@ onUnmounted(() => {
   background: color-mix(in srgb, var(--color-primary) 35%, var(--color-rule));
 }
 
-/* Isian putar otomatis: memanjang dari kiri sampai penuh, lalu pindah proyek */
 .gallery__dot--active::after {
   content: '';
   position: absolute;
@@ -1344,7 +1283,6 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-/* Sedang dijeda (kursor di galeri, dsb.): isian sedikit meredup */
 .gallery__dots-nav.is-paused .gallery__dot--active::after {
   opacity: 0.7;
 }
@@ -1361,7 +1299,6 @@ onUnmounted(() => {
   --close-size: 38px;
 }
 
-/* ---- Info proyek aktif: nomor besar di kiri, isi di kanan ---- */
 .gallery__info {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
@@ -1437,7 +1374,6 @@ onUnmounted(() => {
   padding: 0;
 }
 
-/* Sama dengan tag di bagian Pengalaman */
 .gallery__chip {
   padding: 0.28rem 0.6rem;
   border: 1px solid var(--color-rule);
@@ -1479,7 +1415,6 @@ onUnmounted(() => {
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-rule);
   color: var(--color-text);
-  /* Tombol 3D (token di main.css) */
   --depth: var(--btn-depth);
   background: var(--btn-ghost-face);
   box-shadow:
@@ -1521,7 +1456,6 @@ onUnmounted(() => {
   transform: translate(2px, -2px);
 }
 
-/* Detail pengerjaan: buka-tutup dengan animasi tinggi (grid 0fr → 1fr) */
 .gallery__detail {
   display: grid;
   grid-template-rows: 0fr;
@@ -1603,7 +1537,6 @@ onUnmounted(() => {
   }
 }
 
-/* Transisi ganti info proyek */
 .info-enter-active,
 .info-leave-active {
   transition: opacity 0.25s ease, transform 0.3s var(--ease-out);
@@ -1619,11 +1552,10 @@ onUnmounted(() => {
   transform: translateY(-6px);
 }
 
-/* ---- Lightbox ---- */
 .project-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 200;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1672,7 +1604,6 @@ onUnmounted(() => {
   max-width: 100%;
 }
 
-/* Tampilan tombol dari .btn-close--dark (main.css); di sini hanya posisi */
 .project-lightbox__nav {
   position: absolute;
   top: 50%;
@@ -1724,7 +1655,6 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-/* Layar sempit: tombol panah masuk ke atas gambar */
 @media (max-width: 1320px) {
   .project-lightbox__nav--prev {
     left: 8px;
@@ -1779,7 +1709,6 @@ onUnmounted(() => {
     animation: none !important;
   }
 
-  /* Garis warna slide aktif tetap berputar (pelan & halus) */
   .gallery__slide--active,
   .gallery__slide--active::before {
     animation-duration: 6s !important;
@@ -1787,7 +1716,6 @@ onUnmounted(() => {
   }
 }
 
-/* ---- Tablet ---- */
 @media (max-width: 860px) {
   .projects__head-main {
     flex-direction: column;
@@ -1834,9 +1762,7 @@ onUnmounted(() => {
   }
 }
 
-/* ---- HP ---- */
 @media (max-width: 640px) {
-  /* Slide samping dibuat mengintip di pinggir layar supaya tetap bisa diklik */
   .gallery {
     --slide-w: 84%;
     --slide-gap: 92%;
@@ -1846,7 +1772,6 @@ onUnmounted(() => {
     height: clamp(220px, 62vw, 300px);
   }
 
-  /* Tombol: "Lihat demo" penuh di atas, detail + GitHub di bawahnya */
   .gallery__actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 46px;
@@ -1861,7 +1786,6 @@ onUnmounted(() => {
     order: -1;
   }
 
-  /* Proyek internal: tombol detail penuh, keterangan di bawahnya */
   .gallery__actions:has(.gallery__private) {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1872,7 +1796,6 @@ onUnmounted(() => {
     line-height: 1.5;
   }
 
-  /* Di HP cukup 3 slide yang kelihatan */
   .gallery__slide--far {
     opacity: 0;
     pointer-events: none;
@@ -1890,7 +1813,6 @@ onUnmounted(() => {
     padding-left: 2.1rem;
   }
 
-  /* Di layar sentuh ikon zoom selalu terlihat sebagai petunjuk */
   .gallery__slide--active .gallery__zoom {
     opacity: 1;
     transform: none;

@@ -7,6 +7,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
+  ConeGeometry,
   CylinderGeometry,
   DirectionalLight,
   DoubleSide,
@@ -21,6 +22,7 @@ import {
   RepeatWrapping,
   Scene,
   Shape,
+  SphereGeometry,
   ShapeGeometry,
   SRGBColorSpace,
   TorusGeometry,
@@ -28,30 +30,11 @@ import {
 } from 'three'
 import { useTheme } from '@/composables/useTheme'
 import { lang, t } from '@/composables/useLang'
+import { christmas } from '@/composables/useChristmas'
 import photo from './img-lanyard/foto-jose.jpg'
 
-/* ---------------------------------------------------------
-   Kartu ID 3D yang tergantung dari atas dan bisa ditarik.
-   - Tali memakai fisika Verlet buatan sendiri (tanpa Rapier/WebAssembly,
-     jadi CSP tidak perlu diubah). Simulasi memakai satuan px layar,
-     sumbu y ke bawah; kamera diatur supaya 1 unit dunia = 1 px.
-   - Canvas pointer-events: none supaya isi halaman tetap bisa diklik.
-     Yang menangkap tarikan adalah elemen .lanyard__hit yang mengikuti
-     posisi kartu, jadi di HP halaman tetap bisa di-scroll di luar kartu.
-   - Hanya berjalan saat terlihat. Kalau pengguna memilih kurangi animasi:
-     ayunan otomatis dimatikan, kartu hanya bergerak saat ditarik sendiri.
-     Kalau WebGL tidak ada: tampil kartu diam (.lanyard--static).
-   - Ketuk/klik (tanpa menggeser) membalik kartu ke sisi belakang (info
-     singkat); menarik hanya mengayun dan tidak mengubah sisi. Sisi
-     belakang kembali ke depan sendiri setelah 8 detik atau saat kartu
-     keluar layar.
-   - variant="notfound" (halaman 404): kartu "rusak" yang tergantung dari
-     lubang di sudut kiri atas, jadi menggantung miring. Tidak bisa dibalik;
-     ketukan hanya mendorong kartu berayun.
---------------------------------------------------------- */
 const CARD_W = 184
 const CARD_H = 350
-// Tebal kartu (tidak memengaruhi panjang & lebar)
 const CARD_DEPTH = 9
 const CARD_BEVEL = 1.4
 const ROPE_LENGTH = 92
@@ -80,15 +63,12 @@ const CARD_DARK = {
 
 const props = defineProps({
   variant: { type: String, default: 'id' },
-  // Alamat yang dicari (hanya varian notfound)
   path: { type: String, default: '' },
 })
 const { theme } = useTheme()
 const emit = defineEmits(['grab'])
 const isNotFound = props.variant === 'notfound'
-// Varian 404: lubang pengait di sudut kiri atas (koordinat kartu, px dari kiri/atas)
 const CORNER_HOLE = { x: 24, y: 13 }
-// Jarak lubang ke titik tengah kartu & sudut miringnya saat tergantung diam
 const CORNER_DX = CARD_W / 2 - CORNER_HOLE.x
 const CORNER_DY = CARD_H / 2 - CORNER_HOLE.y
 const CORNER_REACH = Math.hypot(CORNER_DX, CORNER_DY)
@@ -101,7 +81,6 @@ const staticEl = ref(null)
 const isStatic = ref(false)
 const isGrabbing = ref(false)
 
-/* ---- Gambar kartu & tali (Canvas 2D, dipakai sebagai tekstur) ---- */
 const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -116,7 +95,6 @@ function drawCard(canvas, image) {
   const ctx = canvas.getContext('2d')
   ctx.scale(s, s)
 
-  // Warna kartu kebalikan tema halaman, supaya menonjol dari latar
   const { face, soft, ink, muted, blue, line, hole } = theme.value === 'light' ? CARD_DARK : CARD_LIGHT
   const heading = cssVar('--font-heading')
   const serif = cssVar('--font-serif')
@@ -128,12 +106,10 @@ function drawCard(canvas, image) {
   ctx.fillRect(0, 0, CARD_W, CARD_H)
   ctx.textBaseline = 'alphabetic'
 
-  // Lubang pengait
   ctx.fillStyle = hole
   roundRect(ctx, CARD_W / 2 - 13, 8, 26, 6, 3)
   ctx.fill()
 
-  // Kepala kartu: monogram & keterangan
   ctx.textAlign = 'left'
   ctx.font = `italic 400 13px ${serif}`
   ctx.fillStyle = blue
@@ -143,7 +119,6 @@ function drawCard(canvas, image) {
   ctx.fillStyle = muted
   ctx.fillText(`PORTFOLIO · ${new Date().getFullYear()}`, CARD_W - pad, 27)
 
-  // Area foto: mengikuti rasio foto (tegak), jadi foto tampil utuh
   const photoY = 35
   const photoH = 209
   ctx.save()
@@ -164,8 +139,6 @@ function drawCard(canvas, image) {
   }
   ctx.restore()
 
-  // Nama satu baris, senada dengan judul beranda. Ukurannya diturunkan
-  // sampai pas selebar foto.
   ctx.textAlign = 'left'
   const first = 'Jose Elio '
   const last = 'Parhusip'
@@ -189,7 +162,6 @@ function drawCard(canvas, image) {
   ctx.fillStyle = muted
   ctx.fillText('FULL STACK DEVELOPER', pad, 282)
 
-  // Baris info dua kolom
   ctx.strokeStyle = line
   ctx.lineWidth = 0.6
   ctx.beginPath()
@@ -206,7 +178,6 @@ function drawCard(canvas, image) {
   ctx.fillText('BEKASI, ID', pad, 314)
   ctx.fillText('JOSEPARHUSIP.COM', col2, 314)
 
-  // Pita bawah biru: status + garis kode ala kartu staf
   const bandY = 324
   ctx.fillStyle = blue
   ctx.fillRect(0, bandY, CARD_W, CARD_H - bandY)
@@ -225,7 +196,6 @@ function drawCard(canvas, image) {
   }
 }
 
-// Kartu 404: kartu ID yang "rusak": lubang tengah sobek, fotonya hilang
 function drawNotFound(canvas) {
   const s = TEXTURE_SCALE
   canvas.width = CARD_W * s
@@ -239,7 +209,6 @@ function drawNotFound(canvas) {
   const mono = cssVar('--font-mono')
   const pad = 14
   const innerW = CARD_W - pad * 2
-  // Teks Jepang ditulis tegak (huruf Jepang tidak dimiringkan)
   const ja = lang.value === 'ja'
   const mid = CARD_W / 2
 
@@ -247,7 +216,6 @@ function drawNotFound(canvas) {
   ctx.fillRect(0, 0, CARD_W, CARD_H)
   ctx.textBaseline = 'alphabetic'
 
-  // Lubang tengah yang sobek sampai tepi atas (sebab kartu jatuh miring)
   ctx.fillStyle = hole
   ctx.beginPath()
   ctx.moveTo(mid - 13, 0)
@@ -258,7 +226,6 @@ function drawNotFound(canvas) {
   ctx.lineTo(mid + 9, 0)
   ctx.closePath()
   ctx.fill()
-  // Retakan halus dari sobekan
   ctx.strokeStyle = muted
   ctx.lineWidth = 0.5
   ctx.beginPath()
@@ -270,7 +237,6 @@ function drawNotFound(canvas) {
   ctx.lineTo(mid - 7, 19)
   ctx.stroke()
 
-  // Lubang pengganti di sudut: tempat kartu kini tergantung
   ctx.fillStyle = hole
   ctx.beginPath()
   ctx.arc(CORNER_HOLE.x, CORNER_HOLE.y, 4.2, 0, Math.PI * 2)
@@ -281,7 +247,6 @@ function drawNotFound(canvas) {
   ctx.fillStyle = muted
   ctx.fillText('ERROR · 404', CARD_W - pad, 27)
 
-  // Bingkai foto kosong: fotonya "tidak ditemukan"
   const photoY = 35
   const photoH = 209
   ctx.fillStyle = soft
@@ -295,7 +260,6 @@ function drawNotFound(canvas) {
   ctx.stroke()
   ctx.restore()
 
-  // "404" besar, "0" miring biru seperti di halaman
   ctx.textAlign = 'left'
   ctx.font = `800 54px ${heading}`
   const four = ctx.measureText('4').width
@@ -316,7 +280,6 @@ function drawNotFound(canvas) {
   ctx.fillStyle = muted
   ctx.fillText(t({ id: 'FOTO TIDAK DITEMUKAN', en: 'PHOTO NOT FOUND', ja: '写真が見つかりません' }), mid, photoY + photoH - 16)
 
-  // Judul satu baris, senada dengan kartu asli
   ctx.textAlign = 'left'
   const first = t({ id: 'Halaman ', en: 'Page ', ja: 'ページが' })
   const last = t({ id: 'tersesat', en: 'not found', ja: '見つかりません' })
@@ -347,7 +310,6 @@ function drawNotFound(canvas) {
   ctx.lineTo(CARD_W - pad, 291)
   ctx.stroke()
 
-  // Alamat yang dicari, dipotong kalau terlalu panjang
   ctx.font = `500 5.2px ${mono}`
   ctx.fillStyle = muted
   ctx.fillText(t({ id: 'ALAMAT', en: 'PATH', ja: 'パス' }), pad, 303)
@@ -368,13 +330,11 @@ function drawNotFound(canvas) {
   ctx.fillText(t({ id: 'HILANG · TIDAK BERLAKU', en: 'LOST · INVALID PASS', ja: '紛失・無効なカード' }), pad, bandY + 16)
 }
 
-// Sisi depan sesuai varian
 function drawFront(canvas, image) {
   if (isNotFound) drawNotFound(canvas)
   else drawCard(canvas, image)
 }
 
-// Sisi belakang: ringkasan singkat seperti bagian belakang kartu ID
 function drawBack(canvas) {
   const s = TEXTURE_SCALE
   canvas.width = CARD_W * s
@@ -388,7 +348,6 @@ function drawBack(canvas) {
   const mono = cssVar('--font-mono')
   const pad = 14
   const innerW = CARD_W - pad * 2
-  // Teks Jepang ditulis tegak (huruf Jepang tidak dimiringkan)
   const ja = lang.value === 'ja'
 
   ctx.fillStyle = face
@@ -409,7 +368,6 @@ function drawBack(canvas) {
   ctx.fillText(`ID · ${new Date().getFullYear()}`, CARD_W - pad, 27)
   ctx.textAlign = 'left'
 
-  // Teks utama diperkecil sampai muat satu baris
   const fitted = (text, weight, max) => {
     let size = max
     do {
@@ -449,7 +407,6 @@ function drawBack(canvas) {
   )
   section(152, t({ id: 'FOKUS', en: 'FOCUS', ja: '専門' }), 'Web · Mobile · Data · AI')
 
-  // Stack utama sebagai label kecil bergaris
   ctx.font = `500 5.4px ${mono}`
   ctx.fillStyle = muted
   ctx.fillText(t({ id: 'STACK UTAMA', en: 'CORE STACK', ja: '主なスキル' }), pad, 190)
@@ -471,7 +428,6 @@ function drawBack(canvas) {
     x += w + 4
   }
 
-  // Seperti tulisan di belakang kartu ID asli
   ctx.font = `${ja ? '' : 'italic '}400 12.5px ${serif}`
   ctx.fillStyle = blue
   ctx.fillText(t({ id: 'Menemukan kartu ini?', en: 'Found this card?', ja: 'このカードを拾った方へ' }), pad, 280)
@@ -485,7 +441,6 @@ function drawBack(canvas) {
   ctx.font = `600 6.4px ${mono}`
   ctx.fillStyle = '#FFFFFF'
   ctx.fillText(t({ id: 'KETUK UNTUK MEMBALIK', en: 'TAP TO FLIP', ja: 'タップして裏返す' }), pad, bandY + 16)
-  // Ikon panah memutar
   const cx = CARD_W - pad - 5
   const cy = bandY + 13
   ctx.strokeStyle = '#FFFFFF'
@@ -507,11 +462,9 @@ function drawStrap(canvas) {
   const blue = cssVar('--color-primary')
   ctx.fillStyle = blue
   ctx.fillRect(0, 0, 64, 512)
-  // Jahitan tepi
   ctx.fillStyle = 'rgba(0, 0, 0, 0.22)'
   ctx.fillRect(0, 0, 5, 512)
   ctx.fillRect(59, 0, 5, 512)
-  // Teks berulang di sepanjang tali
   ctx.save()
   ctx.translate(32, 256)
   ctx.rotate(Math.PI / 2)
@@ -523,7 +476,6 @@ function drawStrap(canvas) {
   ctx.restore()
 }
 
-// Kilau diagonal yang menyapu kartu saat bergerak
 function drawGlare(canvas) {
   canvas.width = 256
   canvas.height = 256
@@ -536,9 +488,7 @@ function drawGlare(canvas) {
   ctx.fillRect(0, 0, 256, 256)
 }
 
-// Bayangan lembut di belakang kartu
 function drawShadow(canvas) {
-  // Jarak ke tepi lebih besar dari blur, supaya tidak terlihat tepi kotak
   canvas.width = 320
   canvas.height = 400
   const ctx = canvas.getContext('2d')
@@ -560,7 +510,6 @@ function loadPhoto() {
   })
 }
 
-/* ---- Fisika ---- */
 const GRAVITY = 0.55
 const DAMPING = 0.98
 const ITERATIONS = 14
@@ -572,13 +521,13 @@ let scale = 1
 let anchorX = 0
 let segment = 0
 let cardLength = 0
-let points = [] // tali + ujung bawah kartu: { x, y, px, py }
+let points = []
 let yaw = 0
 let yawVelocity = 0
 let tilt = 0
 let time = 0
-let grab = null // { along, target: { x, y } }
-let tap = null // { x, y, time } saat jari/kursor ditekan, untuk membedakan ketuk vs tarik
+let grab = null
+let tap = null
 const flipped = ref(false)
 let flipAngle = 0
 let flipVelocity = 0
@@ -590,8 +539,6 @@ function resetPoints() {
   segment = ROPE_LENGTH / ROPE_SEGMENTS
   cardLength = CARD_H * scale
   points = []
-  // Mulai miring supaya kartu berayun masuk saat pertama terlihat
-  // (lebih kecil di layar sempit supaya tidak menabrak tepi)
   const swing = calm ? 0 : width < 520 ? 0.22 : 0.6
   for (let i = 0; i <= ROPE_SEGMENTS + 1; i++) {
     const d = i <= ROPE_SEGMENTS ? i * segment : ROPE_LENGTH + cardLength
@@ -619,7 +566,6 @@ function constrain(a, b, length, pinA) {
 
 function stepPhysics() {
   time += STEP_MS / 1000
-  // Angin pelan supaya kartu terlihat melayang walau tidak disentuh
   const wind = calm ? 0 : Math.sin(time * 0.75) * 0.03 + Math.sin(time * 1.9) * 0.012
 
   for (let i = 1; i < points.length; i++) {
@@ -636,7 +582,6 @@ function stepPhysics() {
   const bottom = points[ROPE_SEGMENTS + 1]
 
   if (grab) {
-    // Titik kartu yang dipegang ditarik menuju kursor
     const heldX = ring.x + (bottom.x - ring.x) * grab.along
     const heldY = ring.y + (bottom.y - ring.y) * grab.along
     const dx = (grab.target.x - heldX) * 0.4
@@ -654,21 +599,17 @@ function stepPhysics() {
     constrain(ring, bottom, cardLength, false)
   }
 
-  // Dinding kiri-kanan: kartu tidak boleh keluar dari canvas (terpotong)
-  // (kartu 404 menggantung miring, jadi lebih lebar)
   const margin = (isNotFound ? 152 : CARD_W / 2) * scale + 6
   for (const p of [ring, bottom]) {
     p.x = Math.max(margin, Math.min(width - margin, p.x))
   }
 
-  // Putaran kartu mengikuti ayunan
   const speed = bottom.x - bottom.px
   yawVelocity += -yaw * 0.016 + speed * 0.0016
   yawVelocity *= 0.92
   yaw = Math.max(-0.7, Math.min(0.7, yaw + yawVelocity))
   tilt += ((bottom.y - bottom.py) * 0.012 - tilt) * 0.08
 
-  // Balik kartu: pegas menuju 0 (depan) atau π (belakang), sedikit memantul
   const flipTarget = flipped.value && !isNotFound ? Math.PI : 0
   if (calm) {
     flipAngle += (flipTarget - flipAngle) * 0.3
@@ -679,7 +620,6 @@ function stepPhysics() {
   }
 }
 
-/* ---- Three.js ---- */
 let renderer = null
 let scene = null
 let camera = null
@@ -720,7 +660,6 @@ function cardShape() {
   return shape
 }
 
-// UV dinormalkan supaya tekstur pas satu kartu
 function fitUv(geometry) {
   const pos = geometry.attributes.position
   const uv = geometry.attributes.uv
@@ -759,6 +698,32 @@ function strapGeometry() {
   return geometry
 }
 
+let santaHat = null
+
+function buildSantaHat() {
+  const hat = new Group()
+  const red = new MeshStandardMaterial({ color: 0xc8202f, roughness: 0.62 })
+  const fur = new MeshStandardMaterial({ color: 0xf6f6f2, roughness: 1 })
+  const cone = new Mesh(new ConeGeometry(25, 46, 40, 1, true), red)
+  cone.position.set(0, 23, 0)
+  const tip = new Mesh(new ConeGeometry(9, 24, 24), red)
+  tip.position.set(9, 49, 0)
+  tip.rotation.z = -1.05
+  const brim = new Mesh(new TorusGeometry(25, 7.5, 18, 48), fur)
+  brim.rotation.x = Math.PI / 2
+  brim.scale.set(1, 1, 0.9)
+  const pompom = new Mesh(new SphereGeometry(8.5, 24, 16), fur)
+  pompom.position.set(22, 53, 0)
+  hat.add(cone, tip, brim, pompom)
+  hat.position.set(CARD_W / 2 - 30, CARD_H / 2 - 5, 0)
+  hat.rotation.z = -0.2
+  return hat
+}
+
+watch(christmas, (on) => {
+  if (santaHat) santaHat.visible = on
+})
+
 function buildScene() {
   renderer = new WebGLRenderer({ canvas: canvasEl.value, alpha: true, antialias: true })
   renderer.setClearColor(0x000000, 0)
@@ -772,11 +737,8 @@ function buildScene() {
 
   cardTexture = new CanvasTexture(textureCanvas)
   cardTexture.colorSpace = SRGBColorSpace
-  // Tanpa mipmap: resolusi tekstur sudah dua kali layar, mipmap hanya membuat buram
   cardTexture.generateMipmaps = false
   cardTexture.minFilter = LinearFilter
-  // Permukaan tanpa pencahayaan supaya warna foto & teks tampil apa adanya;
-  // kesan 3D datang dari tepi, kilau, dan bayangan
   cardMaterial = new MeshBasicMaterial({ map: cardTexture })
   backTexture = new CanvasTexture(backCanvas)
   backTexture.colorSpace = SRGBColorSpace
@@ -784,10 +746,8 @@ function buildScene() {
   backTexture.minFilter = LinearFilter
   const edge = new MeshStandardMaterial({ color: 0xc4c9d0, metalness: 0.35, roughness: 0.3 })
 
-  // Badan kartu hanya untuk tepi; muka depan & belakang permukaan sendiri
   cardGroup = new Group()
   cardMesh = new Mesh(cardGeometry(), [new MeshBasicMaterial({ visible: false }), edge])
-  // Poros di lubang pengait: kartu 404 diputar di sekitar lubang sudutnya
   pivot = new Group()
   pivot.add(cardMesh)
   cardGroup.add(pivot)
@@ -808,8 +768,6 @@ function buildScene() {
     opacity: 0,
     blending: AdditiveBlending,
     depthWrite: false,
-    // Tidak diuji kedalaman: kilau menempel di muka kartu dan bisa "berebut"
-    // dengan permukaannya (garis-garis). Kilau satu sisi, jadi tidak tembus.
     depthTest: false,
   })
   const glare = new Mesh(fitUv(new ShapeGeometry(cardShape(), 10)), glareMaterial)
@@ -829,7 +787,6 @@ function buildScene() {
   shadowMesh.position.set(5, -8, -14)
   cardMesh.add(shadowMesh)
 
-  // Pengait logam di ujung tali
   const metal = new MeshStandardMaterial({ color: 0xc9ced6, metalness: 0.55, roughness: 0.32 })
   const hook = new Group()
   const crimp = new Mesh(new BoxGeometry(STRAP_WIDTH + 3, 12, 4), metal)
@@ -840,6 +797,12 @@ function buildScene() {
   ring.position.y = -3
   hook.add(crimp, stem, ring)
   cardGroup.add(hook)
+
+  if (!isNotFound) {
+    santaHat = buildSantaHat()
+    santaHat.visible = christmas.value
+    cardMesh.add(santaHat)
+  }
   scene.add(cardGroup)
 
   strapTexture = new CanvasTexture(strapCanvas)
@@ -854,7 +817,6 @@ function buildScene() {
   scene.add(strapMesh)
 }
 
-// Kurva halus melewati titik-titik tali (Catmull-Rom)
 function catmull(p0, p1, p2, p3, u) {
   const u2 = u * u
   const u3 = u2 * u
@@ -888,7 +850,6 @@ function updateStrap(endX, endY) {
     const x = catmull(a.x, b.x, c.x, d.x, u)
     const y = catmull(a.y, b.y, c.y, d.y, u)
 
-    // Arah melebar tegak lurus tali, makin ke bawah makin ikut putaran kartu
     const tx = c.x - b.x
     const ty = c.y - b.y
     const tl = Math.hypot(tx, ty) || 1
@@ -946,21 +907,17 @@ function render() {
   }
   cardMesh.rotation.y = flipAngle + yaw
   cardMesh.rotation.x = tilt
-  // Bayangan selalu di belakang sisi yang menghadap layar
   const facing = Math.cos(flipAngle + yaw) >= 0 ? 1 : -1
   shadowMesh.position.set(5 * facing, -8, -14 * facing)
-  // Kilau menyapu saat kartu berputar, berayun, atau dibalik; hilang saat diam
   const motion = Math.abs(yaw) * 1.5 + Math.abs(angle) * 1.1 + Math.abs(Math.sin(flipAngle)) * 1.2
   glareTexture.offset.x = 1.05 - motion
   glareMaterial.opacity = Math.min(0.32, motion * 0.8)
 
-  // Tali berakhir tepat di atas pengait
   const end = rotate(0, -18 * scale)
   updateStrap(end.x, end.y)
 
   renderer.render(scene, camera)
 
-  // Area tarik mengikuti kartu
   if (hitEl.value) {
     const w = CARD_W * scale
     const h = CARD_H * scale
@@ -972,13 +929,11 @@ function render() {
   }
 }
 
-/* ---- Ukuran ---- */
-let canvasLeft = 0 // posisi canvas relatif terhadap .lanyard
+let canvasLeft = 0
 
 function measure() {
   const rect = wrapEl.value.getBoundingClientRect()
   const viewport = document.documentElement.clientWidth
-  // Ukuran maksimum bisa diatur dari CSS (--lanyard-max-scale), mis. lebih besar di HP
   const maxScale = parseFloat(getComputedStyle(wrapEl.value).getPropertyValue('--lanyard-max-scale')) || 1
   scale = Math.min(maxScale, rect.width / (CARD_W + 16))
   const reach = ROPE_LENGTH + CARD_H * scale
@@ -994,15 +949,14 @@ function measure() {
   canvas.style.left = `${canvasLeft}px`
   canvas.style.width = `${width}px`
   canvas.style.height = `${height}px`
-  // Minimal 2x walau layar biasa, supaya teks kecil di kartu tetap tajam
-  renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio || 1, 2), 2.5))
+  const coarse = window.matchMedia('(pointer: coarse)').matches
+  renderer.setPixelRatio(coarse ? Math.min(window.devicePixelRatio || 1, 2) : Math.min(Math.max(window.devicePixelRatio || 1, 2), 2.5))
   renderer.setSize(width, height, false)
 
   camera.aspect = width / height
   const fov = (camera.fov * Math.PI) / 180
   const distance = height / 2 / Math.tan(fov / 2)
   camera.position.set(0, 0, distance)
-  // Rentang kedalaman sempit di sekitar kartu = ketelitian kedalaman lebih tinggi
   camera.near = Math.max(1, distance - 600)
   camera.far = distance + 600
   camera.updateProjectionMatrix()
@@ -1010,7 +964,6 @@ function measure() {
   resetPoints()
 }
 
-/* ---- Tarik kartu ---- */
 function pointerPosition(event) {
   const rect = canvasEl.value.getBoundingClientRect()
   return {
@@ -1036,7 +989,6 @@ function onPointerDown(event) {
 
 function onPointerMove(event) {
   if (grab) grab.target = pointerPosition(event)
-  // Sudah bergeser: ini tarikan, bukan ketukan
   if (tap && Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 6) tap = null
 }
 
@@ -1050,13 +1002,11 @@ function onPointerUp() {
   isGrabbing.value = false
 }
 
-// Dibatalkan browser (mis. gestur sistem): bukan ketukan
 function onPointerCancel() {
   tap = null
   onPointerUp()
 }
 
-// Kartu 404: ketukan mendorong kartu supaya berayun
 function nudge() {
   const bottom = points[ROPE_SEGMENTS + 1]
   bottom.px -= (Math.random() < 0.5 ? -1 : 1) * 14 * scale
@@ -1075,7 +1025,6 @@ function resetFlip() {
   flipVelocity = 0
 }
 
-/* ---- Putaran animasi: hanya saat terlihat ---- */
 let frame = 0
 let lastTime = 0
 let leftover = 0
@@ -1084,7 +1033,6 @@ let resizeObserver = null
 
 function loop(now) {
   frame = requestAnimationFrame(loop)
-  // Tab yang baru aktif lagi: jangan mengejar waktu yang tertinggal
   leftover += Math.min(now - lastTime, 50)
   lastTime = now
   while (leftover >= STEP_MS) {
@@ -1115,9 +1063,7 @@ function paintTextures() {
   if (staticEl.value) drawFront(staticEl.value, photoImage)
 }
 
-// Warna kartu mengikuti tema (tunggu atribut data-theme diterapkan)
 watch(theme, () => setTimeout(paintTextures))
-// Teks sisi belakang mengikuti bahasa
 watch(lang, paintTextures)
 watch(() => props.path, paintTextures)
 
@@ -1151,7 +1097,6 @@ onMounted(async () => {
     (entries) => {
       if (entries[0].isIntersecting) return start()
       stop()
-      // Keluar layar: kartu kembali ke depan
       resetFlip()
     },
     { rootMargin: '120px' },
@@ -1194,7 +1139,6 @@ onBeforeUnmount(() => {
     </template>
     <template v-else>
       <canvas ref="canvasEl" class="lanyard__canvas" aria-hidden="true"></canvas>
-      <!-- Kartu 404 hanya hiasan: tidak bisa difokus, hanya bisa ditarik -->
       <div
         v-if="isNotFound"
         ref="hitEl"
@@ -1243,7 +1187,6 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-/* Area tarik: tak terlihat, mengikuti posisi kartu */
 .lanyard__hit {
   position: absolute;
   top: 0;
@@ -1258,7 +1201,6 @@ onBeforeUnmount(() => {
   cursor: grabbing;
 }
 
-/* Kartu diam: perangkat tanpa WebGL */
 .lanyard--static {
   display: flex;
   flex-direction: column;

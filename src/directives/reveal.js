@@ -1,55 +1,3 @@
-/* ---------------------------------------------------------
-   v-reveal: animasi "muncul" saat elemen masuk layar.
-   Dipakai bersama oleh semua section.
-
-   Cara pakai:
-     v-reveal              fade + naik
-     v-reveal.down         fade + turun
-     v-reveal.left         masuk dari kiri
-     v-reveal.right        masuk dari kanan
-     v-reveal.scale        membesar sedikit + naik
-     v-reveal.blur         dari buram ke tajam
-     v-reveal.clip         teks "tersibak" dari atas ke bawah (cocok untuk judul)
-     v-reveal="120"        angka = delay dalam ms
-     v-reveal.stagger      anak-anak elemen muncul BERGANTIAN (elemen induknya diam)
-     v-reveal.stagger="{ delay: 100, step: 70 }"
-     Modifier arah bisa digabung dengan stagger, mis. v-reveal.stagger.scale
-     v-reveal="{ delay: 120, onReveal: () => (sudahMuncul = true) }"
-       onReveal dipanggil saat elemen mulai muncul, untuk animasi khusus
-       di komponen (mis. galeri yang "terbuka" seperti kipas).
-     v-reveal.intro        (untuk layar pertama) saat intro zoom kunjungan
-       pertama diputar, elemen langsung tampil tanpa animasi. Animasinya
-       memang tidak terlihat karena berjalan di balik intro, dan teks yang
-       langsung tampil membuat halaman dinilai lebih cepat (LCP).
-
-   Kenapa pakai Web Animations API (el.animate), bukan class CSS?
-   - Animasi berjalan di atas style komponen, jadi TIDAK bentrok dengan
-     transition/hover/transform milik komponen (mis. kartu yang naik saat hover).
-   - Setelah selesai, efeknya hilang sendiri, jadi hover tidak ikut telat.
-   - Yang dianimasikan hanya opacity, translate, scale, filter, clip-path
-     (properti terpisah dari `transform`), aman untuk elemen yang punya transform.
-
-   Optimasi per perangkat:
-   - Desktop: jarak gerak & durasi penuh.
-   - Tablet: jarak lebih pendek.
-   - HP: jarak paling pendek, durasi lebih cepat, delay dipersingkat,
-     arah kiri/kanan diganti naik (biar tidak ada geser horizontal),
-     blur dimatikan (berat untuk GPU HP).
-   - "Kurangi animasi" aktif (mis. Windows: Settings > Accessibility >
-     Visual effects > Animation effects = Off): tetap ada efek, tapi sangat
-     halus: fade + naik 8px saja, pelan, tanpa geser samping/zoom/blur.
-     Gerak sekecil ini nyaman untuk yang sensitif gerak, dan situs tidak
-     terasa "datar" di laptop Windows yang mematikan efek animasi.
-   - Jenis perangkat dibaca ulang saat layar diputar / jendela di-resize,
-     jadi elemen berikutnya memakai setelan yang sesuai ukuran terbaru.
-   - Hemat untuk HP kelas bawah: animasi baru disiapkan saat elemen
-     mendekati layar (sekitar 2 layar sebelumnya), bukan ratusan sekaligus
-     saat halaman dibuka. Sambil menunggu, elemen disembunyikan lewat
-     atribut data-reveal-wait (lihat main.css).
-
-   Animasi baru dimulai setelah loader (TheLoader) selesai, supaya animasi
-   di layar pertama benar-benar terlihat dan tidak "habis" di balik tirai loader.
---------------------------------------------------------- */
 import { watch } from 'vue'
 import { loaderDone, playsFullIntro } from '@/composables/useLoaderState'
 
@@ -72,7 +20,6 @@ function readDeviceConfig() {
   return { device: 'desktop', dist: 30, side: 44, dur: 880, delayScale: 1, step: 80 }
 }
 
-// Disimpan, dibaca ulang hanya setelah ukuran layar berubah (putar tablet, resize)
 let cachedConfig = null
 function deviceConfig() {
   if (!cachedConfig) cachedConfig = readDeviceConfig()
@@ -85,10 +32,8 @@ if (hasWindow) {
 }
 
 function keyframesFor(variant, c) {
-  // Kurangi animasi: semua jenis jadi fade + naik sedikit
   if (c.device === 'reduced') return [{ opacity: 0, translate: `0 ${c.dist}px` }, { opacity: 1, translate: '0 0' }]
 
-  // Di HP gerak samping diganti naik supaya tidak memicu scroll horizontal
   if (c.device === 'phone' && (variant === 'left' || variant === 'right')) variant = 'up'
   if (c.device === 'phone' && variant === 'blur') variant = 'up'
 
@@ -135,22 +80,20 @@ function optionsOf(value) {
   return {}
 }
 
-/* ---- Satu animasi siap jalan, ditahan di frame pertama (tersembunyi) ---- */
 function prepare(target, variant, delay, c, duration) {
   const anim = target.animate(keyframesFor(variant, c), {
     duration: duration ?? c.dur,
     delay: Math.round(delay * c.delayScale),
     easing: EASE,
-    fill: 'backwards', // tahan keadaan awal selama delay
+    fill: 'backwards',
   })
   anim.pause()
   anim.currentTime = 0
   return anim
 }
 
-/* ---- Antrian elemen yang menunggu terlihat ---- */
-const pending = new Map() // elemen -> daftar animasi
-const callbacks = new WeakMap() // elemen -> { fn, delay } dari opsi onReveal
+const pending = new Map()
+const callbacks = new WeakMap()
 let observer = null
 
 function play(el) {
@@ -168,7 +111,6 @@ function getObserver() {
   observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        // Muncul saat masuk layar, ATAU kalau sudah terlewat (scroll super cepat)
         if (entry.isIntersecting || entry.boundingClientRect.bottom < 0) play(entry.target)
       })
     },
@@ -177,8 +119,6 @@ function getObserver() {
   return observer
 }
 
-/* Jaring pengaman: kalau pengunjung scroll sangat cepat (atau lompat lewat
-   link #kontak), elemen yang sudah terlewat tetap dimunculkan setelah scroll berhenti. */
 let scrollIdle = null
 function onScrollSettled() {
   clearTimeout(scrollIdle)
@@ -192,9 +132,8 @@ function onScrollSettled() {
   }, 160)
 }
 
-/* ---- Siapkan animasi hanya saat elemen mendekati layar ---- */
 const WAIT_ATTR = 'data-reveal-wait'
-const lazy = new Map() // elemen -> fungsi penyiap animasinya
+const lazy = new Map()
 let prepObserver = null
 
 function getPrepObserver() {
@@ -209,19 +148,14 @@ function getPrepObserver() {
         arm?.()
       })
     },
-    // Dua layar sebelum (dan sesudah) elemen terlihat
     { rootMargin: '200% 0px 200% 0px' },
   )
   return prepObserver
 }
 
-/* ---- Tunggu loader selesai baru mulai mengamati ---- */
 let started = false
 const waiting = new Set()
-// Animasi baru DISIAPKAN setelah loader/skeleton selesai. Sebelum itu elemen
-// tetap di posisi aslinya (tanpa geseran awal animasi), supaya skeleton
-// bisa mengukur posisi & ukuran yang persis sama dengan tampilan akhirnya.
-const preArms = new Map() // elemen -> fungsi penyiap animasinya
+const preArms = new Map()
 
 function startObserving(el) {
   if (!pending.has(el)) return
@@ -234,7 +168,6 @@ function start() {
   preArms.forEach((arm) => arm())
   preArms.clear()
   window.addEventListener('scroll', onScrollSettled, { passive: true })
-  // 2 frame: biarkan keadaan tersembunyi sempat dilukis dulu
   requestAnimationFrame(() =>
     requestAnimationFrame(() => {
       waiting.forEach(startObserving)
@@ -251,7 +184,6 @@ if (canAnimate) {
       stop()
       start()
     })
-    // Kalau suatu saat loader dihapus, animasi tetap jalan
     setTimeout(start, LOADER_FALLBACK_MS)
   }
 }
@@ -262,7 +194,6 @@ export const vReveal = {
 
     const skipForIntro = binding.modifiers.intro && playsFullIntro && !loaderDone.value
     if (!canAnimate || skipForIntro) {
-      // Tanpa animasi: semua langsung tampil, callback langsung dipanggil
       if (typeof opts.onReveal === 'function') opts.onReveal()
       return
     }
@@ -271,7 +202,6 @@ export const vReveal = {
     const baseDelay = opts.delay ?? 0
     const targets = () => (binding.modifiers.stagger ? Array.from(el.children) : [el])
 
-    // Membuat animasinya (ditahan tersembunyi) lalu mendaftar ke antrian tampil
     const arm = () => {
       if (!started) {
         preArms.set(el, arm)
@@ -283,7 +213,6 @@ export const vReveal = {
       }
       const step = opts.step ?? c.step
       const anims = targets().map((target, i) => {
-        // Animasi dibuat dulu, baru penanda tunggu dilepas: tidak ada kedip
         const anim = prepare(target, variant, baseDelay + (binding.modifiers.stagger ? i * step : 0), c, opts.duration)
         target.removeAttribute(WAIT_ATTR)
         return anim
@@ -293,14 +222,12 @@ export const vReveal = {
       else waiting.add(el)
     }
 
-    // Dekat layar (atau sudah terlewat): siapkan sekarang seperti biasa
     const rect = el.getBoundingClientRect()
     if (rect.top < window.innerHeight * 2.5) {
       arm()
       return
     }
 
-    // Jauh di bawah: sembunyikan dulu, siapkan saat mendekati layar
     targets().forEach((target) => target.setAttribute(WAIT_ATTR, ''))
     lazy.set(el, arm)
     getPrepObserver().observe(el)

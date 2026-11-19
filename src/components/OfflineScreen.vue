@@ -2,29 +2,12 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { lang, t } from '@/composables/useLang'
 
-/* ---------------------------------------------------------
-   Layar "Koneksi terputus": muncul otomatis saat internet hilang
-   (event offline dari browser) dan menutup sendiri saat tersambung
-   lagi, didahului pesan singkat "Tersambung kembali".
-   Tombol "Coba lagi" memeriksa koneksi dengan memanggil situs sendiri.
-   Selama offline, pemeriksaan juga berjalan OTOMATIS setiap 5 detik
-   (seolah tombol diklik sendiri). Isian di tombol menunjukkan sisa waktu
-   sampai percobaan berikutnya; saat memeriksa, tombol menampilkan
-   animasi loading.
-
-   Selama tampil: latar polos (halaman di belakang tidak terlihat) dan
-   halaman tidak bisa di-scroll (html.offline-open di main.css).
-
-   Catatan: ini hanya bekerja kalau situs sudah sempat terbuka. Kalau
-   pengunjung membuka situs dalam keadaan offline sejak awal, browser
-   yang menampilkan halaman offline-nya sendiri.
---------------------------------------------------------- */
 const RETRY_SECONDS = 5
-const MIN_CHECK_MS = 1200 // animasi loading terlihat minimal selama ini
+const MIN_CHECK_MS = 1200
 
-const state = ref('online') // online | offline | back
+const state = ref('online')
 const checking = ref(false)
-const countdown = ref(RETRY_SECONDS) // sisa detik sampai coba otomatis
+const countdown = ref(RETRY_SECONDS)
 let backTimer = 0
 let tickTimer = 0
 
@@ -62,13 +45,10 @@ async function retry() {
   const started = Date.now()
   let ok = false
   try {
-    // Permintaan kecil tanpa cache: berhasil = benar-benar tersambung
     await fetch(`/favicon.ico?cek=${started}`, { method: 'HEAD', cache: 'no-store' })
     ok = true
   } catch {
-    // Masih offline: layar tetap tampil, hitung mundur diulang
   }
-  // Tunggu sebentar supaya animasi loading tidak sekadar berkedip
   const wait = Math.max(0, MIN_CHECK_MS - (Date.now() - started))
   setTimeout(() => {
     checking.value = false
@@ -77,7 +57,6 @@ async function retry() {
   }, wait)
 }
 
-// Kunci scroll halaman selama layar ini tampil
 watch(state, (value) => document.documentElement.classList.toggle('offline-open', value !== 'online'))
 
 onMounted(() => {
@@ -115,7 +94,6 @@ onUnmounted(() => {
           </span>
         </div>
 
-        <!-- Ikon sinyal: garis putus saat offline, utuh saat tersambung -->
         <svg class="offline__icon" viewBox="0 0 64 64" aria-hidden="true">
           <path class="offline__wave offline__wave--3" d="M8 26a34 34 0 0 1 48 0" />
           <path class="offline__wave offline__wave--2" d="M16 34a23 23 0 0 1 32 0" />
@@ -161,9 +139,7 @@ onUnmounted(() => {
           :aria-busy="checking"
           @click="retry"
         >
-          <!-- Isian tipis yang bertambah selama hitung mundur -->
           <span class="offline__btn-fill" aria-hidden="true"></span>
-          <!-- Saat memeriksa: lingkaran berputar; selain itu ikon ulang -->
           <span v-if="checking" class="offline__spinner" aria-hidden="true"></span>
           <svg v-else viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -188,20 +164,17 @@ onUnmounted(() => {
 .offline {
   position: fixed;
   inset: 0;
-  z-index: 9998; /* di bawah loader (9999), di atas semua isi */
+  z-index: 9998;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.25rem;
-  /* Latar polos: halaman di belakang tidak terlihat sama sekali */
   background: var(--color-bg);
-  /* Geser jari di atas layar ini tidak menggulir apa pun */
   touch-action: none;
   overscroll-behavior: none;
 }
 
 .offline__card {
-  /* Boleh menyempit di HP (min-width: 0), maksimal 440px di layar lebar */
   flex: 0 1 440px;
   min-width: 0;
   box-sizing: border-box;
@@ -242,7 +215,6 @@ onUnmounted(() => {
   background: var(--color-accent);
 }
 
-/* ---- Ikon sinyal ---- */
 .offline__icon {
   display: block;
   width: 72px;
@@ -272,7 +244,6 @@ onUnmounted(() => {
   stroke: var(--color-danger);
 }
 
-/* Tersambung: gelombang jadi utuh & berwarna */
 .offline--back .offline__wave {
   stroke: var(--color-accent);
   stroke-dasharray: none;
@@ -318,7 +289,6 @@ onUnmounted(() => {
   z-index: 1;
 }
 
-/* Isian hitung mundur: garis terang di bawah tombol yang memanjang */
 .offline__btn-fill {
   position: absolute;
   left: 0;
@@ -332,7 +302,6 @@ onUnmounted(() => {
   transition: transform 1s linear;
 }
 
-/* Saat memeriksa: tombol sedikit meredup, garis berjalan bolak-balik */
 .offline__btn--loading {
   filter: saturate(0.85) brightness(0.95);
 }
@@ -353,7 +322,6 @@ onUnmounted(() => {
   animation: offline-spin 0.7s linear infinite;
 }
 
-/* Baris sendiri di bawah tombol, rata tengah */
 .offline__hint {
   display: flex;
   justify-content: center;
@@ -405,7 +373,6 @@ onUnmounted(() => {
   }
 }
 
-/* Muncul & hilang */
 .offline-enter-active,
 .offline-leave-active {
   transition: opacity 0.35s ease;
@@ -427,9 +394,6 @@ onUnmounted(() => {
   transform: translateY(14px) scale(0.98);
 }
 
-/* Animasi loading tetap jalan walau "kurangi animasi" aktif: ini penanda
-   proses, bukan dekorasi. Aturan global di main.css mematikan semua
-   animasi, jadi dikecualikan dengan !important. */
 @media (prefers-reduced-motion: reduce) {
   .offline__spinner,
   .offline__btn--loading .offline__btn-fill {

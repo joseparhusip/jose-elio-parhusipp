@@ -10,7 +10,6 @@ const routes = pages.map((page) =>
     : {
         path: page.path,
         name: page.name,
-        // route level code-splitting: tiap halaman dimuat saat dibuka
         component: () => import('../views/SectionView.vue'),
         props: { section: page.sectionId },
         meta: page,
@@ -21,9 +20,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     ...routes,
-    // Alamat lama
     { path: '/about', redirect: '/tentang' },
-    // Alamat yang tidak ada: tampilkan halaman 404 (bukan dilempar ke beranda)
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
@@ -41,17 +38,11 @@ const router = createRouter({
   ],
   scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) return savedPosition
-    // Link lama seperti /#kontak tetap meluncur ke bagiannya
     if (to.hash) return { el: to.hash }
     return { top: 0 }
   },
 })
 
-/* ---------------------------------------------------------
-   Judul tab, deskripsi, canonical & Open Graph ikut halaman.
-   Versi statisnya juga ditulis saat build oleh
-   scripts/prerender-pages.js, supaya Google langsung membacanya.
---------------------------------------------------------- */
 function setMeta(selector, attr, value) {
   document.head.querySelector(selector)?.setAttribute(attr, value)
 }
@@ -59,9 +50,7 @@ function setMeta(selector, attr, value) {
 function applyMeta(to) {
   const page = to.meta
   if (!page?.title) return
-  // Halaman 404 jangan sampai diindeks Google
   setMeta('meta[name="robots"]', 'content', page.notFound ? 'noindex, follow' : 'index, follow')
-  // Versi Inggris/Jepang dipakai saat bahasa itu aktif (meta statis untuk Google tetap Indonesia)
   const text = lang.value !== 'id' && page[lang.value] ? { ...page, ...page[lang.value] } : page
   document.title = text.title
   if (page.notFound) return

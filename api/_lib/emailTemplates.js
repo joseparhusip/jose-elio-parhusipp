@@ -1,21 +1,13 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-// __dirname nggak otomatis ada di ES Module, jadi dibikin manual
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// ------------------------------------------------------------------
-// GANTI link ini kalau nanti berubah
-// ------------------------------------------------------------------
 const LINKEDIN_URL = 'https://www.linkedin.com/in/joseparhusip/'
 const INSTAGRAM_URL = 'https://www.instagram.com/joseparhusip_/'
-const SITE_URL = 'https://www.joseparhusip.com' // sama dengan SITE_URL di src/router/pages.js
+const SITE_URL = 'https://www.joseparhusip.com'
 
-// Warna mengikuti DESIGN.md (mode terang): grafit netral + biru azure.
-// Email tidak bisa memakai CSS variable, jadi nilainya ditulis di sini.
-// Tanpa gradien: banyak aplikasi email (Outlook, sebagian Gmail) tidak
-// mendukungnya dan latar bisa hilang.
 const C = {
   page: '#F4F4F1',
   card: '#FFFFFF',
@@ -31,8 +23,6 @@ const C = {
 const FONT = "'Segoe UI', Helvetica, Arial, sans-serif"
 const MONO = "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace"
 
-// Logo LinkedIn & Instagram disimpan di dalam folder ini juga (api/_lib/email-assets),
-// jadi ikut ke-deploy bareng function-nya, nggak perlu path ke folder src/ lagi.
 const ASSET_DIR = path.join(__dirname, 'email-assets')
 
 const brandAttachments = [
@@ -59,12 +49,10 @@ function escapeHtml(str = '') {
     .replace(/'/g, '&#39;')
 }
 
-// Label kecil huruf besar, seperti ".mono-meta" di website
 function label(text, color = C.soft) {
   return `<p style="margin:0; font-family:${MONO}; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:${color};">${text}</p>`
 }
 
-// Tombol yang aman di semua aplikasi email (tabel + bgcolor, bukan hanya CSS)
 function button(href, text) {
   return `
     <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -79,8 +67,6 @@ function button(href, text) {
     </table>`
 }
 
-// Teks kaki email per bahasa (lang: 'id' default, 'en' untuk pengunjung
-// situs versi Inggris, atau 'ja' untuk versi Jepang)
 const SHELL_COPY = {
   id: {
     portfolioLink: 'Lihat portofolio',
@@ -165,7 +151,6 @@ function emailShell({ previewText, eyebrow, bodyHtml, lang = 'id' }) {
 </html>`
 }
 
-// Kotak data bergaris tipis: label mono di atas, nilai di bawah
 function detailRow(name, valueHtml, last = false) {
   return `
     <tr>
@@ -176,9 +161,6 @@ function detailRow(name, valueHtml, last = false) {
     </tr>`
 }
 
-// Notifikasi ke Jose tetap berbahasa Indonesia; baris "Bahasa" menunjukkan
-// bahasa situs yang dipakai pengunjung (jadi Jose tahu harus membalas pakai
-// bahasa apa).
 function buildOwnerNotificationEmail({ name, email, message, lang = 'id' }) {
   const langLabel = { en: 'EN (Inggris)', ja: 'JA (Jepang)' }[lang] || 'ID (Indonesia)'
   const safeName = escapeHtml(name)
@@ -216,7 +198,6 @@ function buildOwnerNotificationEmail({ name, email, message, lang = 'id' }) {
   }
 }
 
-// Konfirmasi ke pengunjung, mengikuti bahasa situs yang dia pakai.
 function buildVisitorConfirmationEmail({ name, message = '', lang = 'id' }) {
   if (lang === 'en') return buildVisitorConfirmationEmailEn({ name, message })
   if (lang === 'ja') return buildVisitorConfirmationEmailJa({ name, message })
@@ -265,7 +246,6 @@ function buildVisitorConfirmationEmail({ name, message = '', lang = 'id' }) {
   }
 }
 
-// Versi Inggris dari email konfirmasi di atas (struktur dan gaya sama persis).
 function buildVisitorConfirmationEmailEn({ name, message = '' }) {
   const safeName = escapeHtml(name)
   const safeMessage = escapeHtml(message).replace(/\n/g, '<br/>')
@@ -313,7 +293,6 @@ function buildVisitorConfirmationEmailEn({ name, message = '' }) {
   }
 }
 
-// Versi Jepang (bahasa email bisnis formal; nama pengunjung + 様).
 function buildVisitorConfirmationEmailJa({ name, message = '' }) {
   const safeName = escapeHtml(name)
   const safeMessage = escapeHtml(message).replace(/\n/g, '<br/>')
