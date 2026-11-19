@@ -9,6 +9,7 @@ import CustomCursor from './components/CustomCursor.vue'
 import OfflineScreen from './components/OfflineScreen.vue'
 import SnowFall from './components/SnowFall.vue'
 import { christmas } from './composables/useChristmas'
+import { useOffscreenPause } from './composables/useOffscreenPause'
 import UpdateToast from './components/UpdateToast.vue'
 import { useChatWidgetStore } from './stores/chatWidget'
 import { privacyOpen } from './composables/usePrivacy'
@@ -41,6 +42,8 @@ onMounted(() => {
   const whenIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 2000))
   whenIdle(() => (chatReady.value = true), { timeout: 4000 })
 })
+
+useOffscreenPause()
 </script>
 
 <template>

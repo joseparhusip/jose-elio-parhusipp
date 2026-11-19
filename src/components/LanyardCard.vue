@@ -7,18 +7,21 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
-  ConeGeometry,
+  CubicBezierCurve3,
   CylinderGeometry,
   DirectionalLight,
   DoubleSide,
   ExtrudeGeometry,
   Group,
+  LatheGeometry,
   LinearFilter,
   Mesh,
   MeshBasicMaterial,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
   PerspectiveCamera,
   PlaneGeometry,
+  PMREMGenerator,
   RepeatWrapping,
   Scene,
   Shape,
@@ -26,8 +29,11 @@ import {
   ShapeGeometry,
   SRGBColorSpace,
   TorusGeometry,
+  Vector2,
+  Vector3,
   WebGLRenderer,
 } from 'three'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { useTheme } from '@/composables/useTheme'
 import { lang, t } from '@/composables/useLang'
 import { christmas } from '@/composables/useChristmas'
@@ -700,23 +706,173 @@ function strapGeometry() {
 
 let santaHat = null
 
+let hatEnv = null
+const hatTextures = []
+
+function hatNoise(x, y, z) {
+  return (
+    Math.sin(x * 1.7 + y * 2.3 + z * 0.7) * 0.45 +
+    Math.sin(y * 3.1 - z * 1.3 + x * 0.4) * 0.3 +
+    Math.sin(z * 2.7 + x * 0.9 - y * 1.1) * 0.25
+  )
+}
+
+function hatBumpTexture(scale, strength) {
+  const size = 256
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  const image = ctx.createImageData(size, size)
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const n = hatNoise(x * scale, y * scale, (x + y) * scale * 0.5) * 0.5 + Math.random() * strength
+      const v = Math.max(0, Math.min(255, 128 + n * 110))
+      const i = (y * size + x) * 4
+      image.data[i] = image.data[i + 1] = image.data[i + 2] = v
+      image.data[i + 3] = 255
+    }
+  }
+  ctx.putImageData(image, 0, 0)
+  const texture = new CanvasTexture(canvas)
+  texture.wrapS = texture.wrapT = RepeatWrapping
+  hatTextures.push(texture)
+  return texture
+}
+
+function displace(geometry, amount, frequency) {
+  geometry.computeVertexNormals()
+  const position = geometry.attributes.position
+  const normal = geometry.attributes.normal
+  const p = new Vector3()
+  const n = new Vector3()
+  for (let i = 0; i < position.count; i++) {
+    p.fromBufferAttribute(position, i)
+    n.fromBufferAttribute(normal, i)
+    const d = hatNoise(p.x * frequency, p.y * frequency, p.z * frequency) * amount
+    position.setXYZ(i, p.x + n.x * d, p.y + n.y * d, p.z + n.z * d)
+  }
+  geometry.computeVertexNormals()
+  return geometry
+}
+
+function brimGeometry(radius, thickness, height) {
+  const points = []
+  const steps = 48
+  for (let i = 0; i <= steps; i++) {
+    const a = (i / steps) * Math.PI * 2 - Math.PI / 2
+    const c = Math.cos(a)
+    const sn = Math.sin(a)
+    const x = radius + Math.sign(c) * Math.abs(c) ** 0.55 * (thickness / 2)
+    const y = Math.sign(sn) * Math.abs(sn) ** 0.55 * (height / 2)
+    points.push(new Vector2(Math.max(0.1, x), y))
+  }
+  return displace(new LatheGeometry(points, 72), 1.4, 0.32)
+}
+
+function bodyGeometry(curve, baseRadius, tipRadius) {
+  const lengthSegments = 72
+  const radialSegments = 48
+  const frames = curve.computeFrenetFrames(lengthSegments, false)
+  const positions = []
+  const uvs = []
+  const indices = []
+  const point = new Vector3()
+  for (let i = 0; i <= lengthSegments; i++) {
+    const t = i / lengthSegments
+    curve.getPointAt(t, point)
+    const taper = baseRadius * (1 - t) ** 0.8 + tipRadius * t
+    const sag = 1 - 0.12 * Math.sin(t * Math.PI)
+    for (let j = 0; j <= radialSegments; j++) {
+      const theta = (j / radialSegments) * Math.PI * 2
+      const fold =
+        1 +
+        0.07 * Math.sin(theta * 5 + t * 11) * (1 - t * 0.6) +
+        0.04 * Math.sin(theta * 9 - t * 17) +
+        0.03 * hatNoise(theta * 2, t * 6, 0.5)
+      const r = taper * sag * fold
+      const nx = frames.normals[i]
+      const bx = frames.binormals[i]
+      positions.push(
+        point.x + r * (Math.cos(theta) * nx.x + Math.sin(theta) * bx.x),
+        point.y + r * (Math.cos(theta) * nx.y + Math.sin(theta) * bx.y),
+        point.z + r * (Math.cos(theta) * nx.z + Math.sin(theta) * bx.z),
+      )
+      uvs.push(j / radialSegments, t)
+    }
+  }
+  for (let i = 0; i < lengthSegments; i++) {
+    for (let j = 0; j < radialSegments; j++) {
+      const a = i * (radialSegments + 1) + j
+      const b = a + radialSegments + 1
+      indices.push(a, b, a + 1, b, b + 1, a + 1)
+    }
+  }
+  const geometry = new BufferGeometry()
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3))
+  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2))
+  geometry.setIndex(indices)
+  geometry.computeVertexNormals()
+  return geometry
+}
+
 function buildSantaHat() {
+  if (!hatEnv) {
+    const pmrem = new PMREMGenerator(renderer)
+    hatEnv = pmrem.fromScene(new RoomEnvironment(), 0.04)
+    pmrem.dispose()
+  }
+
+  const velvetBump = hatBumpTexture(0.09, 0.35)
+  velvetBump.repeat.set(3, 2)
+  const furBump = hatBumpTexture(0.35, 1.2)
+  furBump.repeat.set(6, 1)
+
+  const velvet = new MeshPhysicalMaterial({
+    color: 0xa3101c,
+    roughness: 0.78,
+    sheen: 1,
+    sheenColor: 0xff6b6b,
+    sheenRoughness: 0.42,
+    bumpMap: velvetBump,
+    bumpScale: 0.6,
+    envMap: hatEnv.texture,
+    envMapIntensity: 0.55,
+    side: DoubleSide,
+  })
+  const fur = new MeshPhysicalMaterial({
+    color: 0xf3f1ec,
+    roughness: 1,
+    sheen: 0.6,
+    sheenColor: 0xffffff,
+    sheenRoughness: 0.8,
+    bumpMap: furBump,
+    bumpScale: 1.4,
+    envMap: hatEnv.texture,
+    envMapIntensity: 0.7,
+  })
+
   const hat = new Group()
-  const red = new MeshStandardMaterial({ color: 0xc8202f, roughness: 0.62 })
-  const fur = new MeshStandardMaterial({ color: 0xf6f6f2, roughness: 1 })
-  const cone = new Mesh(new ConeGeometry(25, 46, 40, 1, true), red)
-  cone.position.set(0, 23, 0)
-  const tip = new Mesh(new ConeGeometry(9, 24, 24), red)
-  tip.position.set(9, 49, 0)
-  tip.rotation.z = -1.05
-  const brim = new Mesh(new TorusGeometry(25, 7.5, 18, 48), fur)
-  brim.rotation.x = Math.PI / 2
-  brim.scale.set(1, 1, 0.9)
-  const pompom = new Mesh(new SphereGeometry(8.5, 24, 16), fur)
-  pompom.position.set(22, 53, 0)
-  hat.add(cone, tip, brim, pompom)
-  hat.position.set(CARD_W / 2 - 30, CARD_H / 2 - 5, 0)
-  hat.rotation.z = -0.2
+  const brim = new Mesh(brimGeometry(26, 11, 17), fur)
+  brim.position.y = 8
+
+  const curve = new CubicBezierCurve3(
+    new Vector3(0, 12, 0),
+    new Vector3(-3, 52, 1),
+    new Vector3(30, 66, 2),
+    new Vector3(46, 32, 3),
+  )
+  const body = new Mesh(bodyGeometry(curve, 27, 3.2), velvet)
+
+  const tip = curve.getPointAt(1)
+  const tangent = curve.getTangentAt(1)
+  const pompom = new Mesh(displace(new SphereGeometry(9.5, 40, 28), 1.1, 0.55), fur)
+  pompom.position.copy(tip).addScaledVector(tangent, 5)
+
+  hat.add(body, brim, pompom)
+  hat.position.set(CARD_W / 2 - 18, CARD_H / 2 - 9, 0)
+  hat.rotation.set(0.12, -0.25, -0.18)
+  hat.scale.setScalar(0.95)
   return hat
 }
 
@@ -1090,6 +1246,10 @@ onMounted(async () => {
 
   paintTextures()
   measure()
+  try {
+    await renderer.compileAsync(scene, camera)
+  } catch {}
+  if (!wrapEl.value) return
 
   resizeObserver = new ResizeObserver(measure)
   resizeObserver.observe(wrapEl.value)
@@ -1120,6 +1280,8 @@ onBeforeUnmount(() => {
   strapTexture.dispose()
   glareTexture.dispose()
   shadowTexture.dispose()
+  hatTextures.forEach((texture) => texture.dispose())
+  hatEnv?.dispose()
   renderer.dispose()
 })
 </script>

@@ -56,6 +56,9 @@ function goal() {
   return { x: mouseX, y: mouseY, w: 0, h: 0 }
 }
 
+let lastW = -1
+let lastH = -1
+
 function loop() {
   const g = goal()
   box.x += (g.x - box.x) * ease
@@ -67,8 +70,10 @@ function loop() {
   if (frameEl.value) {
     const s = frameEl.value.style
     s.transform = `translate3d(${box.x - box.w / 2}px, ${box.y - box.h / 2}px, 0)`
-    s.width = `${box.w}px`
-    s.height = `${box.h}px`
+    const w = Math.round(box.w * 10) / 10
+    const h = Math.round(box.h * 10) / 10
+    if (w !== lastW) s.width = `${(lastW = w)}px`
+    if (h !== lastH) s.height = `${(lastH = h)}px`
   }
 
   angle = (angle + SPIN_SPEED) % 360

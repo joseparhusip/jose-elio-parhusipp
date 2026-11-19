@@ -26,8 +26,8 @@ const props = defineProps({
 })
 
 const GRAVITY = 4200
-const SOFT_LIMIT = props.variant === 'hero' ? 1.1 : 0.7
-const HARD_LIMIT = props.variant === 'hero' ? 1.35 : 0.95
+const SOFT_LIMIT = props.variant === 'hero' ? 1.0 : 0.7
+const HARD_LIMIT = props.variant === 'hero' ? 1.2 : 0.95
 const MAX_CORRECTION = 0.12
 
 function clampCorrection(value) {
@@ -250,11 +250,15 @@ function step(dt) {
     item.spinVelocity *= Math.pow(0.4, dt)
     item.spin += ((reduced ? 0 : 0.35) + item.spinVelocity) * dt
   })
-  for (let pass = 0; pass < 4; pass++) {
-    collide()
+  for (let pass = 0; pass < 6; pass++) {
     collideStrings()
+    collide()
+    state.forEach(keepInRange)
   }
-  state.forEach(keepInRange)
+  for (let pass = 0; pass < 3; pass++) {
+    collide()
+    state.forEach(keepInRange)
+  }
 }
 
 function collideStrings() {
@@ -299,9 +303,16 @@ function ballCenter(item) {
   }
 }
 
-function inverseMass(index) {
-  if (dragging.value === index) return 0
-  return 1 / state[index].radius ** 3
+function canMove(index, direction) {
+  const angle = state[index].angle
+  if (Math.abs(angle) < HARD_LIMIT - 0.005) return true
+  return Math.sign(angle) !== direction
+}
+
+function weight(index, k, direction, allowDragged = false) {
+  if (Math.abs(k) < 0.001 || !canMove(index, direction)) return 0
+  if (dragging.value === index && !allowDragged) return 0
+  return (k * k) / state[index].radius ** 3
 }
 
 function collide() {
@@ -321,21 +332,27 @@ function collide() {
       const ny = dy / distance
       const ka = nx * pa.tx + ny * pa.ty
       const kb = nx * pb.tx + ny * pb.ty
-      const wa = inverseMass(i) * ka * ka
-      const wb = inverseMass(j) * kb * kb
+      const dirA = -Math.sign(ka)
+      const dirB = Math.sign(kb)
+      let wa = weight(i, ka, dirA)
+      let wb = weight(j, kb, dirB)
+      if (wa + wb <= 0) {
+        wa = weight(i, ka, dirA, true)
+        wb = weight(j, kb, dirB, true)
+      }
       const total = wa + wb
       if (total <= 0) continue
 
-      if (Math.abs(ka) > 0.001) a.angle -= clampCorrection(((overlap * wa) / total / ka) / a.reach)
-      if (Math.abs(kb) > 0.001) b.angle += clampCorrection(((overlap * wb) / total / kb) / b.reach)
+      if (wa > 0) a.angle -= clampCorrection(((overlap * wa) / total / ka) / a.reach)
+      if (wb > 0) b.angle += clampCorrection(((overlap * wb) / total / kb) / b.reach)
 
       const va = a.velocity * a.reach * ka
       const vb = b.velocity * b.reach * kb
       const approach = vb - va
       if (approach >= 0) continue
-      const impulse = (-(1 + RESTITUTION) * approach) / (inverseMass(i) * ka * ka + inverseMass(j) * kb * kb)
-      a.velocity -= (impulse * inverseMass(i) * ka) / a.reach
-      b.velocity += (impulse * inverseMass(j) * kb) / b.reach
+      const impulse = (-(1 + RESTITUTION) * approach) / total
+      if (wa > 0) a.velocity -= (impulse * (wa / ka)) / a.reach
+      if (wb > 0) b.velocity += (impulse * (wb / kb)) / b.reach
       const kick = Math.min(14, -approach * 0.03)
       a.spinVelocity -= kick
       b.spinVelocity += kick
@@ -423,13 +440,17 @@ watch(theme, () =>
   }),
 )
 
-onMounted(() => {
+onMounted(async () => {
   try {
     buildScene()
   } catch {
     renderer = null
     return
   }
+  try {
+    await renderer.compileAsync(scene, camera)
+  } catch {}
+  if (!wrapEl.value) return
   measure()
   resizeObserver = new ResizeObserver(measure)
   resizeObserver.observe(wrapEl.value)

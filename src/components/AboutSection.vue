@@ -106,6 +106,8 @@ function toggleAll() {
 }
 
 const trackEls = []
+const trackHalf = []
+let trackResize = null
 const hovered = [false, false]
 const offsets = [0, 0]
 const velocity = [0, 0]
@@ -127,7 +129,8 @@ function tickMarquee(now) {
 
   trackEls.forEach((el, r) => {
     if (!el) return
-    const half = el.scrollWidth / 2
+    if (!trackHalf[r]) trackHalf[r] = el.scrollWidth / 2
+    const half = trackHalf[r]
     if (!half) return
     const target = hovered[r] ? 0 : (half / secs[r]) * ROW_SIGN[r] * scrollDir
     velocity[r] = velocity[r] === 0 && !hovered[r] ? target : velocity[r] + (target - velocity[r]) * Math.min(1, dt * 5)
@@ -170,9 +173,12 @@ onMounted(() => {
     else stopMarquee()
   })
   if (stackEl.value) marqueeObserver.observe(stackEl.value)
+  trackResize = new ResizeObserver(() => trackHalf.fill(0))
+  trackEls.forEach((el) => el && trackResize.observe(el))
 })
 
 onUnmounted(() => {
+  trackResize?.disconnect()
   window.removeEventListener('scroll', onScrollDirection)
   marqueeObserver?.disconnect()
   stopMarquee()
@@ -204,7 +210,7 @@ onMounted(() => {
       showLanyard.value = true
       lanyardObserver.disconnect()
     },
-    { rootMargin: '100px' },
+    { rootMargin: '600px 0px' },
   )
   lanyardObserver.observe(lanyardSlot.value)
 })

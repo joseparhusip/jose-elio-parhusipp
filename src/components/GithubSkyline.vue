@@ -288,8 +288,10 @@ function draw(now) {
   if (again) requestRender()
 }
 
+let compiled = false
+
 function requestRender() {
-  if (!frame && renderer) frame = requestAnimationFrame(draw)
+  if (!frame && renderer && compiled) frame = requestAnimationFrame(draw)
 }
 
 let drag = null
@@ -392,7 +394,7 @@ function onLeave(event) {
 
 let resizeObserver = null
 
-onMounted(() => {
+onMounted(async () => {
   try {
     renderer = new WebGLRenderer({ canvas: canvasEl.value, alpha: true, antialias: true })
   } catch {
@@ -409,6 +411,13 @@ onMounted(() => {
 
   buildBars()
   measure()
+  try {
+    await renderer.compileAsync(scene, camera)
+  } catch {}
+  if (!wrapEl.value) return
+  compiled = true
+  if (growStart > 0) growStart = performance.now()
+  requestRender()
   resizeObserver = new ResizeObserver(measure)
   resizeObserver.observe(wrapEl.value)
 })

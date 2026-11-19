@@ -424,6 +424,15 @@ html:lang(ja) :is(.serif-accent, .footer__serif) {
   letter-spacing: 0.01em;
 }
 
+[data-offscreen],
+[data-offscreen]::before,
+[data-offscreen]::after,
+[data-offscreen] *,
+[data-offscreen] *::before,
+[data-offscreen] *::after {
+  animation-play-state: paused !important;
+}
+
 html.privacy-open {
   overflow: hidden;
 }
