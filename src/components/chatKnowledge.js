@@ -1,11 +1,11 @@
 import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.webp'
 import mobileJecThumb from './img-proyek/img-jec/IMG-JEC-1.jpeg'
 import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.webp'
-import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.webp'
-import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.webp'
-import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.webp'
+import securaKostThumb from './img-proyek/img-securakost/img-securakost-beranda.webp'
+import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-beranda.webp'
+import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-beranda.webp'
 import medcredixThumb from './img-proyek/img-medcredix/img-medcredix-risk-radar.webp'
-import simrsThumb from './img-proyek/img-simrs/img-simrs-pasien.webp'
+import simrsThumb from './img-proyek/img-simrs/img-simrs-kunjungan.webp'
 
 export const PROFILE = {
   fullName: 'Jose Elio Parhusip, S.Bns.',
@@ -163,27 +163,27 @@ export const PROJECTS = [
   {
     title: 'Secura Kost',
     summary:
-      'Prototipe <em>marketplace</em> kost (Vue.js dan Tailwind CSS) dengan tur virtual 360 derajat, autentikasi dua peran (penyewa dan pemilik), serta <em>landing page</em> dinamis.',
-    image: tokoKelontongThumb,
-    tags: ['Vue.js', 'Tailwind CSS'],
+      'Prototipe <em>marketplace</em> kost (React dan React Router) dengan tur virtual 360 derajat, autentikasi dua peran (penyewa dan pemilik), serta <em>landing page</em> dinamis.',
+    image: securaKostThumb,
+    tags: ['React', 'React Router'],
     demoHref: 'https://secura-kost.vercel.app/',
     codeHref: 'https://github.com/joseparhusip/secura-kost',
   },
   {
     title: 'Toko Kelontong Online',
     summary:
-      'Prototipe <em>e-commerce</em> (Vue.js, Pinia, dan Tailwind CSS) dengan katalog produk dinamis, filter kategori, keranjang belanja reaktif, serta alur pemesanan lengkap.',
-    image: securaKostThumb,
-    tags: ['Vue.js', 'Tailwind CSS'],
+      'Prototipe <em>e-commerce</em> (Vue.js, Pinia, dan Vue Router) dengan katalog produk dinamis, filter kategori, keranjang belanja reaktif, serta alur pemesanan lengkap.',
+    image: tokoKelontongThumb,
+    tags: ['Vue.js', 'Pinia'],
     demoHref: 'https://toko-kelontong-online.vercel.app/',
     codeHref: 'https://github.com/joseparhusip/toko-kelontong-online',
   },
   {
     title: 'Kindle Coffee',
     summary:
-      'Prototipe <em>front-end</em> kedai kopi Kindle Coffee (Vue.js, Pinia, dan Tailwind CSS) dengan pemilihan meja/kursi interaktif, simulasi proses pembayaran Midtrans, serta cetak struk ke PDF.',
+      'Prototipe <em>front-end</em> kedai kopi Kindle Coffee (Vue.js, Pinia, dan Vue Router) dengan pemilihan meja/kursi interaktif, simulasi proses pembayaran Midtrans, serta cetak struk ke PDF.',
     image: kindleCoffeeThumb,
-    tags: ['Vue.js', 'Tailwind CSS'],
+    tags: ['Vue.js', 'Pinia'],
     demoHref: 'https://kindle-coffeeid.vercel.app/',
     codeHref: 'https://github.com/joseparhusip/kindle-coffee.id',
   },

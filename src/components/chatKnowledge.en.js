@@ -132,17 +132,17 @@ const PROJECT_TEXT = {
   },
   'Secura Kost': {
     summary:
-      'A boarding house (kost) marketplace prototype (Vue.js and Tailwind CSS) with a 360° virtual tour, two-role authentication (tenants and owners), and a dynamic landing page.',
-    tags: ['Vue.js', 'Tailwind CSS'],
+      'A boarding house (kost) marketplace prototype (React and React Router) with a 360° virtual tour, two-role authentication (tenants and owners), and a dynamic landing page.',
+    tags: ['React', 'React Router'],
   },
   'Toko Kelontong Online': {
     summary:
-      'An e-commerce prototype (Vue.js, Pinia, and Tailwind CSS) with a dynamic product catalog, category filters, a reactive shopping cart, and a complete ordering flow.',
-    tags: ['Vue.js', 'Tailwind CSS'],
+      'An e-commerce prototype (Vue.js, Pinia, and Vue Router) with a dynamic product catalog, category filters, a reactive shopping cart, and a complete ordering flow.',
+    tags: ['Vue.js', 'Pinia'],
   },
   'Kindle Coffee': {
     summary:
-      'A front-end prototype for the Kindle Coffee coffee shop (Vue.js, Pinia, and Tailwind CSS) with interactive table/seat selection, a simulated Midtrans checkout, and receipt printing to PDF.',
+      'A front-end prototype for the Kindle Coffee coffee shop (Vue.js, Pinia, and Vue Router) with interactive table/seat selection, a simulated Midtrans checkout, and receipt printing to PDF.',
   },
 }
 

@@ -19,9 +19,27 @@ import vueIcon from './icons/icons-about/Vue.js_Logo_2.svg'
 import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.webp'
 import mobileJecThumb from './img-proyek/img-jec/IMG-JEC-1.jpeg'
 import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.webp'
-import securaKostThumb from './img-proyek/img-securakost/img-secura-kost.webp'
-import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-kelontong.webp'
-import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-coffee.webp'
+import securaKostThumb from './img-proyek/img-securakost/img-securakost-beranda.webp'
+import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-beranda.webp'
+import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-beranda.webp'
+import securaKostShotCari from './img-proyek/img-securakost/img-securakost-cari.webp'
+import securaKostShotDetail from './img-proyek/img-securakost/img-securakost-detail.webp'
+import securaKostShotPengajuan from './img-proyek/img-securakost/img-securakost-pengajuan.webp'
+import securaKostShotEdukasi from './img-proyek/img-securakost/img-securakost-edukasi.webp'
+import securaKostShotDashboard from './img-proyek/img-securakost/img-securakost-dashboard.webp'
+import securaKostShotKostSaya from './img-proyek/img-securakost/img-securakost-kost-saya.webp'
+import securaKostShotKontrak from './img-proyek/img-securakost/img-securakost-kontrak.webp'
+import securaKostShotEscrow from './img-proyek/img-securakost/img-securakost-escrow.webp'
+import securaKostShotMediasi from './img-proyek/img-securakost/img-securakost-mediasi.webp'
+import tokoKelontongShotProduk from './img-proyek/img-toko-kelontong/img-toko-produk.webp'
+import tokoKelontongShotCaraPesan from './img-proyek/img-toko-kelontong/img-toko-cara-pesan.webp'
+import tokoKelontongShotFaq from './img-proyek/img-toko-kelontong/img-toko-faq.webp'
+import tokoKelontongShotRiwayat from './img-proyek/img-toko-kelontong/img-toko-riwayat.webp'
+import tokoKelontongShotTentang from './img-proyek/img-toko-kelontong/img-toko-tentang.webp'
+import tokoKelontongShotKontak from './img-proyek/img-toko-kelontong/img-toko-kontak.webp'
+import kindleCoffeeShotCaraPesan from './img-proyek/img-kindle-coffee/img-kindle-cara-pesan.webp'
+import kindleCoffeeShotMenu from './img-proyek/img-kindle-coffee/img-kindle-menu.webp'
+import kindleCoffeeShotTentang from './img-proyek/img-kindle-coffee/img-kindle-tentang.webp'
 import medcredixThumb from './img-proyek/img-medcredix/img-medcredix-risk-radar.webp'
 import goIcon from './icons/icons-about/Go-logo.svg'
 import dockerIcon from './icons/icons-about/Docker-logo.svg'
@@ -66,12 +84,32 @@ import mapsIcon from './icons/icons-stack/maps.svg'
 import vercelIcon from './icons/icons-stack/vercel.svg'
 import cssIcon from './icons/icons-stack/css.svg'
 import apiIcon from './icons/icons-stack/api.svg'
-import simrsThumb from './img-proyek/img-simrs/img-simrs-pasien.webp'
+import simrsLogin from './img-proyek/img-simrs/img-simrs-login.webp'
+import simrsKunjungan from './img-proyek/img-simrs/img-simrs-kunjungan.webp'
+import simrsDetailKunjungan from './img-proyek/img-simrs/img-simrs-detail-kunjungan.webp'
+import simrsSpri from './img-proyek/img-simrs/img-simrs-spri.webp'
+import simrsRawatInap from './img-proyek/img-simrs/img-simrs-rawat-inap.webp'
+import simrsSuratKematian from './img-proyek/img-simrs/img-simrs-surat-kematian.webp'
+import simrsTagihan from './img-proyek/img-simrs/img-simrs-tagihan.webp'
+import simrsKasir from './img-proyek/img-simrs/img-simrs-kasir.webp'
+import simrsGiziLabel from './img-proyek/img-simrs/img-simrs-gizi-label.webp'
+import simrsPramusaji from './img-proyek/img-simrs/img-simrs-pramusaji.webp'
 import medcredixLogin from './img-proyek/img-medcredix/img-medcredix-login.webp'
 import medcredixPortalEnv from './img-proyek/img-medcredix/img-medcredix-portal-lingkungan.webp'
+import medcredixDashboard from './img-proyek/img-medcredix/img-medcredix-dashboard.webp'
+import medcredixEarlyWarnings from './img-proyek/img-medcredix/img-medcredix-early-warnings.webp'
+import medcredixActions from './img-proyek/img-medcredix/img-medcredix-actions.webp'
+import medcredixPractitioners from './img-proyek/img-medcredix/img-medcredix-practitioners.webp'
+import medcredixCredentials from './img-proyek/img-medcredix/img-medcredix-credentials.webp'
+import medcredixVerification from './img-proyek/img-medcredix/img-medcredix-verification.webp'
+import medcredixWorkforce from './img-proyek/img-medcredix/img-medcredix-workforce.webp'
+import medcredixInterop from './img-proyek/img-medcredix/img-medcredix-interop.webp'
+import medcredixPathway from './img-proyek/img-medcredix/img-medcredix-pathway.webp'
+import medcredixClaimIntegrity from './img-proyek/img-medcredix/img-medcredix-claim-integrity.webp'
+import medcredixDataTrust from './img-proyek/img-medcredix/img-medcredix-data-trust.webp'
+import medcredixCompliance from './img-proyek/img-medcredix/img-medcredix-compliance.webp'
+import medcredixAudit from './img-proyek/img-medcredix/img-medcredix-audit.webp'
 import medcredixPortalApi from './img-proyek/img-medcredix/img-medcredix-portal-api.webp'
-import simrsSpriForm from './img-proyek/img-simrs/img-simrs-spri-form.webp'
-import simrsSpriPreview from './img-proyek/img-simrs/img-simrs-spri-preview.webp'
 
 const moreProjectsHref = 'https://github.com/joseparhusip?tab=repositories'
 
@@ -298,7 +336,20 @@ const projects = [
     ],
     thumb: medcredixThumb,
     shots: [
+      { src: medcredixDashboard, caption: { id: 'Dashboard eksekutif & Hospital Health Score', en: 'Executive dashboard & Hospital Health Score', ja: 'エグゼクティブダッシュボードとHospital Health Score' } },
       { src: medcredixThumb, caption: 'Hospital Risk Radar' },
+      { src: medcredixEarlyWarnings, caption: { id: 'Early warning berbasis ambang batas', en: 'Threshold-based early warnings', ja: 'しきい値ベースの早期警告' } },
+      { src: medcredixActions, caption: { id: 'Action Center: rencana tindak lanjut', en: 'Action Center: follow-up plans', ja: 'Action Center：フォローアップ計画' } },
+      { src: medcredixPractitioners, caption: { id: 'Daftar praktisi tenaga medis', en: 'Medical practitioner list', ja: '医療従事者一覧' } },
+      { src: medcredixCredentials, caption: { id: 'Kredensial STR & SIP', en: 'STR & SIP credentials', ja: 'STR・SIPの資格情報' } },
+      { src: medcredixVerification, caption: { id: 'Verifikasi & persetujuan komite medis', en: 'Verification & medical committee approval', ja: '検証と医療委員会の承認' } },
+      { src: medcredixWorkforce, caption: { id: 'Kesiapan clinical workforce', en: 'Clinical workforce readiness', ja: '臨床スタッフの準備状況' } },
+      { src: medcredixInterop, caption: { id: 'Interoperabilitas SATUSEHAT, BPJS & FHIR', en: 'SATUSEHAT, BPJS & FHIR interoperability', ja: 'SATUSEHAT・BPJS・FHIRとの相互運用性' } },
+      { src: medcredixPathway, caption: { id: 'Kepatuhan clinical pathway', en: 'Clinical pathway compliance', ja: 'クリニカルパスの遵守状況' } },
+      { src: medcredixClaimIntegrity, caption: { id: 'Integritas klaim', en: 'Claim integrity', ja: '請求の整合性' } },
+      { src: medcredixDataTrust, caption: { id: 'Skor kepercayaan data (Data Trust)', en: 'Data Trust score', ja: 'データ信頼度スコア' } },
+      { src: medcredixCompliance, caption: { id: 'Kepatuhan regulasi', en: 'Regulatory compliance', ja: '規制遵守' } },
+      { src: medcredixAudit, caption: { id: 'Audit trail immutable', en: 'Immutable audit trail', ja: '改ざん不可の監査ログ' } },
       { src: medcredixLogin, caption: { id: 'Halaman masuk dengan CAPTCHA', en: 'Sign-in page with CAPTCHA', ja: 'CAPTCHA付きのログイン画面' } },
       { src: medcredixPortalEnv, caption: 'Developer Portal: Sandbox & Production' },
       {
@@ -515,14 +566,18 @@ const projects = [
         ],
       },
     ],
-    thumb: simrsThumb,
+    thumb: simrsKunjungan,
     shots: [
-      { src: simrsThumb, caption: { id: 'Daftar pasien (NIK disamarkan)', en: 'Patient list (NIK masked)', ja: '患者一覧（NIKはマスク表示）' } },
-      {
-        src: simrsSpriForm,
-        caption: { id: 'Form SPRI dengan tanda tangan digital', en: 'SPRI form with digital signature', ja: '電子署名付きのSPRIフォーム' },
-      },
-      { src: simrsSpriPreview, caption: { id: 'Preview surat SPRI', en: 'SPRI letter preview', ja: 'SPRI文書のプレビュー' } },
+      { src: simrsLogin, caption: { id: 'Halaman masuk', en: 'Sign-in page', ja: 'ログイン画面' } },
+      { src: simrsKunjungan, caption: { id: 'Daftar kunjungan pasien dokter (DPJP)', en: 'Doctor (DPJP) patient visit list', ja: '担当医（DPJP）の受診一覧' } },
+      { src: simrsDetailKunjungan, caption: { id: 'Detail kunjungan dan alur pelayanan', en: 'Visit detail and care flow', ja: '受診詳細と診療フロー' } },
+      { src: simrsSpri, caption: { id: 'Surat Perintah Rawat Inap (SPRI)', en: 'Inpatient admission order (SPRI)', ja: '入院指示書（SPRI）' } },
+      { src: simrsRawatInap, caption: { id: 'Pasien rawat inap: surat rujukan, APS, dan sertifikat kematian', en: 'Inpatient: referral letter, AMA statement, and death certificate', ja: '入院患者：紹介状、自己退院同意書、死亡診断書' } },
+      { src: simrsSuratKematian, caption: { id: 'Pratinjau sertifikat medis penyebab kematian', en: 'Medical certificate of cause of death preview', ja: '死亡診断書のプレビュー' } },
+      { src: simrsTagihan, caption: { id: 'Tagihan pasien lunas lewat Midtrans', en: 'Patient bill paid via Midtrans', ja: 'Midtransで支払い済みの請求書' } },
+      { src: simrsKasir, caption: { id: 'Shift kasir dan rekap per metode bayar', en: 'Cashier shift and totals per payment method', ja: 'レジのシフトと支払方法別の集計' } },
+      { src: simrsGiziLabel, caption: { id: 'Gizi: produksi & label makanan', en: 'Nutrition: meal production & labels', ja: '栄養科：食事の調理とラベル' } },
+      { src: simrsPramusaji, caption: { id: 'Pramusaji: pembagian makan pasien', en: 'Meal server: serving patient meals', ja: '配膳：患者への配膳' } },
     ],
     techStack: [{ name: 'Next.js' }, { name: 'React' }, { name: 'TypeScript' }, { name: 'Tailwind CSS' }],
   },
@@ -1039,7 +1094,19 @@ const projects = [
         '再利用可能なコンポーネントを用いて、メンバー構成をツリー形式で可視化するチーム紹介モジュールを構築。',
       ],
     },
-    thumb: tokoKelontongThumb,
+    thumb: securaKostThumb,
+    shots: [
+      { src: securaKostThumb, caption: { id: 'Landing page', en: 'Landing page', ja: 'ランディングページ' } },
+      { src: securaKostShotCari, caption: { id: 'Cari kost dengan filter & smart matching', en: 'Kost search with filters & smart matching', ja: 'フィルターとスマートマッチングによる物件検索' } },
+      { src: securaKostShotDetail, caption: { id: 'Detail kost dengan Virtual Tour 360°', en: 'Listing detail with a 360° Virtual Tour', ja: '360°バーチャルツアー付きの物件詳細' } },
+      { src: securaKostShotPengajuan, caption: { id: 'Form pengajuan sewa', en: 'Rental application form', ja: '入居申込フォーム' } },
+      { src: securaKostShotEdukasi, caption: { id: 'Edukasi hukum penyewa', en: 'Tenant legal education', ja: '入居者向けの法律ガイド' } },
+      { src: securaKostShotDashboard, caption: { id: 'Dashboard pemilik kost', en: 'Owner dashboard', ja: 'オーナー用ダッシュボード' } },
+      { src: securaKostShotKostSaya, caption: { id: 'Kelola kost saya', en: 'Manage my listings', ja: '自分の物件の管理' } },
+      { src: securaKostShotKontrak, caption: { id: 'Kontrak digital', en: 'Digital contracts', ja: '電子契約' } },
+      { src: securaKostShotEscrow, caption: { id: 'Escrow & deposit', en: 'Escrow & deposits', ja: 'エスクローと預かり金' } },
+      { src: securaKostShotMediasi, caption: { id: 'Mediasi konflik', en: 'Conflict mediation', ja: 'トラブル調停' } },
+    ],
     techStack: [
       { name: 'Vue.js', icon: vueIcon },
       { name: 'Tailwind CSS', icon: tailwindIcon },
@@ -1147,7 +1214,16 @@ const projects = [
         'よくある質問、注文方法、プライバシーポリシー、利用規約、お問い合わせといった補足情報ページを作成。',
       ],
     },
-    thumb: securaKostThumb,
+    thumb: tokoKelontongThumb,
+    shots: [
+      { src: tokoKelontongThumb, caption: { id: 'Beranda dengan promo & kategori', en: 'Home with promos & categories', ja: 'プロモーションとカテゴリーのあるホーム' } },
+      { src: tokoKelontongShotProduk, caption: { id: 'Katalog produk terlaris', en: 'Best-selling product catalog', ja: '売れ筋商品のカタログ' } },
+      { src: tokoKelontongShotCaraPesan, caption: { id: 'Cara pemesanan', en: 'How to order', ja: '注文方法' } },
+      { src: tokoKelontongShotFaq, caption: { id: 'FAQ', en: 'FAQ', ja: 'よくある質問' } },
+      { src: tokoKelontongShotRiwayat, caption: { id: 'Riwayat pesanan', en: 'Order history', ja: '注文履歴' } },
+      { src: tokoKelontongShotTentang, caption: { id: 'Tentang kami', en: 'About us', ja: '会社概要' } },
+      { src: tokoKelontongShotKontak, caption: { id: 'Hubungi kami', en: 'Contact us', ja: 'お問い合わせ' } },
+    ],
     techStack: [
       { name: 'Vue.js', icon: vueIcon },
       { name: 'Tailwind CSS', icon: tailwindIcon },
@@ -1285,6 +1361,12 @@ const projects = [
       ],
     },
     thumb: kindleCoffeeThumb,
+    shots: [
+      { src: kindleCoffeeThumb, caption: { id: 'Beranda', en: 'Home', ja: 'ホーム' } },
+      { src: kindleCoffeeShotCaraPesan, caption: { id: 'Cara pesan & lokasi kedai', en: 'How to order & shop location', ja: '注文方法と店舗の場所' } },
+      { src: kindleCoffeeShotMenu, caption: { id: 'Menu dengan filter kategori', en: 'Menu with category filters', ja: 'カテゴリーフィルター付きのメニュー' } },
+      { src: kindleCoffeeShotTentang, caption: { id: 'Tentang Kindle Coffee', en: 'About Kindle Coffee', ja: 'Kindle Coffeeについて' } },
+    ],
     techStack: [
       { name: 'Vue.js', icon: vueIcon },
       { name: 'Tailwind CSS', icon: tailwindIcon },

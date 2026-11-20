@@ -151,17 +151,17 @@ const PROJECT_TEXT = {
   },
   'Secura Kost': {
     summary:
-      '下宿（kost）マーケットプレイスのプロトタイプ（Vue.js・Tailwind CSS）です。360°バーチャルツアー、入居者とオーナーの2種類のロールに対応した認証、動的なランディングページを備えています。',
-    tags: ['Vue.js', 'Tailwind CSS'],
+      '下宿（kost）マーケットプレイスのプロトタイプ（React・React Router）です。360°バーチャルツアー、入居者とオーナーの2種類のロールに対応した認証、動的なランディングページを備えています。',
+    tags: ['React', 'React Router'],
   },
   'Toko Kelontong Online': {
     summary:
-      'ECサイトのプロトタイプ（Vue.js・Pinia・Tailwind CSS）です。動的な商品カタログ、カテゴリーフィルター、リアクティブなショッピングカート、一連の注文フローを実装しています。',
-    tags: ['Vue.js', 'Tailwind CSS'],
+      'ECサイトのプロトタイプ（Vue.js・Pinia・Vue Router）です。動的な商品カタログ、カテゴリーフィルター、リアクティブなショッピングカート、一連の注文フローを実装しています。',
+    tags: ['Vue.js', 'Pinia'],
   },
   'Kindle Coffee': {
     summary:
-      'コーヒーショップ「Kindle Coffee」のフロントエンドのプロトタイプ（Vue.js・Pinia・Tailwind CSS）です。インタラクティブな座席選択、Midtrans決済のシミュレーション、PDFでのレシート出力に対応しています。',
+      'コーヒーショップ「Kindle Coffee」のフロントエンドのプロトタイプ（Vue.js・Pinia・Vue Router）です。インタラクティブな座席選択、Midtrans決済のシミュレーション、PDFでのレシート出力に対応しています。',
   },
 }
 
