@@ -7,8 +7,7 @@ export const LOCALES = { id: 'id-ID', en: 'en-US', ja: 'ja-JP' }
 
 function initialLang() {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (LANGS.includes(saved)) return saved
+    localStorage.removeItem(STORAGE_KEY)
   } catch {
   }
   return 'en'
@@ -21,10 +20,6 @@ export function setLang(value) {
   if (!LANGS.includes(value) || value === lang.value) return
   lang.value = value
   document.documentElement.lang = value
-  try {
-    localStorage.setItem(STORAGE_KEY, value)
-  } catch {
-  }
 }
 
 export function t(pair) {
