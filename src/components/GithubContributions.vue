@@ -6,7 +6,8 @@ import { lang, t, LOCALES } from '@/composables/useLang'
 const GithubSkyline = defineAsyncComponent(() => import('./GithubSkyline.vue'))
 
 const USERNAME = 'joseparhusip'
-const API_URL = `https://github-contributions-api.jogruber.de/v4/${USERNAME}`
+const API_URL = '/api/github-contributions'
+const FALLBACK_URL = `https://github-contributions-api.jogruber.de/v4/${USERNAME}`
 const PROFILE_URL = `https://github.com/${USERNAME}`
 const FIRST_YEAR = 2024
 
@@ -36,6 +37,22 @@ const status = ref('loading')
 const cache = new Map()
 const data = ref(null)
 
+async function fetchJson(url) {
+  const res = await fetch(url)
+  if (!res.ok || !res.headers.get('content-type')?.includes('application/json')) throw new Error(url)
+  const json = await res.json()
+  if (!Array.isArray(json.contributions) || !json.contributions.length) throw new Error(url)
+  return json
+}
+
+async function fetchContributions(key) {
+  try {
+    return await fetchJson(`${API_URL}?y=${key}`)
+  } catch {
+    return fetchJson(`${FALLBACK_URL}?y=${key}`)
+  }
+}
+
 async function load(key) {
   activeRange.value = key
 
@@ -47,9 +64,7 @@ async function load(key) {
 
   status.value = 'loading'
   try {
-    const res = await fetch(`${API_URL}?y=${key}`)
-    if (!res.ok) throw new Error('Gagal memuat kontribusi')
-    const json = await res.json()
+    const json = await fetchContributions(key)
     const result = {
       total: Object.values(json.total)[0] ?? 0,
       days: json.contributions,
