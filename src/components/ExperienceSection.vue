@@ -8,15 +8,52 @@ import jecLogo from './icons-experience/jec.svg'
 import posLogo from './icons-experience/pos.svg'
 import p2mwLogo from './icons-experience/p2mw.svg'
 import himabigLogo from './icons-experience/himabig.svg'
+import goIcon from './icons/icons-about/Go-logo.svg'
+import flutterIcon from './icons/icons-about/Flutter-mark.svg'
+import dartIcon from './icons/icons-about/Dart-logo.svg'
+import figmaIcon from './icons/icons-about/Figma-logo.svg'
+import swaggerIcon from './icons/icons-about/Swagger-logo.svg'
+import ginIcon from './icons/icons-stack/gin.svg'
+import gormIcon from './icons/icons-stack/gorm.svg'
+import postgresIcon from './icons/icons-stack/postgresql.svg'
+import jwtIcon from './icons/icons-stack/jwt.svg'
+import fhirIcon from './icons/icons-stack/fhir.svg'
+import apiIcon from './icons/icons-stack/api.svg'
+import nodeIcon from './icons/icons-about/Nodejs-mark.svg'
+import expressIcon from './icons/icons-about/Express-logo.svg'
+import postmanIcon from './icons/icons-about/Postman-logo.svg'
+import prismaIcon from './icons/icons-stack/prisma.svg'
+
+const TAG_ICONS = {
+  Go: goIcon,
+  Gin: ginIcon,
+  GORM: gormIcon,
+  PostgreSQL: postgresIcon,
+  JWT: jwtIcon,
+  FHIR: fhirIcon,
+  Swagger: swaggerIcon,
+  Flutter: flutterIcon,
+  Dart: dartIcon,
+  Figma: figmaIcon,
+  'REST API': apiIcon,
+  'Node.js': nodeIcon,
+  Express: expressIcon,
+  Prisma: prismaIcon,
+  Postman: postmanIcon,
+}
+
+function tagIcon(tag) {
+  return typeof tag === 'string' ? TAG_ICONS[tag] : null
+}
 
 const experiences = [
   {
     period: { id: 'Oktober 2026 — Sekarang', en: 'Oct 2026 – Present', ja: '2026年10月〜現在' },
-    role: 'Back End Developer',
+    role: 'Full Stack Developer',
     company: {
-      id: 'Freelance — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
-      en: 'Freelance — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
-      ja: 'フリーランス — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
+      id: 'Kontrak — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
+      en: 'Contract — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
+      ja: '契約 — PT Sistem Pelayanan Kesehatan dan Data (SPKD)',
     },
     short: 'SPKD',
     logo: spkdLogo,
@@ -108,29 +145,28 @@ const experiences = [
     logo: posLogo,
     desc: {
       id: [
-        'Mengembangkan backend web application IHSAN POS untuk mendukung pengelolaan data tenaga kerja profesional PT Pos Indonesia, dari perancangan arsitektur sistem hingga implementasi API.',
-        'Merancang ERD dan membangun database menggunakan PostgreSQL yang aman dan terstruktur, termasuk konfigurasi environment untuk keamanan dan fleksibilitas sistem.',
-        'Menguji dan memvalidasi seluruh endpoint API menggunakan Postman untuk memastikan proses request/response dan integrasi backend-frontend berjalan sesuai kebutuhan.',
+        'Mengembangkan modul TKPP (kontrak kerja tenaga kerja profesional) pada backend web application IHSAN POS PT Pos Indonesia, dari perancangan data hingga implementasi API.',
+        'Membangun REST API kontrak kerja dengan Node.js, Express, dan Prisma: lihat kontrak per NIPPOS, buat, ubah, dan hapus kontrak, lengkap dengan validasi data dan tanggal kontrak.',
+        'Merancang tabel kontrak kerja di PostgreSQL yang terhubung ke data karyawan melalui NIPPOS, termasuk konfigurasi environment untuk keamanan sistem.',
+        'Menguji dan memvalidasi endpoint API TKPP menggunakan Postman untuk memastikan proses request/response dan integrasi backend-frontend berjalan sesuai kebutuhan.',
         'Berkoordinasi dengan tim pengembang, serta menyelesaikan pengembangan tepat waktu sesuai standar keamanan dan skalabilitas; hasil proyek dipublikasikan di Jurnal JUISI (Sinta 5).',
       ],
       en: [
-        'Developed the backend of the IHSAN POS web application to support management of PT Pos Indonesia\'s professional workforce data, from system architecture design to API implementation.',
-        'Designed the ERD and built a secure, well-structured PostgreSQL database, including environment configuration for system security and flexibility.',
-        'Tested and validated all API endpoints with Postman to ensure request/response handling and backend-frontend integration met requirements.',
+        'Developed the TKPP module (professional workforce employment contracts) in the backend of PT Pos Indonesia\'s IHSAN POS web application, from data design to API implementation.',
+        'Built the employment contract REST API with Node.js, Express, and Prisma: view contracts by NIPPOS, and create, update, and delete contracts, with data and contract date validation.',
+        'Designed the employment contract table in PostgreSQL, linked to employee data through NIPPOS, including environment configuration for system security.',
+        'Tested and validated the TKPP API endpoints with Postman to ensure request/response handling and backend-frontend integration met requirements.',
         'Coordinated with the development team and delivered on schedule in line with security and scalability standards; the project was published in the JUISI journal (Sinta 5).',
       ],
       ja: [
-        'PT Pos Indonesiaの専門職人材データの管理を支えるWebアプリケーション「IHSAN POS」のバックエンドを、システムアーキテクチャの設計からAPIの実装まで担当。',
-        'ERDを設計し、PostgreSQLで安全かつ体系的なデータベースを構築。システムの安全性と柔軟性を高めるための環境設定も実施。',
-        'Postmanで全APIエンドポイントをテスト・検証し、リクエスト／レスポンスの処理とバックエンド・フロントエンド間の連携が要件どおりに動作することを確認。',
+        'PT Pos IndonesiaのWebアプリケーション「IHSAN POS」のバックエンドで、TKPPモジュール（専門職人材の雇用契約）をデータ設計からAPIの実装まで担当。',
+        'Node.js、Express、Prismaで雇用契約のREST APIを構築。NIPPOS（社員番号）ごとの契約参照、契約の作成・更新・削除を実装し、データと契約期間のバリデーションも追加。',
+        '社員データとNIPPOSで紐づく雇用契約テーブルをPostgreSQLで設計し、システムの安全性を高めるための環境設定も実施。',
+        'PostmanでTKPPのAPIエンドポイントをテスト・検証し、リクエスト／レスポンスの処理とバックエンド・フロントエンド間の連携が要件どおりに動作することを確認。',
         '開発チームと連携し、セキュリティとスケーラビリティの基準を満たしたうえで期限内に開発を完了。成果は学術誌JUISI（Sinta 5）に掲載。',
       ],
     },
-    tags: [
-      { id: 'Backend', en: 'Backend', ja: 'バックエンド' },
-      'REST API',
-      { id: 'Database', en: 'Database', ja: 'データベース' },
-    ],
+    tags: ['Node.js', 'Express', 'Prisma', 'PostgreSQL', 'REST API', 'Postman'],
   },
   {
     period: { id: 'Mei 2023 — April 2024', en: 'May 2023 – Apr 2024', ja: '2023年5月〜2024年4月' },
@@ -476,7 +512,18 @@ const logoStyle = (item) =>
 
               <div class="experience__card-bottom">
                 <ul class="experience__tags" :aria-label="t({ id: 'Teknologi', en: 'Technologies', ja: '使用技術' })">
-                  <li v-for="tag in active.tags" :key="t(tag)" class="experience__tag">{{ t(tag) }}</li>
+                  <li v-for="tag in active.tags" :key="t(tag)" class="experience__tag">
+                    <img
+                      v-if="tagIcon(tag)"
+                      :src="tagIcon(tag)"
+                      alt=""
+                      width="18"
+                      height="18"
+                      class="experience__tag-icon"
+                      draggable="false"
+                    />
+                    {{ t(tag) }}
+                  </li>
                 </ul>
 
                 <button
@@ -917,14 +964,27 @@ const logoStyle = (item) =>
 }
 
 .experience__tag {
-  padding: 0.28rem 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 34px;
+  padding: 0 0.75rem;
   border: 1px solid var(--color-rule);
-  border-radius: 4px;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  border-radius: 999px;
+  background: var(--btn-ghost-face), var(--color-surface);
+  font-size: 0.82rem;
+  font-weight: 600;
   color: var(--color-text);
+  box-shadow:
+    inset 0 1px 0 var(--btn-highlight),
+    0 2px 0 var(--btn-ghost-edge);
+}
+
+.experience__tag-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  user-select: none;
 }
 
 .experience__more {

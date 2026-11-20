@@ -10,7 +10,7 @@ const IMAGE = {
 
 export const ABOUT_HTML = [
   '<p>Meet <strong>Jose Elio Parhusip, S.Bns.</strong></p>',
-  '<p>He holds a Bachelor of Digital Business from Universitas Logistik dan Bisnis Internasional (ULBI), Bandung. He currently works as a freelance Back End Developer for PT Sistem Pelayanan Kesehatan dan Data (SPKD), building the MedCredix backend with Go.</p>',
+  '<p>He holds a Bachelor of Digital Business from Universitas Logistik dan Bisnis Internasional (ULBI), Bandung. He currently works as a contract Full Stack Developer for PT Sistem Pelayanan Kesehatan dan Data (SPKD), building the MedCredix backend with Go.</p>',
   '<p>He has a strong interest in web, mobile, data, and AI. He builds end-to-end applications with React.js, Vue.js, Node.js, PHP, MySQL, and PostgreSQL, from system modeling (UML, ERD, Flowchart) and e-commerce systems with Midtrans and RajaOngkir integrations to data visualization with Python and Streamlit. On mobile, he develops apps with Flutter and Dart. He also holds an SAP certificate.</p>',
   '<ul class="chat-widget__highlight-list">',
   '<li><strong>Full-stack and mobile:</strong> builds applications end to end, from frontend and backend to database, for both web and mobile with Flutter.</li>',
@@ -47,8 +47,8 @@ export const OFFTOPIC_HTML =
 export const EXPERIENCES = [
   {
     period: 'Oct 2026 – Present',
-    role: 'Back End Developer',
-    company: 'Freelance for PT Sistem Pelayanan Kesehatan dan Data (SPKD), South Jakarta',
+    role: 'Full Stack Developer',
+    company: 'Contract with PT Sistem Pelayanan Kesehatan dan Data (SPKD), South Jakarta',
     summary:
       'Develops the backend for MedCredix, a multi-hospital platform that automatically assesses hospital credentialing readiness from hospital operational data. Builds 44 REST API endpoints with Go (Gin), GORM, and PostgreSQL; JWT authentication and role-based access control; a hospital readiness scoring engine for the executive dashboard, risk register, and early warnings; the medical staff credentialing and document verification workflow; SIMRS integration through 24 FHIR resources; a hospital directory from the Ministry of Health (Kemenkes) registry, Indonesian region data, and BPJS facility code validation; plus audit trails and reports.',
     tags: ['Go', 'Gin', 'PostgreSQL'],
@@ -112,11 +112,11 @@ export function buildExperienceListHtml() {
 const PROJECT_TEXT = {
   MedCredix: {
     summary:
-      'Freelance project for PT SPKD: the backend of a multi-hospital credentialing readiness platform (Go, Gin, PostgreSQL) with a hospital readiness scoring engine, JWT and RBAC security, a medical staff credentialing workflow, and SIMRS integration through FHIR.',
+      'Contract project for PT SPKD: the backend of a multi-hospital credentialing readiness platform (Go, Gin, PostgreSQL) with a hospital readiness scoring engine, JWT and RBAC security, a medical staff credentialing workflow, and SIMRS integration through FHIR.',
   },
   'SIMRS Dashboard': {
     summary:
-      "Freelance project for PT SPKD: the frontend of a hospital information system (Next.js, React, TypeScript), covering registration, outpatient care, emergency, inpatient admission from a doctor's SPRI, through to pharmacy and billing.",
+      "Contract project for PT SPKD: the frontend of a hospital information system (Next.js, React, TypeScript), covering registration, outpatient care, emergency, inpatient admission from a doctor's SPRI, through to pharmacy and billing.",
   },
   'Dashboard KOL': {
     summary:
@@ -458,7 +458,7 @@ export const NO_RX =
   /^(?:no+|nope|nah|not\s+(?:now|really|yet|today|necessary|needed)|no\s+need|not\s+interested|i\s+am\s+(?:good|fine|ok|okay)|skip|maybe\s+later|later|never\s*mind|nevermind|that\s+is\s+(?:all|enough|fine|ok)|all\s+good|i\s+will\s+pass|pass)(?:\s+(?:thanks|thank\s+you|please|for\s+now|right\s+now|then|sorry|jose|i\s+am\s+good|maybe\s+later))*[\s!.~]*$/i
 
 export const ABOUT_SHORT_HTML =
-  '<p>In short, <strong>Jose Elio Parhusip</strong> is a Digital Business graduate from ULBI Bandung who now works as a Back End Developer at PT SPKD. He enjoys building web and mobile apps as well as data dashboards.</p>'
+  '<p>In short, <strong>Jose Elio Parhusip</strong> is a Digital Business graduate from ULBI Bandung who now works as a Full Stack Developer at PT SPKD. He enjoys building web and mobile apps as well as data dashboards.</p>'
 
 const TECHS = [
   { name: 'Flutter', rx: /\bflutter/ },

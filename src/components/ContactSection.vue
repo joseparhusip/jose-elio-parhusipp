@@ -85,7 +85,7 @@ onBeforeUnmount(() => clearInterval(clockTimer))
 
 const facts = [
   { label: { id: 'Basis', en: 'Based in', ja: '所在地' }, value: { id: 'Bekasi, Jawa Barat', en: 'Bekasi, West Java', ja: 'インドネシア・西ジャワ州ブカシ' } },
-  { label: { id: 'Saat ini', en: 'Currently', ja: '現在' }, value: 'Back End Developer · SPKD' },
+  { label: { id: 'Saat ini', en: 'Currently', ja: '現在' }, value: 'Full Stack Developer · SPKD' },
   { label: { id: 'Bahasa', en: 'Languages', ja: '言語' }, value: { id: 'Indonesia · Inggris', en: 'Indonesian · English', ja: 'インドネシア語・英語' } },
 ]
 

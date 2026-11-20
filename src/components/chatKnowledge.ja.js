@@ -29,7 +29,7 @@ export function extractEmail(rawText) {
 
 export const ABOUT_HTML = [
   '<p><strong>Jose Elio Parhusip, S.Bns.</strong>をご紹介します。</p>',
-  '<p>バンドンにあるUniversitas Logistik dan Bisnis Internasional（ULBI）でデジタルビジネスの学士号を取得しました。現在はフリーランスのBack End DeveloperとしてPT Sistem Pelayanan Kesehatan dan Data（SPKD）の開発に携わり、GoでMedCredixのバックエンドを構築しています。</p>',
+  '<p>バンドンにあるUniversitas Logistik dan Bisnis Internasional（ULBI）でデジタルビジネスの学士号を取得しました。現在は契約のFull Stack DeveloperとしてPT Sistem Pelayanan Kesehatan dan Data（SPKD）の開発に携わり、GoでMedCredixのバックエンドを構築しています。</p>',
   '<p>Web・モバイル・データ・AIの分野に強い関心を持っています。React.js、Vue.js、Node.js、PHP、MySQL、PostgreSQLを使ったアプリケーションを一貫して開発でき、システムモデリング（UML・ERD・フローチャート）から、MidtransやRajaOngkirと連携したECシステム、PythonとStreamlitによるデータ可視化まで手がけてきました。モバイルではFlutterとDartでアプリを開発しています。SAPの認定資格も取得しています。</p>',
   '<ul class="chat-widget__highlight-list">',
   '<li><strong>フルスタック・モバイル：</strong>フロントエンドからバックエンド、データベースまで、WebアプリとFlutterによるモバイルアプリの両方を一貫して開発できます。</li>',
@@ -66,8 +66,8 @@ export const OFFTOPIC_HTML =
 export const EXPERIENCES = [
   {
     period: '2026年10月〜現在',
-    role: 'Back End Developer',
-    company: 'PT Sistem Pelayanan Kesehatan dan Data（SPKD）、南ジャカルタ（フリーランス）',
+    role: 'Full Stack Developer',
+    company: 'PT Sistem Pelayanan Kesehatan dan Data（SPKD）、南ジャカルタ（契約）',
     summary:
       '病院の運営データをもとに、クレデンシャリング（医療従事者の資格認証）への準備状況を自動で評価する複数病院向けプラットフォーム「MedCredix」のバックエンドを開発しています。Go（Gin）・GORM・PostgreSQLで44本のREST APIエンドポイントを構築したほか、JWT認証とロールベースのアクセス制御、経営ダッシュボード・リスク登録簿・早期警告のための病院準備度スコアリングエンジン、医療スタッフの資格審査と書類確認のワークフロー、24種類のFHIRリソースによるSIMRS連携、保健省（Kemenkes）の登録データに基づく病院ディレクトリ、インドネシアの地域データ、BPJSの医療機関コード検証、監査ログとレポート機能を実装しました。',
     tags: ['Go', 'Gin', 'PostgreSQL'],
@@ -131,11 +131,11 @@ export function buildExperienceListHtml() {
 const PROJECT_TEXT = {
   MedCredix: {
     summary:
-      'PT SPKDのフリーランス案件です。複数の病院を対象としたクレデンシャリング準備状況プラットフォームのバックエンド（Go・Gin・PostgreSQL）で、病院の準備度スコアリングエンジン、JWTとRBACによるセキュリティ、医療スタッフの資格審査ワークフロー、FHIRを介したSIMRS連携を備えています。',
+      'PT SPKDとの契約案件です。複数の病院を対象としたクレデンシャリング準備状況プラットフォームのバックエンド（Go・Gin・PostgreSQL）で、病院の準備度スコアリングエンジン、JWTとRBACによるセキュリティ、医療スタッフの資格審査ワークフロー、FHIRを介したSIMRS連携を備えています。',
   },
   'SIMRS Dashboard': {
     summary:
-      'PT SPKDのフリーランス案件です。病院情報システムのフロントエンド（Next.js・React・TypeScript）で、受付、外来、救急、医師の入院指示（SPRI）に基づく入院手続きから、薬局、会計までをカバーしています。',
+      'PT SPKDとの契約案件です。病院情報システムのフロントエンド（Next.js・React・TypeScript）で、受付、外来、救急、医師の入院指示（SPRI）に基づく入院手続きから、薬局、会計までをカバーしています。',
   },
   'Dashboard KOL': {
     summary:
@@ -485,7 +485,7 @@ export const NO_RX = new RegExp(
 )
 
 export const ABOUT_SHORT_HTML =
-  '<p>簡単にご紹介すると、<strong>Jose Elio Parhusip</strong>はULBI（バンドン）でデジタルビジネスを学んだ卒業生で、現在はフリーランスのBack End DeveloperとしてPT SPKDの開発に携わっています。Webアプリやモバイルアプリ、データダッシュボードの開発を得意としています。</p>'
+  '<p>簡単にご紹介すると、<strong>Jose Elio Parhusip</strong>はULBI（バンドン）でデジタルビジネスを学んだ卒業生で、現在は契約のFull Stack DeveloperとしてPT SPKDの開発に携わっています。Webアプリやモバイルアプリ、データダッシュボードの開発を得意としています。</p>'
 
 const TECHS = [
   { name: 'Flutter', rx: /flutter|フラッター/ },

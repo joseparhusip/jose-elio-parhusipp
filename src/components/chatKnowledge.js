@@ -17,7 +17,7 @@ export const PROFILE = {
 
 export const ABOUT_HTML = [
   '<p>Kenalin, ini <strong>Jose Elio Parhusip, S.Bns.</strong>!</p>',
-  '<p>Lulusan S1 Bisnis Digital dari Universitas Logistik dan Bisnis Internasional (ULBI), Bandung. Saat ini bekerja sebagai <em>Back End Developer</em> (<em>freelance</em>) untuk PT Sistem Pelayanan Kesehatan dan Data (SPKD), membangun <em>backend</em> MedCredix dengan Go.</p>',
+  '<p>Lulusan S1 Bisnis Digital dari Universitas Logistik dan Bisnis Internasional (ULBI), Bandung. Saat ini bekerja sebagai <em>Full Stack Developer</em> (kontrak) untuk PT Sistem Pelayanan Kesehatan dan Data (SPKD), membangun <em>backend</em> MedCredix dengan Go.</p>',
   '<p>Punya minat besar di web, mobile, data, dan AI. Terbiasa membangun aplikasi <em>end-to-end</em> dengan React.js, Vue.js, Node.js, PHP, MySQL, dan PostgreSQL, mulai dari pemodelan sistem (UML, ERD, Flowchart), sistem <em>e-commerce</em> dengan integrasi Midtrans dan RajaOngkir, sampai visualisasi data dengan Python dan Streamlit. Di sisi mobile, mengembangkan aplikasi dengan Flutter dan Dart. Bersertifikasi SAP.</p>',
   '<ul class="chat-widget__highlight-list">',
   '<li><strong><em>Full-stack</em> dan mobile:</strong> terbiasa membangun aplikasi <em>end-to-end</em>, dari <em>frontend</em>, <em>backend</em>, sampai basis data, untuk web maupun mobile dengan Flutter.</li>',
@@ -54,8 +54,8 @@ export const OFFTOPIC_HTML =
 export const EXPERIENCES = [
   {
     period: 'Oktober 2026 sampai sekarang',
-    role: '<em>Back End Developer</em>',
-    company: 'Freelance untuk PT Sistem Pelayanan Kesehatan dan Data (SPKD), Jakarta Selatan',
+    role: '<em>Full Stack Developer</em>',
+    company: 'Kontrak dengan PT Sistem Pelayanan Kesehatan dan Data (SPKD), Jakarta Selatan',
     summary:
       'Mengerjakan <em>backend</em> MedCredix, platform multi-rumah sakit untuk menilai kesiapan kredensial RS secara otomatis dari data operasional RS. Membangun 44 <em>endpoint</em> REST API dengan Go (Gin), GORM, dan PostgreSQL; login JWT dan hak akses per peran; mesin skoring kesiapan RS untuk dashboard, risiko, dan peringatan dini; alur verifikasi kredensial dan dokumen tenaga medis; integrasi SIMRS lewat 24 <em>resource</em> FHIR; direktori RS Kemenkes, data wilayah, validasi kode faskes BPJS; serta <em>audit trail</em> dan laporan.',
     tags: ['Go', 'Gin', 'PostgreSQL'],
@@ -120,7 +120,7 @@ export const PROJECTS = [
   {
     title: 'MedCredix',
     summary:
-      'Proyek <em>freelance</em> untuk PT SPKD: <em>backend</em> platform kesiapan kredensial multi-rumah sakit (Go, Gin, PostgreSQL) dengan mesin skoring kesiapan RS, keamanan JWT dan RBAC, alur kredensial tenaga medis, serta integrasi SIMRS lewat FHIR.',
+      'Proyek kontrak untuk PT SPKD: <em>backend</em> platform kesiapan kredensial multi-rumah sakit (Go, Gin, PostgreSQL) dengan mesin skoring kesiapan RS, keamanan JWT dan RBAC, alur kredensial tenaga medis, serta integrasi SIMRS lewat FHIR.',
     image: medcredixThumb,
     tags: ['Go', 'PostgreSQL', 'Docker'],
     internal: true,
@@ -128,7 +128,7 @@ export const PROJECTS = [
   {
     title: 'SIMRS Dashboard',
     summary:
-      'Proyek <em>freelance</em> untuk PT SPKD: <em>frontend</em> sistem informasi rumah sakit (Next.js, React, TypeScript) mulai dari registrasi, rawat jalan, IGD, rawat inap dari SPRI dokter, sampai farmasi dan kasir.',
+      'Proyek kontrak untuk PT SPKD: <em>frontend</em> sistem informasi rumah sakit (Next.js, React, TypeScript) mulai dari registrasi, rawat jalan, IGD, rawat inap dari SPRI dokter, sampai farmasi dan kasir.',
     image: simrsThumb,
     tags: ['Next.js', 'React', 'TypeScript'],
     internal: true,
@@ -472,7 +472,7 @@ export const NO_RX =
   /^(?:tidak|no|nope|skip|nanti|ntar|gausah|ga usah|gak usah|udah|cukup|engga|nggak|gak|ga|belum)(?:\s+(?:dulu|deh|aja|saja|kak|usah|perlu|makasih|mau|cukup))*[\s!.~]*$/i
 
 export const ABOUT_SHORT_HTML =
-  '<p>Singkatnya, <strong>Jose Elio Parhusip</strong> itu lulusan S1 Bisnis Digital ULBI Bandung yang sekarang kerja sebagai <em>Back End Developer</em> di PT SPKD. Dia senang bikin aplikasi web, mobile, sampai dasbor data.</p>'
+  '<p>Singkatnya, <strong>Jose Elio Parhusip</strong> itu lulusan S1 Bisnis Digital ULBI Bandung yang sekarang kerja sebagai <em>Full Stack Developer</em> di PT SPKD. Dia senang bikin aplikasi web, mobile, sampai dasbor data.</p>'
 
 const TECHS = [
   { name: 'Flutter', rx: /\bflutter/ },

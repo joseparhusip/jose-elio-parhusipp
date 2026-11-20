@@ -404,7 +404,7 @@ function drawBack(canvas) {
     rule(sub ? y + 37 : y + 25)
   }
 
-  section(52, t({ id: 'SEKARANG', en: 'NOW', ja: '現在' }), 'Back End Developer', 'PT SPKD · FREELANCE')
+  section(52, t({ id: 'SEKARANG', en: 'NOW', ja: '現在' }), 'Full Stack Developer', 'PT SPKD · CONTRACT')
   section(
     102,
     t({ id: 'PENDIDIKAN', en: 'EDUCATION', ja: '学歴' }),

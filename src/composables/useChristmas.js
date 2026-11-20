@@ -17,9 +17,9 @@ function initialState() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')
     if (saved && saved.season === season) return Boolean(saved.on)
   } catch {
-    return season !== null
+    return false
   }
-  return season !== null
+  return false
 }
 
 export const christmas = ref(initialState())

@@ -11,14 +11,6 @@ function initialLang() {
     if (LANGS.includes(saved)) return saved
   } catch {
   }
-  if (typeof navigator === 'undefined') return 'id'
-  const isBot = navigator.webdriver || /bot|crawl|spider|slurp|lighthouse/i.test(navigator.userAgent)
-  const prefs = navigator.languages?.length ? navigator.languages : [navigator.language || 'id']
-  if (isBot) return 'id'
-  for (const code of prefs) {
-    if (/^(id|ms)\b/i.test(code)) return 'id'
-    if (/^ja\b/i.test(code)) return 'ja'
-  }
   return 'en'
 }
 

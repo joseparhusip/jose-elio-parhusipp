@@ -649,9 +649,9 @@ async function answerConversation(intent, body) {
     const now = kb.value.EXPERIENCES[0]
     await botSay(
       en
-        ? `Jose currently works as a freelance ${now.role} for PT Sistem Pelayanan Kesehatan dan Data (SPKD) in South Jakarta. There, he builds the MedCredix backend with Go, Gin, and PostgreSQL.`
+        ? `Jose currently works as a contract ${now.role} for PT Sistem Pelayanan Kesehatan dan Data (SPKD) in South Jakarta. There, he builds the MedCredix backend with Go, Gin, and PostgreSQL.`
         : ja
-          ? `Joseは現在、南ジャカルタのPT Sistem Pelayanan Kesehatan dan Data（SPKD）で、フリーランスの${now.role}として働いています。MedCredixのバックエンドをGo・Gin・PostgreSQLで開発しています。`
+          ? `Joseは現在、南ジャカルタのPT Sistem Pelayanan Kesehatan dan Data（SPKD）で、契約の${now.role}として働いています。MedCredixのバックエンドをGo・Gin・PostgreSQLで開発しています。`
           : `Sekarang Jose kerja sebagai ${now.role}, ${now.company.charAt(0).toLowerCase()}${now.company.slice(1)}. Di sana dia ngerjain <em>backend</em> MedCredix pakai Go, Gin, dan PostgreSQL.`,
       550,
     )
@@ -661,9 +661,9 @@ async function answerConversation(intent, body) {
   if (intent.type === 'location') {
     await botSay(
       t({
-        id: 'Jose berbasis di Bekasi, Jawa Barat. Klien freelance-nya sekarang ada di Jakarta Selatan.',
-        en: 'Jose is based in Bekasi, West Java. His current freelance client is in South Jakarta.',
-        ja: 'Joseはインドネシア・西ジャワ州のブカシを拠点にしています。現在のフリーランスのクライアントは南ジャカルタにあります。',
+        id: 'Jose berbasis di Bekasi, Jawa Barat. Tempat kerjanya sekarang (kontrak) ada di Jakarta Selatan.',
+        en: 'Jose is based in Bekasi, West Java. His current contract workplace is in South Jakarta.',
+        ja: 'Joseはインドネシア・西ジャワ州のブカシを拠点にしています。現在の契約先は南ジャカルタにあります。',
       }),
       500,
     )
@@ -1254,9 +1254,9 @@ async function answerPendingOffer(text) {
     )
     await botSay(
       t({
-        id: 'MedCredix dan SIMRS Dashboard itu proyek freelance untuk klien (PT SPKD), jadi demo dan kodenya nggak dipublikasikan.',
-        en: 'MedCredix and SIMRS Dashboard are freelance projects for a client (PT SPKD), so their demos and code are not public.',
-        ja: 'MedCredixとSIMRS Dashboardはクライアント（PT SPKD）向けのフリーランス案件のため、デモとコードは公開していません。',
+        id: 'MedCredix dan SIMRS Dashboard itu proyek kontrak untuk PT SPKD, jadi demo dan kodenya nggak dipublikasikan.',
+        en: 'MedCredix and SIMRS Dashboard are contract projects for PT SPKD, so their demos and code are not public.',
+        ja: 'MedCredixとSIMRS DashboardはPT SPKDとの契約で開発した案件のため、デモとコードは公開していません。',
       }),
       450,
     )
