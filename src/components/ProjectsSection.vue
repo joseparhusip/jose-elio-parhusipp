@@ -3121,6 +3121,32 @@ onUnmounted(() => {
   }
 }
 
+@media (max-width: 768px) {
+  .project-lightbox__stage {
+    flex-wrap: wrap;
+    gap: 0.9rem 1rem;
+  }
+
+  .project-lightbox__img {
+    flex: 0 0 auto;
+    order: -1;
+    max-width: 100%;
+  }
+
+  .project-lightbox__stage::before {
+    content: '';
+    order: 0;
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  .project-lightbox__nav {
+    position: static;
+    order: 1;
+    margin-top: 0;
+  }
+}
+
 .project-lightbox__caption span {
   font-family: var(--font-mono);
   font-size: 0.68rem;
