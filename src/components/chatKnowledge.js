@@ -1,4 +1,4 @@
-import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.webp'
+import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-overview.webp'
 import mobileJecThumb from './img-proyek/img-jec/IMG-JEC-1.jpeg'
 import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.webp'
 import securaKostThumb from './img-proyek/img-securakost/img-securakost-beranda.webp'

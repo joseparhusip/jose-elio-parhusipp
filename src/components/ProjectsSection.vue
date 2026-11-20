@@ -16,7 +16,11 @@ import reactIcon from './icons/icons-about/React-icon.svg'
 import tailwindIcon from './icons/icons-about/Tailwind_CSS_Logo.svg'
 import vueIcon from './icons/icons-about/Vue.js_Logo_2.svg'
 
-import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-1.webp'
+import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-overview.webp'
+import savvyCreator from './img-proyek/img-bisnis-intelegence/img-savvy-creator.webp'
+import savvyCampaign from './img-proyek/img-bisnis-intelegence/img-savvy-campaign.webp'
+import savvyRisk from './img-proyek/img-bisnis-intelegence/img-savvy-risk.webp'
+import savvyAi from './img-proyek/img-bisnis-intelegence/img-savvy-ai.webp'
 import mobileJecThumb from './img-proyek/img-jec/IMG-JEC-1.jpeg'
 import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.webp'
 import securaKostThumb from './img-proyek/img-securakost/img-securakost-beranda.webp'
@@ -692,6 +696,13 @@ const projects = [
       },
     ],
     thumb: kolThumb,
+    shots: [
+      { src: kolThumb, caption: { id: 'Command Center: ringkasan performa', en: 'Command Center: performance overview', ja: 'コマンドセンター：パフォーマンス概要' } },
+      { src: savvyCreator, caption: { id: 'Creator Intelligence', en: 'Creator Intelligence', ja: 'クリエイター分析' } },
+      { src: savvyCampaign, caption: { id: 'Campaign & Produk Intelligence', en: 'Campaign & Product Intelligence', ja: 'キャンペーン・商品分析' } },
+      { src: savvyRisk, caption: { id: 'Risk & Anomali', en: 'Risk & Anomaly dashboard', ja: 'リスク・異常検知' } },
+      { src: savvyAi, caption: { id: 'AI Insights & Action Plan', en: 'AI Insights & Action Plan', ja: 'AIインサイトとアクションプラン' } },
+    ],
     techStack: [
       { name: 'Python', icon: pythonIcon },
       { name: 'Streamlit', icon: streamlitIcon },
