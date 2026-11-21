@@ -75,6 +75,7 @@ const { theme } = useTheme()
 const emit = defineEmits(['grab'])
 const isNotFound = props.variant === 'notfound'
 const CORNER_HOLE = { x: 24, y: 13 }
+const HOOK_DROP = 14
 const CORNER_DX = CARD_W / 2 - CORNER_HOLE.x
 const CORNER_DY = CARD_H / 2 - CORNER_HOLE.y
 const CORNER_REACH = Math.hypot(CORNER_DX, CORNER_DY)
@@ -94,6 +95,133 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.roundRect(x, y, w, h, r)
 }
 
+function drawGuilloche(ctx, color, x, y, w, h) {
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(x, y, w, h)
+  ctx.clip()
+  ctx.strokeStyle = color
+  ctx.globalAlpha = 0.55
+  ctx.lineWidth = 0.35
+  for (let k = 0; k < 14; k++) {
+    ctx.beginPath()
+    for (let px = x - 4; px <= x + w + 4; px += 1.5) {
+      const t = (px - x) / w
+      const py = y + h * 0.5 + Math.sin(t * Math.PI * 3 + k * 0.45) * h * 0.32 + Math.sin(t * Math.PI * 9 + k) * 2.4 + (k - 7) * 2.2
+      if (px === x - 4) ctx.moveTo(px, py)
+      else ctx.lineTo(px, py)
+    }
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
+function drawMicrotext(ctx, text, x, y, width, color, mono) {
+  ctx.save()
+  ctx.font = `500 2.6px ${mono}`
+  ctx.fillStyle = color
+  ctx.textAlign = 'left'
+  const unit = `${text} · `
+  const step = ctx.measureText(unit).width
+  ctx.beginPath()
+  ctx.rect(x, y - 3, width, 4)
+  ctx.clip()
+  for (let px = x; px < x + width; px += step) ctx.fillText(unit, px, y)
+  ctx.restore()
+}
+
+function drawCropMarks(ctx, x, y, w, h, color) {
+  const len = 9
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.lineWidth = 1.2
+  ctx.lineCap = 'round'
+  const corners = [
+    [x, y, 1, 1],
+    [x + w, y, -1, 1],
+    [x, y + h, 1, -1],
+    [x + w, y + h, -1, -1],
+  ]
+  for (const [cx, cy, dx, dy] of corners) {
+    ctx.beginPath()
+    ctx.moveTo(cx + dx * len, cy)
+    ctx.lineTo(cx, cy)
+    ctx.lineTo(cx, cy + dy * len)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
+function drawHoloSeal(ctx, cx, cy, r) {
+  ctx.save()
+  const ring = ctx.createConicGradient(0.6, cx, cy)
+  ring.addColorStop(0, '#DDE7F2')
+  ring.addColorStop(0.18, '#6CB6FF')
+  ring.addColorStop(0.36, '#E9F4FF')
+  ring.addColorStop(0.52, '#4FD1C5')
+  ring.addColorStop(0.7, '#B8C4D2')
+  ring.addColorStop(0.86, '#1F7FE0')
+  ring.addColorStop(1, '#DDE7F2')
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)'
+  ctx.shadowBlur = 3
+  ctx.shadowOffsetY = 1
+  ctx.beginPath()
+  ctx.arc(cx, cy, r, 0, Math.PI * 2)
+  ctx.fillStyle = ring
+  ctx.fill()
+  ctx.shadowColor = 'transparent'
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)'
+  ctx.lineWidth = 0.4
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2
+    ctx.beginPath()
+    ctx.moveTo(cx + Math.cos(a) * r * 0.55, cy + Math.sin(a) * r * 0.55)
+    ctx.lineTo(cx + Math.cos(a) * r * 0.92, cy + Math.sin(a) * r * 0.92)
+    ctx.stroke()
+  }
+  ctx.beginPath()
+  ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.78)'
+  ctx.fill()
+  ctx.strokeStyle = '#0B3D75'
+  ctx.lineWidth = r * 0.12
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.beginPath()
+  ctx.moveTo(cx - r * 0.22, cy + r * 0.02)
+  ctx.lineTo(cx - r * 0.05, cy + r * 0.18)
+  ctx.lineTo(cx + r * 0.24, cy - r * 0.16)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawBand(ctx, bandY, blue, label, mono) {
+  const band = ctx.createLinearGradient(0, bandY, CARD_W, CARD_H)
+  band.addColorStop(0, blue)
+  band.addColorStop(1, '#0B4E96')
+  ctx.fillStyle = band
+  ctx.fillRect(0, bandY, CARD_W, CARD_H - bandY)
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(0, bandY, CARD_W, CARD_H - bandY)
+  ctx.clip()
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)'
+  ctx.lineWidth = 3
+  for (let x = -40; x < CARD_W + 40; x += 9) {
+    ctx.beginPath()
+    ctx.moveTo(x, CARD_H)
+    ctx.lineTo(x + 26, bandY)
+    ctx.stroke()
+  }
+  ctx.restore()
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'
+  ctx.fillRect(0, bandY, CARD_W, 0.6)
+  ctx.font = `600 6.4px ${mono}`
+  ctx.fillStyle = '#FFFFFF'
+  ctx.textAlign = 'left'
+  ctx.fillText(label, 14, bandY + 16)
+}
+
 function drawCard(canvas, image) {
   const s = TEXTURE_SCALE
   canvas.width = CARD_W * s
@@ -111,22 +239,29 @@ function drawCard(canvas, image) {
   ctx.fillStyle = face
   ctx.fillRect(0, 0, CARD_W, CARD_H)
   ctx.textBaseline = 'alphabetic'
+  drawGuilloche(ctx, line, 0, 236, CARD_W, 88)
 
   ctx.fillStyle = hole
   roundRect(ctx, CARD_W / 2 - 13, 8, 26, 6, 3)
   ctx.fill()
 
   ctx.textAlign = 'left'
-  ctx.font = `italic 400 13px ${serif}`
-  ctx.fillStyle = blue
-  ctx.fillText('JP', pad, 28)
-  ctx.textAlign = 'right'
-  ctx.font = `500 5.8px ${mono}`
+  ctx.font = `700 8.4px ${mono}`
+  ctx.fillStyle = ink
+  ctx.fillText('DEVELOPER PASS', pad, 24)
+  ctx.font = `500 5.2px ${mono}`
   ctx.fillStyle = muted
-  ctx.fillText(`PORTFOLIO · ${new Date().getFullYear()}`, CARD_W - pad, 27)
+  ctx.fillText(`PORTFOLIO · ${new Date().getFullYear()}`, pad, 31.5)
+  ctx.textAlign = 'right'
+  ctx.font = `700 6.6px ${mono}`
+  ctx.fillStyle = blue
+  ctx.fillText('Nº 0726', CARD_W - pad, 24)
+  ctx.font = `500 5.2px ${mono}`
+  ctx.fillStyle = muted
+  ctx.fillText('ALL ACCESS', CARD_W - pad, 31.5)
 
-  const photoY = 35
-  const photoH = 209
+  const photoY = 38
+  const photoH = 198
   ctx.save()
   roundRect(ctx, pad, photoY, innerW, photoH, 5)
   ctx.clip()
@@ -143,7 +278,29 @@ function drawCard(canvas, image) {
     ctx.fillStyle = blue
     ctx.fillText('JP', CARD_W / 2, photoY + photoH / 2 + 21)
   }
+  const shade = ctx.createLinearGradient(0, photoY + photoH - 42, 0, photoY + photoH)
+  shade.addColorStop(0, 'rgba(8, 10, 14, 0)')
+  shade.addColorStop(1, 'rgba(8, 10, 14, 0.55)')
+  ctx.fillStyle = shade
+  ctx.fillRect(pad, photoY + photoH - 42, innerW, 42)
+  ctx.font = `600 5px ${mono}`
+  let tagX = pad + 8
+  for (const tag of ['WEB', 'MOBILE', 'DATA']) {
+    const w = ctx.measureText(tag).width + 8
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.16)'
+    roundRect(ctx, tagX, photoY + photoH - 17, w, 10, 5)
+    ctx.fill()
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)'
+    ctx.lineWidth = 0.5
+    ctx.stroke()
+    ctx.fillStyle = '#FFFFFF'
+    ctx.textAlign = 'left'
+    ctx.fillText(tag, tagX + 4, photoY + photoH - 10.2)
+    tagX += w + 3
+  }
   ctx.restore()
+  drawCropMarks(ctx, pad - 3, photoY - 3, innerW + 6, photoH + 6, blue)
+  drawHoloSeal(ctx, CARD_W - pad - 13, photoY + photoH - 6, 13)
 
   ctx.textAlign = 'left'
   const first = 'Jose Elio '
@@ -159,37 +316,41 @@ function drawCard(canvas, image) {
   const firstWidth = widthOf(firstFont(size), first)
   ctx.font = firstFont(size)
   ctx.fillStyle = ink
-  ctx.fillText(first, pad, 268)
+  ctx.fillText(first, pad, 262)
   ctx.font = lastFont(size)
   ctx.fillStyle = blue
-  ctx.fillText(last, pad + firstWidth, 268)
+  ctx.fillText(last, pad + firstWidth, 262)
 
-  ctx.font = `500 6.4px ${mono}`
-  ctx.fillStyle = muted
-  ctx.fillText('FULL STACK DEVELOPER', pad, 282)
+  ctx.fillStyle = blue
+  ctx.fillRect(pad, 270, 2, 8)
+  ctx.font = `600 6.4px ${mono}`
+  ctx.fillStyle = ink
+  ctx.fillText('FULL STACK DEVELOPER', pad + 6, 276.6)
 
   ctx.strokeStyle = line
   ctx.lineWidth = 0.6
+  ctx.setLineDash([1.5, 1.5])
   ctx.beginPath()
-  ctx.moveTo(pad, 291)
-  ctx.lineTo(CARD_W - pad, 291)
+  ctx.moveTo(pad, 286)
+  ctx.lineTo(CARD_W - pad, 286)
   ctx.stroke()
-  const col2 = pad + innerW * 0.42
-  ctx.font = `500 5.2px ${mono}`
+  ctx.setLineDash([])
+  const col2 = pad + innerW * 0.36
+  const col3 = pad + innerW * 0.8
+  ctx.font = `500 4.8px ${mono}`
   ctx.fillStyle = muted
-  ctx.fillText('BASE', pad, 303)
-  ctx.fillText('WEB', col2, 303)
-  ctx.font = `600 6.6px ${mono}`
+  ctx.fillText('BASE', pad, 297)
+  ctx.fillText('WEB', col2, 297)
+  ctx.fillText('SINCE', col3, 297)
+  ctx.font = `600 6.2px ${mono}`
   ctx.fillStyle = ink
-  ctx.fillText('BEKASI, ID', pad, 314)
-  ctx.fillText('JOSEPARHUSIP.COM', col2, 314)
+  ctx.fillText('BEKASI, ID', pad, 307)
+  ctx.fillText('JOSEPARHUSIP.COM', col2, 307)
+  ctx.fillText('2023', col3, 307)
+  drawMicrotext(ctx, 'JOSE ELIO PARHUSIP', pad, 318, innerW, muted, mono)
 
   const bandY = 324
-  ctx.fillStyle = blue
-  ctx.fillRect(0, bandY, CARD_W, CARD_H - bandY)
-  ctx.font = `600 6.4px ${mono}`
-  ctx.fillStyle = '#FFFFFF'
-  ctx.fillText('OPEN TO WORK', pad, bandY + 16)
+  drawBand(ctx, bandY, blue, '●  OPEN TO WORK', mono)
   ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
   const code = 'JOSEPARHUSIP'
   let x = CARD_W - pad
@@ -359,18 +520,47 @@ function drawBack(canvas) {
   ctx.fillStyle = face
   ctx.fillRect(0, 0, CARD_W, CARD_H)
   ctx.textBaseline = 'alphabetic'
+  drawGuilloche(ctx, line, 0, 232, CARD_W, 92)
+
+  const chipX = CARD_W - pad - 26
+  const chipY = 250
+  const chip = ctx.createLinearGradient(chipX, chipY, chipX + 26, chipY + 20)
+  chip.addColorStop(0, '#E4E8ED')
+  chip.addColorStop(0.5, '#AEB6C1')
+  chip.addColorStop(1, '#D5DBE2')
+  ctx.fillStyle = chip
+  roundRect(ctx, chipX, chipY, 26, 20, 4)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(40, 46, 56, 0.45)'
+  ctx.lineWidth = 0.5
+  ctx.beginPath()
+  ctx.moveTo(chipX + 9, chipY)
+  ctx.lineTo(chipX + 9, chipY + 20)
+  ctx.moveTo(chipX + 17, chipY)
+  ctx.lineTo(chipX + 17, chipY + 20)
+  ctx.moveTo(chipX, chipY + 7)
+  ctx.lineTo(chipX + 9, chipY + 7)
+  ctx.moveTo(chipX, chipY + 13)
+  ctx.lineTo(chipX + 9, chipY + 13)
+  ctx.moveTo(chipX + 17, chipY + 7)
+  ctx.lineTo(chipX + 26, chipY + 7)
+  ctx.moveTo(chipX + 17, chipY + 13)
+  ctx.lineTo(chipX + 26, chipY + 13)
+  ctx.stroke()
+  roundRect(ctx, chipX + 9, chipY + 5, 8, 10, 2)
+  ctx.stroke()
 
   ctx.fillStyle = hole
   roundRect(ctx, CARD_W / 2 - 13, 8, 26, 6, 3)
   ctx.fill()
 
   ctx.textAlign = 'left'
-  ctx.font = `italic 400 13px ${serif}`
-  ctx.fillStyle = blue
-  ctx.fillText('JP', pad, 28)
+  ctx.font = `700 8.4px ${mono}`
+  ctx.fillStyle = ink
+  ctx.fillText('DEVELOPER PASS', pad, 28)
   ctx.textAlign = 'right'
-  ctx.font = `500 5.8px ${mono}`
-  ctx.fillStyle = muted
+  ctx.font = `600 5.8px ${mono}`
+  ctx.fillStyle = blue
   ctx.fillText(`ID · ${new Date().getFullYear()}`, CARD_W - pad, 27)
   ctx.textAlign = 'left'
 
@@ -440,13 +630,10 @@ function drawBack(canvas) {
   ctx.font = `600 6.6px ${mono}`
   ctx.fillStyle = ink
   ctx.fillText('JOSEPARHUSIP7@GMAIL.COM', pad, 294)
+  drawMicrotext(ctx, 'JOSEPARHUSIP.COM', pad, 316, innerW, muted, mono)
 
   const bandY = 324
-  ctx.fillStyle = blue
-  ctx.fillRect(0, bandY, CARD_W, CARD_H - bandY)
-  ctx.font = `600 6.4px ${mono}`
-  ctx.fillStyle = '#FFFFFF'
-  ctx.fillText(t({ id: 'KETUK UNTUK MEMBALIK', en: 'TAP TO FLIP', ja: 'タップして裏返す' }), pad, bandY + 16)
+  drawBand(ctx, bandY, blue, t({ id: 'KETUK UNTUK MEMBALIK', en: 'TAP TO FLIP', ja: 'タップして裏返す' }), mono)
   const cx = CARD_W - pad - 5
   const cy = bandY + 13
   ctx.strokeStyle = '#FFFFFF'
@@ -462,23 +649,64 @@ function drawBack(canvas) {
 }
 
 function drawStrap(canvas) {
-  canvas.width = 64
-  canvas.height = 512
+  const W = 128
+  const H = 1024
+  canvas.width = W
+  canvas.height = H
   const ctx = canvas.getContext('2d')
-  const blue = cssVar('--color-primary')
-  ctx.fillStyle = blue
-  ctx.fillRect(0, 0, 64, 512)
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.22)'
-  ctx.fillRect(0, 0, 5, 512)
-  ctx.fillRect(59, 0, 5, 512)
+  const mono = cssVar('--font-mono')
+  const serif = cssVar('--font-serif')
+
+  ctx.fillStyle = '#0B1E36'
+  ctx.fillRect(0, 0, W, H)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'
+  ctx.lineWidth = 2
+  for (let y = -W; y < H + W; y += 6) {
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(W, y + W * 0.6)
+    ctx.stroke()
+  }
+
+  const edge = (x, w, color) => {
+    ctx.fillStyle = color
+    ctx.fillRect(x, 0, w, H)
+  }
+  edge(0, 6, '#071426')
+  edge(W - 6, 6, '#071426')
+  edge(10, 5, '#1F7FE0')
+  edge(W - 15, 5, '#1F7FE0')
+  edge(17, 1.5, 'rgba(255, 255, 255, 0.55)')
+  edge(W - 18.5, 1.5, 'rgba(255, 255, 255, 0.55)')
+
   ctx.save()
-  ctx.translate(32, 256)
+  ctx.translate(W / 2, 0)
   ctx.rotate(Math.PI / 2)
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.92)'
-  ctx.font = `600 22px ${cssVar('--font-mono')}`
-  ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText('JOSE ELIO PARHUSIP', 0, 1)
+  {
+    const start = 20
+    ctx.font = `700 46px ${mono}`
+    ctx.fillStyle = '#FFFFFF'
+    ctx.textAlign = 'left'
+    ctx.fillText('JOSE ELIO', start + 26, 3)
+    const w1 = ctx.measureText('JOSE ELIO ').width
+    ctx.font = `italic 400 58px ${serif}`
+    ctx.fillStyle = '#6CB6FF'
+    ctx.fillText('Parhusip', start + 26 + w1, 2)
+    const w2 = ctx.measureText('Parhusip').width
+    ctx.fillStyle = '#6CB6FF'
+    ctx.beginPath()
+    const dx = start + 26 + w1 + w2 + 22
+    ctx.moveTo(dx, -8)
+    ctx.lineTo(dx + 8, 0)
+    ctx.lineTo(dx, 8)
+    ctx.lineTo(dx - 8, 0)
+    ctx.closePath()
+    ctx.fill()
+    ctx.font = `600 28px ${mono}`
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+    ctx.fillText('JOSEPARHUSIP.COM', dx + 26, 2)
+  }
   ctx.restore()
 }
 
@@ -906,6 +1134,7 @@ function buildScene() {
   cardMesh = new Mesh(cardGeometry(), [new MeshBasicMaterial({ visible: false }), edge])
   pivot = new Group()
   pivot.add(cardMesh)
+  if (isNotFound) pivot.position.y = -HOOK_DROP
   cardGroup.add(pivot)
   const faceZ = CARD_DEPTH / 2 + CARD_BEVEL
   const front = new Mesh(fitUv(new ShapeGeometry(cardShape(), 10)), cardMaterial)
@@ -945,12 +1174,13 @@ function buildScene() {
 
   const metal = new MeshStandardMaterial({ color: 0xc9ced6, metalness: 0.55, roughness: 0.32 })
   const hook = new Group()
-  const crimp = new Mesh(new BoxGeometry(STRAP_WIDTH + 3, 12, 4), metal)
-  crimp.position.y = 12
-  const stem = new Mesh(new CylinderGeometry(1.6, 1.6, 8, 12), metal)
-  stem.position.y = 4
-  const ring = new Mesh(new TorusGeometry(6, 1.5, 12, 28), metal)
-  ring.position.y = -3
+  const crimp = new Mesh(new BoxGeometry(STRAP_WIDTH + 3, 10, 4), metal)
+  crimp.position.y = 13
+  const stem = new Mesh(new CylinderGeometry(1.5, 1.5, 7, 12), metal)
+  stem.position.y = 4.5
+  const ring = new Mesh(new TorusGeometry(7, 1.3, 12, 32), metal)
+  ring.position.y = -7
+  ring.rotation.y = Math.PI / 2 - 0.55
   hook.add(crimp, stem, ring)
   cardGroup.add(hook)
 
@@ -1030,7 +1260,7 @@ function updateStrap(endX, endY) {
     strapPositions[v + 5] = wz
 
     const w = i * 4
-    const along = length / 150
+    const along = length / 120
     strapUvs[w] = 0
     strapUvs[w + 1] = along
     strapUvs[w + 2] = 1
@@ -1059,7 +1289,7 @@ function render() {
     pivot.rotation.z = CORNER_TILT
     cardMesh.position.set(CORNER_DX, -CORNER_DY, 0)
   } else {
-    cardMesh.position.y = -CARD_H / 2 + 11
+    cardMesh.position.y = -CARD_H / 2 + 11 - HOOK_DROP
   }
   cardMesh.rotation.y = flipAngle + yaw
   cardMesh.rotation.x = tilt
@@ -1077,7 +1307,7 @@ function render() {
   if (hitEl.value) {
     const w = CARD_W * scale
     const h = CARD_H * scale
-    const center = isNotFound ? rotate(0, CORNER_REACH * scale) : rotate(0, h / 2 - 11 * scale)
+    const center = isNotFound ? rotate(0, (CORNER_REACH + HOOK_DROP) * scale) : rotate(0, h / 2 - (11 - HOOK_DROP) * scale)
     const turn = isNotFound ? angle + CORNER_TILT : angle
     hitEl.value.style.width = `${w}px`
     hitEl.value.style.height = `${h}px`
