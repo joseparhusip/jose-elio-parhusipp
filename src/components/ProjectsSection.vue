@@ -1,4 +1,5 @@
 <script setup>
+import { useScrollLock } from '@/composables/useScrollLock'
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
@@ -1514,6 +1515,42 @@ function onPointerDown(event) {
   pointerMoved = false
 }
 
+const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)')
+const calmMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+let tiltFrame = 0
+
+function onStageMove(event) {
+  if (!finePointer.matches || calmMotion.matches || !galleryEl.value) return
+  const active = galleryEl.value.querySelector('.gallery__slide--active')
+  if (!active) return
+  const rect = active.getBoundingClientRect()
+  const px = (event.clientX - rect.left) / rect.width
+  const py = (event.clientY - rect.top) / rect.height
+  const inside = px >= -0.15 && px <= 1.15 && py >= -0.2 && py <= 1.2
+  cancelAnimationFrame(tiltFrame)
+  tiltFrame = requestAnimationFrame(() => {
+    const el = galleryEl.value
+    if (!el) return
+    if (!inside) return resetTilt()
+    const cx = Math.min(1, Math.max(0, px))
+    const cy = Math.min(1, Math.max(0, py))
+    el.style.setProperty('--tilt-x', `${((cx - 0.5) * 14).toFixed(2)}deg`)
+    el.style.setProperty('--tilt-y', `${((0.5 - cy) * 10).toFixed(2)}deg`)
+    el.style.setProperty('--glare-x', `${(cx * 100).toFixed(1)}%`)
+    el.style.setProperty('--glare-y', `${(cy * 100).toFixed(1)}%`)
+    el.classList.add('gallery--tilting')
+  })
+}
+
+function resetTilt() {
+  const el = galleryEl.value
+  if (!el) return
+  cancelAnimationFrame(tiltFrame)
+  el.style.setProperty('--tilt-x', '0deg')
+  el.style.setProperty('--tilt-y', '0deg')
+  el.classList.remove('gallery--tilting')
+}
+
 function onPointerUp(event) {
   if (pointerStartX === null) return
   const dx = event.clientX - pointerStartX
@@ -1571,6 +1608,7 @@ watch(activeIndex, () => {
 })
 
 const lightboxProject = ref(null)
+useScrollLock(lightboxProject)
 const lightboxIndex = ref(0)
 
 function shotsOf(project) {
@@ -1803,6 +1841,8 @@ onUnmounted(() => {
           @pointerdown="onPointerDown"
           @pointerup="onPointerUp"
           @pointercancel="pointerStartX = null"
+          @pointermove="onStageMove"
+          @pointerleave="resetTilt"
         >
           <button
             v-for="(project, index) in projects"
@@ -1848,6 +1888,7 @@ onUnmounted(() => {
                 @contextmenu.prevent="preventImageAction"
                 @dragstart.prevent="preventImageAction"
               />
+              <span class="gallery__glare" aria-hidden="true"></span>
               <span v-if="offsetOf(index) === 0" class="gallery__zoom" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="16" height="16">
                   <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -1855,6 +1896,7 @@ onUnmounted(() => {
                 </svg>
               </span>
             </span>
+            <span class="gallery__deck" aria-hidden="true"></span>
           </button>
         </div>
 
@@ -2225,28 +2267,33 @@ onUnmounted(() => {
 
 .gallery__stage {
   position: relative;
-  height: clamp(230px, 27vw, 330px);
+  height: clamp(250px, 29vw, 356px);
   perspective: 1400px;
   touch-action: pan-y;
   user-select: none;
 }
 
 .gallery__slide {
-  --scale: calc(1 - var(--abs) * 0.16);
+  --scale: calc(1 - var(--abs) * 0.14);
+  --own-tilt-x: 0deg;
+  --own-tilt-y: 0deg;
   position: absolute;
-  top: 50%;
+  top: calc(50% - 8px);
   left: 50%;
   width: var(--slide-w);
   padding: 0;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-rule);
   background: var(--color-bg);
-  overflow: hidden;
   cursor: pointer;
   z-index: calc(10 - var(--abs));
+  transform-style: preserve-3d;
   transform:
     translate(-50%, -50%)
     translateX(calc(var(--d) * var(--slide-gap)))
+    translateZ(calc(var(--abs) * -70px))
+    rotateY(calc(var(--d) * -22deg + var(--own-tilt-x)))
+    rotateX(var(--own-tilt-y))
     scale(var(--scale));
   transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.5s ease,
     border-color 0.3s ease;
@@ -2265,10 +2312,15 @@ onUnmounted(() => {
   transition-delay: calc(var(--abs) * 90ms + 150ms);
 }
 
+.gallery--tilting .gallery__slide--active {
+  transition: transform 0.18s ease-out, opacity 0.5s ease, border-color 0.3s ease;
+}
+
 .gallery__slide::after {
   content: '';
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   background: var(--color-surface);
   opacity: calc(var(--abs) * 0.35);
   pointer-events: none;
@@ -2276,6 +2328,8 @@ onUnmounted(() => {
 }
 
 .gallery__slide--active {
+  --own-tilt-x: var(--tilt-x, 0deg);
+  --own-tilt-y: var(--tilt-y, 0deg);
   cursor: zoom-in;
   border-color: transparent;
   box-shadow: 0 0 34px -6px color-mix(in srgb, var(--rgb-1) var(--rgb-glow), transparent);
@@ -2352,6 +2406,7 @@ onUnmounted(() => {
 }
 
 .gallery__chrome {
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -2395,6 +2450,59 @@ onUnmounted(() => {
   display: block;
   aspect-ratio: 16 / 10;
   overflow: hidden;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+.gallery__glare {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(
+    circle at var(--glare-x, 50%) var(--glare-y, 0%),
+    rgba(255, 255, 255, 0.28),
+    rgba(255, 255, 255, 0) 55%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.gallery--tilting .gallery__slide--active .gallery__glare {
+  opacity: 1;
+}
+
+.gallery__deck {
+  position: absolute;
+  top: calc(100% + 1px);
+  left: -9%;
+  right: -9%;
+  height: 13px;
+  border-radius: 2px 2px 14px 14px;
+  background: linear-gradient(180deg, #E3E6EA 0%, #B9BFC8 55%, #8E959F 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 14px 22px -10px rgba(0, 0, 0, 0.55);
+  opacity: calc(1 - var(--abs) * 0.35);
+  pointer-events: none;
+}
+
+.gallery__deck::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 16%;
+  height: 4px;
+  border-radius: 0 0 6px 6px;
+  background: rgba(60, 66, 76, 0.35);
+  transform: translateX(-50%);
+}
+
+:global(:root[data-theme='dark']) .gallery__deck {
+  background: linear-gradient(180deg, #4A505A 0%, #2E333A 60%, #1C2026 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 14px 22px -10px rgba(0, 0, 0, 0.8);
 }
 
 .gallery__img {

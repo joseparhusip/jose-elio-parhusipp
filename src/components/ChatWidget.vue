@@ -1,4 +1,5 @@
 <script setup>
+import { launchPaperPlane } from '@/composables/usePaperPlane'
 import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useChatWidgetStore } from '../stores/chatWidget'
 import { lang, t, LOCALES } from '@/composables/useLang'
@@ -1433,6 +1434,7 @@ async function submitForm() {
     }
 
     step.value = 'done'
+    launchPaperPlane(chatInputEl.value)
     await botSay(
       t({
         id: 'Pesan berhasil terkirim! Cek email kamu, sudah kukirim juga konfirmasinya ke sana. Makasih ya!',

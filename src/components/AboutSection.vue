@@ -419,16 +419,26 @@ onUnmounted(() => lanyardObserver?.disconnect())
             @contextmenu.prevent="preventImageAction"
           >
             <span class="about__tool-icon">
-              <img
-                :src="tool.icon"
-                :alt="tool.name"
-                loading="lazy"
-                width="28"
-                height="28"
-                draggable="false"
-                @contextmenu.prevent="preventImageAction"
-                @dragstart.prevent="preventImageAction"
-              />
+              <span class="about__cube">
+                <span
+                  v-for="face in ['front', 'back', 'top', 'bottom', 'left', 'right']"
+                  :key="face"
+                  class="about__face"
+                  :class="`about__face--${face}`"
+                >
+                  <img
+                    v-if="face === 'front' || face === 'back'"
+                    :src="tool.icon"
+                    :alt="face === 'front' ? tool.name : ''"
+                    loading="lazy"
+                    width="28"
+                    height="28"
+                    draggable="false"
+                    @contextmenu.prevent="preventImageAction"
+                    @dragstart.prevent="preventImageAction"
+                  />
+                </span>
+              </span>
             </span>
             <span class="about__tool-name">{{ tool.name }}</span>
           </li>
@@ -861,16 +871,96 @@ onUnmounted(() => lanyardObserver?.disconnect())
 }
 
 .about__tool-icon {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
+  --cube: 40px;
+  display: block;
+  width: var(--cube);
+  height: var(--cube);
   flex-shrink: 0;
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-soft);
+  perspective: 420px;
+  animation: cube-fade 0.5s calc(var(--i) * 35ms) ease both;
 }
 
-.about__tool-icon img {
+.about__cube {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform: rotateX(-18deg) rotateY(28deg);
+  animation: cube-drop 0.9s calc(var(--i) * 35ms) cubic-bezier(0.22, 1.25, 0.36, 1) backwards;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.about__tool:hover .about__cube {
+  transform: rotateX(-18deg) rotateY(208deg);
+}
+
+.about__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-rule);
+  border-radius: 6px;
+  background: var(--color-surface-soft);
+  backface-visibility: hidden;
+}
+
+.about__face--front {
+  transform: translateZ(calc(var(--cube) / 2));
+}
+
+.about__face--back {
+  transform: rotateY(180deg) translateZ(calc(var(--cube) / 2));
+}
+
+.about__face--top {
+  transform: rotateX(90deg) translateZ(calc(var(--cube) / 2));
+  background: color-mix(in srgb, var(--color-surface-soft) 70%, #fff);
+}
+
+.about__face--bottom {
+  transform: rotateX(-90deg) translateZ(calc(var(--cube) / 2));
+  background: color-mix(in srgb, var(--color-surface-soft) 70%, #000);
+}
+
+.about__face--left {
+  transform: rotateY(-90deg) translateZ(calc(var(--cube) / 2));
+  background: color-mix(in srgb, var(--color-surface-soft) 80%, #000);
+}
+
+.about__face--right {
+  transform: rotateY(90deg) translateZ(calc(var(--cube) / 2));
+  background: color-mix(in srgb, var(--color-primary) 22%, var(--color-surface-soft));
+}
+
+@keyframes cube-drop {
+  from {
+    transform: translateY(-70px) rotateX(-200deg) rotateY(120deg);
+  }
+  to {
+    transform: rotateX(-18deg) rotateY(28deg);
+  }
+}
+
+@keyframes cube-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about__tool-icon,
+  .about__cube {
+    animation: none;
+  }
+
+  .about__cube {
+    transition: none;
+  }
+}
+
+.about__face img {
   width: 26px;
   height: 26px;
   object-fit: contain;

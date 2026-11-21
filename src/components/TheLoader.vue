@@ -108,7 +108,22 @@ onUnmounted(() => {
     aria-hidden="true"
   >
     <div class="loader__center">
-      <img :src="logoSrc" alt="" class="loader__logo" width="512" height="512" draggable="false" />
+      <div class="loader__logo">
+        <div class="loader__spin">
+        <img
+          v-for="layer in 9"
+          :key="layer"
+          :src="logoSrc"
+          alt=""
+          class="loader__layer"
+          :class="{ 'loader__layer--face': layer === 9 }"
+          :style="{ '--z': `${(layer - 9) * 2.6}px`, '--shade': (9 - layer) * 0.07 }"
+          width="512"
+          height="512"
+          draggable="false"
+        />
+        </div>
+      </div>
     </div>
 
     <div class="loader__bar">
@@ -175,14 +190,38 @@ html.intro-reveal .app-stage {
 }
 
 .loader__logo {
+  position: relative;
   width: clamp(110px, 15vw, 180px);
-  height: auto;
+  aspect-ratio: 1;
   opacity: 0;
-  animation:
-    loader-in 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) forwards,
-    loader-breathe 1.6s 0.8s ease-in-out infinite alternate;
+  perspective: 900px;
+  animation: loader-show 0.6s 0.1s ease forwards;
   user-select: none;
+}
+
+.loader__spin {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation:
+    loader-in 0.9s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both,
+    loader-sway 2.4s 1s ease-in-out infinite alternate;
+}
+
+.loader__layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: translateZ(var(--z));
+  filter: brightness(calc(1 - var(--shade)));
+  backface-visibility: visible;
   -webkit-user-drag: none;
+}
+
+.loader__layer--face {
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--color-primary, #1f7fe0) 45%, transparent));
 }
 
 .loader__center {
@@ -226,6 +265,18 @@ html.intro-reveal .app-stage {
   animation: none;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .loader__spin {
+    animation: none;
+  }
+}
+
+@keyframes loader-show {
+  to {
+    opacity: 1;
+  }
+}
+
 .loader--quick {
   transition: opacity 0.25s ease;
 }
@@ -237,20 +288,19 @@ html.intro-reveal .app-stage {
 
 @keyframes loader-in {
   from {
-    transform: scale(0.82);
+    transform: rotateY(-150deg) rotateX(20deg) scale(0.7);
   }
   to {
-    opacity: 1;
-    transform: scale(1);
+    transform: rotateY(0deg) rotateX(0deg) scale(1);
   }
 }
 
-@keyframes loader-breathe {
+@keyframes loader-sway {
   from {
-    scale: 1;
+    rotate: y -26deg;
   }
   to {
-    scale: 1.05;
+    rotate: y 26deg;
   }
 }
 </style>

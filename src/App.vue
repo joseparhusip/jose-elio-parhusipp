@@ -11,6 +11,7 @@ import SnowFall from './components/SnowFall.vue'
 import { christmas } from './composables/useChristmas'
 import { useOffscreenPause } from './composables/useOffscreenPause'
 import UpdateToast from './components/UpdateToast.vue'
+import PaperPlaneFlight from './components/PaperPlaneFlight.vue'
 import { useChatWidgetStore } from './stores/chatWidget'
 import { privacyOpen } from './composables/usePrivacy'
 
@@ -59,5 +60,6 @@ useOffscreenPause()
   <SnowFall v-if="christmas" />
   <OfflineScreen />
   <UpdateToast />
+  <PaperPlaneFlight />
   <CustomCursor />
 </template>

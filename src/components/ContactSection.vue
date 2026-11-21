@@ -1,10 +1,12 @@
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue'
 import { useChatWidgetStore } from '../stores/chatWidget'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
 import { loaderDone } from '@/composables/useLoaderState'
 import { lang, t } from '@/composables/useLang'
+
+const ContactGlobe = defineAsyncComponent(() => import('./ContactGlobe.vue'))
 
 const chatStore = useChatWidgetStore()
 
@@ -96,14 +98,29 @@ const mapLocations = [
 
 const mapMarkers = []
 
-function focusLocation(index) {
+const mapMode = ref('globe')
+const globeReady = ref(false)
+let mapLoading = null
+
+async function showMap() {
+  mapMode.value = 'map'
+  await nextTick()
+  if (!mapLoading) mapLoading = initMap()
+  await mapLoading
+  mapInstance?.invalidateSize()
+}
+
+async function focusLocation(index) {
   const loc = mapLocations[index]
-  if (!mapInstance || !loc) return
+  if (!loc) return
+  if (mapMode.value !== 'map') await showMap()
+  if (!mapInstance) return
   mapInstance.flyTo([loc.lat, loc.lng], 11, { duration: 0.8 })
   mapMarkers[index]?.openPopup()
 }
 
 const mapContainer = ref(null)
+const mapStage = ref(null)
 let mapInstance = null
 let mapObserver = null
 let unmounted = false
@@ -155,11 +172,11 @@ onMounted(() => {
     (entries) => {
       if (!entries[0].isIntersecting) return
       mapObserver.disconnect()
-      initMap()
+      globeReady.value = true
     },
     { rootMargin: '400px' },
   )
-  mapObserver.observe(mapContainer.value)
+  mapObserver.observe(mapStage.value)
 })
 
 onBeforeUnmount(() => {
@@ -249,14 +266,37 @@ onBeforeUnmount(() => {
           <figure class="contact__map-card">
             <figcaption class="contact__map-head mono-meta">
               <span class="contact__map-label">{{ t({ id: 'Lokasi', en: 'Location', ja: '地図' }) }}</span>
-              <span>Bandung · Bekasi</span>
+              <span class="contact__views" role="group" :aria-label="t({ id: 'Tampilan peta', en: 'Map view', ja: '地図の表示' })">
+                <button
+                  type="button"
+                  class="contact__view"
+                  :class="{ 'is-active': mapMode === 'globe' }"
+                  :aria-pressed="mapMode === 'globe'"
+                  @click="mapMode = 'globe'"
+                >3D</button>
+                <button
+                  type="button"
+                  class="contact__view"
+                  :class="{ 'is-active': mapMode === 'map' }"
+                  :aria-pressed="mapMode === 'map'"
+                  @click="showMap"
+                >{{ t({ id: 'Peta', en: 'Map', ja: '地図' }) }}</button>
+              </span>
             </figcaption>
 
-            <div
-              ref="mapContainer"
-              class="contact__map"
-              @contextmenu.prevent="preventImageAction"
-            ></div>
+            <div ref="mapStage" class="contact__map-stage">
+              <ContactGlobe
+                v-if="mapMode === 'globe' && globeReady"
+                :places="[mapLocations[1], mapLocations[0]]"
+                @unsupported="showMap"
+              />
+              <div
+                v-show="mapMode === 'map'"
+                ref="mapContainer"
+                class="contact__map"
+                @contextmenu.prevent="preventImageAction"
+              ></div>
+            </div>
 
             <div class="contact__places" v-reveal.stagger.scale="{ delay: 500, step: 70 }">
               <button
@@ -424,6 +464,47 @@ onBeforeUnmount(() => {
 
 .contact__map-label {
   color: var(--color-text);
+}
+
+.contact__map-stage {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 260px;
+}
+
+.contact__map-stage > * {
+  flex: 1;
+}
+
+.contact__views {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+}
+
+.contact__view {
+  min-height: 24px;
+  padding: 0 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-soft);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.contact__view.is-active {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.contact__view:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .contact__map {

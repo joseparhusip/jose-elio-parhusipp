@@ -1,4 +1,5 @@
 <script setup>
+import { useScrollLock } from '@/composables/useScrollLock'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { vReveal } from '@/directives/reveal'
 import { vType } from '@/directives/type'
@@ -79,6 +80,7 @@ const active = ref(0)
 const activeCert = computed(() => certificates[active.value])
 
 const lightbox = ref(null)
+useScrollLock(lightbox)
 
 function openLightbox(index) {
   lightbox.value = index

@@ -463,20 +463,31 @@ const logoStyle = (item) =>
                   <span>No.</span>{{ String(activeIndex + 1).padStart(2, '0') }}
                 </span>
 
-                <span
-                  class="experience__logo"
-                  :style="logoStyle(active)"
-                  @contextmenu.prevent
-                >
-                  <img
-                    v-if="active.logo"
-                    :src="active.logo"
-                    :alt="t({ id: `Logo ${active.short}`, en: `${active.short} logo`, ja: `${active.short}のロゴ` })"
-                    width="52"
-                    height="36"
-                    draggable="false"
-                  />
-                  <span v-else aria-hidden="true">{{ active.short }}</span>
+                <span class="experience__coin">
+                  <span class="experience__coin-spin" :style="{ '--edge': active.logoBg || '#C9CED6' }">
+                    <span
+                      v-for="layer in 4"
+                      :key="layer"
+                      class="experience__coin-edge"
+                      :style="{ '--z': `${-layer * 1.5}px`, '--shade': 1 - layer * 0.1 }"
+                      aria-hidden="true"
+                    ></span>
+                    <span
+                      class="experience__logo"
+                      :style="logoStyle(active)"
+                      @contextmenu.prevent
+                    >
+                      <img
+                        v-if="active.logo"
+                        :src="active.logo"
+                        :alt="t({ id: `Logo ${active.short}`, en: `${active.short} logo`, ja: `${active.short}のロゴ` })"
+                        width="52"
+                        height="36"
+                        draggable="false"
+                      />
+                      <span v-else aria-hidden="true">{{ active.short }}</span>
+                    </span>
+                  </span>
                 </span>
               </div>
 
@@ -766,6 +777,59 @@ const logoStyle = (item) =>
   font-size: 0.68rem;
   font-weight: 600;
   color: var(--color-text);
+}
+
+.experience__coin {
+  display: inline-flex;
+  flex-shrink: 0;
+  perspective: 520px;
+}
+
+.experience__coin-spin {
+  position: relative;
+  display: inline-flex;
+  transform-style: preserve-3d;
+  animation:
+    coin-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) both,
+    coin-idle 3.6s 1s ease-in-out infinite alternate;
+}
+
+.experience__coin-edge {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-sm);
+  background: var(--edge);
+  filter: brightness(var(--shade));
+  transform: translateZ(var(--z));
+}
+
+.experience__coin .experience__logo {
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+@keyframes coin-in {
+  from {
+    transform: rotateY(-200deg) rotateX(12deg);
+  }
+  to {
+    transform: rotateY(0deg) rotateX(0deg);
+  }
+}
+
+@keyframes coin-idle {
+  from {
+    rotate: y -16deg;
+  }
+  to {
+    rotate: y 16deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience__coin-spin {
+    animation: none;
+  }
 }
 
 .experience__logo img {
