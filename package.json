@@ -17,8 +17,10 @@
     "nodemailer": "^9.0.5",
     "pinia": "^4.0.2",
     "three": "^0.187.0",
+    "topojson-client": "^3.1.0",
     "vue": "^3.5.40",
-    "vue-router": "^5.2.0"
+    "vue-router": "^5.2.0",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

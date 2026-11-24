@@ -25,6 +25,8 @@ import {
   Vector3,
   WebGLRenderer,
 } from 'three'
+import { feature } from 'topojson-client'
+import countries from 'world-atlas/countries-110m.json'
 import { useTheme } from '@/composables/useTheme'
 
 const props = defineProps({
@@ -72,8 +74,9 @@ function palette() {
   const dark = theme.value !== 'light'
   return {
     shell: dark ? '#14171B' : '#E7EAEE',
-    dots: dark ? '#8A96A6' : '#7C8794',
-    grid: dark ? '#2A3038' : '#C9CFD6',
+    land: dark ? '#A5B0BE' : '#5F6B7A',
+    home: dark ? '#4DA3FF' : '#1F7FE0',
+    grid: dark ? '#22272E' : '#D3D8DE',
     glow: dark ? 0.55 : 0.35,
   }
 }
@@ -82,9 +85,96 @@ function applyTheme() {
   if (!shellMaterial) return
   const p = palette()
   shellMaterial.color = new Color(p.shell)
-  dotsMaterial.color = new Color(p.dots)
+  paintDots(p)
   gridMaterial.color = new Color(p.grid)
   glowMaterial.opacity = p.glow
+}
+
+const MAP_W = 1024
+const MAP_H = 512
+const INDONESIA = '360'
+let dotKinds = null
+let dotGeometry = null
+
+function landMask() {
+  const c = document.createElement('canvas')
+  c.width = MAP_W
+  c.height = MAP_H
+  const ctx = c.getContext('2d', { willReadFrequently: true })
+  const geo = feature(countries, countries.objects.countries)
+  const toX = (lng) => ((lng + 180) / 360) * MAP_W
+  const toY = (lat) => ((90 - lat) / 180) * MAP_H
+  for (const country of geo.features) {
+    ctx.fillStyle = country.id === INDONESIA ? '#00ff00' : '#ff0000'
+    const polygons =
+      country.geometry?.type === 'Polygon'
+        ? [country.geometry.coordinates]
+        : country.geometry?.type === 'MultiPolygon'
+          ? country.geometry.coordinates
+          : []
+    for (const polygon of polygons) {
+      for (const offset of [-360, 0, 360]) {
+        ctx.beginPath()
+        for (const ring of polygon) {
+          let prev = null
+          ring.forEach(([lngRaw, lat], index) => {
+            let lng = lngRaw
+            if (prev !== null) {
+              while (lng - prev > 180) lng -= 360
+              while (prev - lng > 180) lng += 360
+            }
+            prev = lng
+            const x = toX(lng + offset)
+            const y = toY(lat)
+            if (index === 0) ctx.moveTo(x, y)
+            else ctx.lineTo(x, y)
+          })
+          ctx.closePath()
+        }
+        ctx.fill('evenodd')
+      }
+    }
+  }
+  return ctx.getImageData(0, 0, MAP_W, MAP_H).data
+}
+
+function landDots() {
+  const mask = landMask()
+  const positions = []
+  const kinds = []
+  const count = 46000
+  const golden = Math.PI * (3 - Math.sqrt(5))
+  for (let i = 0; i < count; i++) {
+    const y = 1 - (i / (count - 1)) * 2
+    const r = Math.sqrt(1 - y * y)
+    const a = golden * i
+    const x = Math.cos(a) * r
+    const z = Math.sin(a) * r
+    const lat = Math.asin(y) / DEG
+    const lng = Math.atan2(x, z) / DEG
+    const px = Math.min(MAP_W - 1, Math.max(0, Math.floor(((lng + 180) / 360) * MAP_W)))
+    const py = Math.min(MAP_H - 1, Math.max(0, Math.floor(((90 - lat) / 180) * MAP_H)))
+    const k = (py * MAP_W + px) * 4
+    const home = mask[k + 1] > 128
+    if (!home && mask[k] < 128) continue
+    positions.push(x * 1.004, y * 1.004, z * 1.004)
+    kinds.push(home ? 1 : 0)
+  }
+  return { positions, kinds }
+}
+
+function paintDots(p) {
+  if (!dotGeometry || !dotKinds) return
+  const land = new Color(p.land)
+  const home = new Color(p.home)
+  const colors = new Float32Array(dotKinds.length * 3)
+  dotKinds.forEach((kind, i) => {
+    const c = kind ? home : land
+    colors[i * 3] = c.r
+    colors[i * 3 + 1] = c.g
+    colors[i * 3 + 2] = c.b
+  })
+  dotGeometry.setAttribute('color', new Float32BufferAttribute(colors, 3))
 }
 
 function makeGlowTexture() {
@@ -103,7 +193,7 @@ function makeGlowTexture() {
 function build() {
   scene = new Scene()
   camera = new PerspectiveCamera(32, 1, 0.1, 20)
-  camera.position.set(0, 0, 4.1)
+  camera.position.set(0, 0, 3.75)
 
   glowTexture = makeGlowTexture()
   glowMaterial = new SpriteMaterial({ map: glowTexture, transparent: true, depthWrite: false, blending: AdditiveBlending })
@@ -117,21 +207,14 @@ function build() {
   shellMaterial = new MeshBasicMaterial({ color: '#14171B' })
   globe.add(new Mesh(new SphereGeometry(0.995, 48, 32), shellMaterial))
 
-  const count = 2600
-  const positions = []
-  const golden = Math.PI * (3 - Math.sqrt(5))
-  for (let i = 0; i < count; i++) {
-    const y = 1 - (i / (count - 1)) * 2
-    const r = Math.sqrt(1 - y * y)
-    const a = golden * i
-    positions.push(Math.cos(a) * r, y, Math.sin(a) * r)
-  }
-  const dotGeometry = new BufferGeometry()
+  const { positions, kinds } = landDots()
+  dotKinds = kinds
+  dotGeometry = new BufferGeometry()
   dotGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
-  dotsMaterial = new PointsMaterial({ size: 0.021, sizeAttenuation: true })
+  dotsMaterial = new PointsMaterial({ size: 0.0135, sizeAttenuation: true, vertexColors: true })
   globe.add(new Points(dotGeometry, dotsMaterial))
 
-  gridMaterial = new LineBasicMaterial({ transparent: true, opacity: 0.9 })
+  gridMaterial = new LineBasicMaterial({ transparent: true, opacity: 0.45 })
   for (let lat = -60; lat <= 60; lat += 30) {
     const pts = []
     for (let lng = 0; lng < 360; lng += 4) pts.push(toVector(lat, lng, 1.002))
