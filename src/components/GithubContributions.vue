@@ -88,7 +88,6 @@ onMounted(() => {
       loadObserver.disconnect()
       load('last')
       loadCoding()
-      loadEstimate()
     },
     { rootMargin: '400px' },
   )
@@ -98,19 +97,6 @@ onMounted(() => {
 onBeforeUnmount(() => loadObserver?.disconnect())
 
 const coding = ref(null)
-const estimate = ref(null)
-
-async function loadEstimate() {
-  try {
-    const res = await fetch('/api/coding-estimate')
-    if (!res.ok || !res.headers.get('content-type')?.includes('application/json')) return
-    const json = await res.json()
-    if (typeof json.estimateSeconds === 'number' && json.estimateSeconds > 0) estimate.value = json
-  } catch {
-    estimate.value = null
-  }
-}
-
 async function loadCoding() {
   try {
     const res = await fetch('/api/coding-time')
@@ -137,29 +123,7 @@ function durationText(seconds) {
   })
 }
 
-const estimateTile = computed(() => {
-  const data = estimate.value
-  if (!data) return null
-  const since = new Date(`${data.since}T00:00:00`).toLocaleDateString(locale.value, { month: 'short', year: 'numeric' })
-  const hours = hoursOf(data.estimateSeconds).toLocaleString(locale.value)
-  return {
-    key: 'estimate',
-    label: t({ id: 'Total ngoding (perkiraan)', en: 'Total coding (est.)', ja: '総コーディング時間（推定）' }),
-    value: t({ id: `≈ ${hours} jam`, en: `≈ ${hours} hrs`, ja: `約${hours}時間` }),
-    sub: t({
-      id: `sejak ${since} · ${data.commits} commit`,
-      en: `since ${since} · ${data.commits} commits`,
-      ja: `${since}から・${data.commits}コミット`,
-    }),
-  }
-})
-
 const codingTiles = computed(() => {
-  const tiles = codingOnlyTiles.value
-  return estimateTile.value && coding.value?.mode !== 'total' ? [estimateTile.value, ...tiles].slice(0, 3) : tiles
-})
-
-const codingOnlyTiles = computed(() => {
   const data = coding.value
   if (!data) return []
   if (data.mode === 'today') {
@@ -507,7 +471,7 @@ function onSkylineUnsupported() {
       </div>
     </dl>
 
-    <section v-if="coding || estimate" class="gh__coding" :aria-label="t({ id: 'Waktu ngoding dari WakaTime', en: 'Coding time from WakaTime', ja: 'WakaTimeによるコーディング時間' })">
+    <section v-if="coding" class="gh__coding" :aria-label="t({ id: 'Waktu ngoding dari WakaTime', en: 'Coding time from WakaTime', ja: 'WakaTimeによるコーディング時間' })">
       <dl class="gh__coding-tiles">
         <div v-for="tile in codingTiles" :key="tile.key" class="gh__insight" :class="`gh__insight--${tile.key}`">
           <dt class="gh__insight-label">{{ tile.label }}</dt>
@@ -515,7 +479,7 @@ function onSkylineUnsupported() {
           <dd class="gh__insight-sub">{{ tile.sub }}</dd>
         </div>
       </dl>
-      <div v-if="coding?.languages?.length" class="gh__coding-langs">
+      <div v-if="coding.languages.length" class="gh__coding-langs">
         <span class="gh__insight-label">{{ coding.mode === 'today'
           ? t({ id: 'Bahasa hari ini', en: 'Languages today', ja: '今日の言語' })
           : t({ id: 'Bahasa minggu ini', en: 'This week', ja: '今週の言語' }) }}</span>
@@ -532,14 +496,7 @@ function onSkylineUnsupported() {
           </li>
         </ul>
       </div>
-      <p class="gh__coding-note">
-        <template v-if="estimate && coding?.mode !== 'total'">{{ t({
-          id: `Total diperkirakan dari riwayat ${estimate.commits} commit di ${estimate.repos} repo publik (sesi kerja ≤ 2 jam antar commit). `,
-          en: `Total estimated from ${estimate.commits} commits across ${estimate.repos} public repos (work sessions of ≤ 2 hours between commits). `,
-          ja: `合計は公開リポジトリ${estimate.repos}件・${estimate.commits}件のコミット履歴から推定（コミット間隔2時間以内を1セッションとして計算）。`,
-        }) }} </template>
-        <template v-if="coding">{{ t({ id: 'Data hari ini dicatat otomatis oleh WakaTime.', en: "Today's data is tracked automatically by WakaTime.", ja: '今日のデータはWakaTimeが自動計測。' }) }}</template>
-      </p>
+      <p class="gh__coding-note">{{ t({ id: 'Dicatat otomatis oleh WakaTime di editor.', en: 'Tracked automatically in the editor by WakaTime.', ja: 'エディタ上でWakaTimeが自動計測。' }) }}</p>
     </section>
 
     <div ref="graphEl" class="gh__graph" :class="{ 'is-loading': status === 'loading' }">
