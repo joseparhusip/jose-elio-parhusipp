@@ -74,6 +74,7 @@ export default defineConfig(({ command }) => {
       versionFile(version),
       devApi({
         '/api/coding-time': '/api/coding-time.js',
+        '/api/coding-estimate': '/api/coding-estimate.js',
         '/api/github-contributions': '/api/github-contributions.js',
       }),
     ],
