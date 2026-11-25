@@ -496,7 +496,6 @@ function onSkylineUnsupported() {
           </li>
         </ul>
       </div>
-      <p class="gh__coding-note">{{ t({ id: 'Dicatat otomatis oleh WakaTime di editor.', en: 'Tracked automatically in the editor by WakaTime.', ja: 'エディタ上でWakaTimeが自動計測。' }) }}</p>
     </section>
 
     <div ref="graphEl" class="gh__graph" :class="{ 'is-loading': status === 'loading' }">
@@ -784,15 +783,6 @@ function onSkylineUnsupported() {
 }
 
 .gh__coding-list span {
-  color: var(--color-text-soft);
-}
-
-.gh__coding-note {
-  grid-column: 1 / -1;
-  margin: 0 0 0.85rem;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.04em;
   color: var(--color-text-soft);
 }
 
