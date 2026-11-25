@@ -17,6 +17,13 @@ import reactIcon from './icons/icons-about/React-icon.svg'
 import tailwindIcon from './icons/icons-about/Tailwind_CSS_Logo.svg'
 import vueIcon from './icons/icons-about/Vue.js_Logo_2.svg'
 
+import fastapiIcon from './icons/icons-stack/fastapi.svg'
+import htmxIcon from './icons/icons-stack/htmx.svg'
+import webotomatisThumb from './img-proyek/img-webotomatis/img-webotomatis-lowongan.webp'
+import webotomatisDetail from './img-proyek/img-webotomatis/img-webotomatis-detail.webp'
+import webotomatisLamaran from './img-proyek/img-webotomatis/img-webotomatis-lamaran.webp'
+import webotomatisReview from './img-proyek/img-webotomatis/img-webotomatis-review.webp'
+import webotomatisPengaturan from './img-proyek/img-webotomatis/img-webotomatis-pengaturan.webp'
 import kolThumb from './img-proyek/img-bisnis-intelegence/img-savvy-overview.webp'
 import savvyCreator from './img-proyek/img-bisnis-intelegence/img-savvy-creator.webp'
 import savvyCampaign from './img-proyek/img-bisnis-intelegence/img-savvy-campaign.webp'
@@ -585,6 +592,189 @@ const projects = [
       { src: simrsPramusaji, caption: { id: 'Pramusaji: pembagian makan pasien', en: 'Meal server: serving patient meals', ja: '配膳：患者への配膳' } },
     ],
     techStack: [{ name: 'Next.js' }, { name: 'React' }, { name: 'TypeScript' }, { name: 'Tailwind CSS' }],
+  },
+  {
+    title: 'Webotomatis Pencari Kerja',
+    category: { id: 'Otomasi · Web App', en: 'Automation · Web App', ja: '自動化・Webアプリ' },
+    desc: {
+      id: [
+        'Asisten pencari kerja pribadi yang mengumpulkan lowongan asli dari JobStreet, Glints, Kalibrr, Dealls, Loker.id, KitaLulus, Traveloka Careers, Google Jobs, dan akun info loker Instagram.',
+        'Scraper berjalan otomatis tiap 3 jam di worker terpisah (arq + Redis), hanya mengambil lowongan 3 hari terakhir, dan menggabungkan lowongan yang sama dari beberapa portal.',
+        'Membaca CV (PDF, termasuk hasil scan lewat OCR Tesseract) untuk menurunkan bidang, level, dan kata kunci pencarian, lalu memberi skor kecocokan tiap lowongan.',
+        'Menulis surat lamaran yang disesuaikan per lowongan dengan Gemini (atau Claude), dengan pemeriksaan sebelum kirim: nama perusahaan, posisi, placeholder, dan kuota email.',
+        'Mengirim lamaran lewat email beserta CV dengan batas harian dan jeda antar email, serta mode portal untuk lowongan yang wajib apply di situsnya.',
+        'Pelacak lamaran berbentuk papan status (Draft sampai Offer/Ditolak) dan ekspor Excel untuk lowongan maupun lamaran.',
+      ],
+      en: [
+        'A personal job-hunting assistant that collects real listings from JobStreet, Glints, Kalibrr, Dealls, Loker.id, KitaLulus, Traveloka Careers, Google Jobs, and Instagram job-info accounts.',
+        'Scrapers run every 3 hours in a separate worker (arq + Redis), take only listings from the last 3 days, and merge the same job posted on several portals.',
+        'Reads the CV (PDF, including scanned files via Tesseract OCR) to derive fields, level, and search keywords, then scores how well each listing matches.',
+        'Writes a tailored cover letter per listing with Gemini (or Claude), with pre-send checks for the company name, position, leftover placeholders, and email quota.',
+        'Sends applications by email with the CV attached, using a daily limit and delays between emails, plus a portal mode for jobs that must be applied for on the site.',
+        'Tracks applications on a status board (Draft through Offer/Rejected) and exports both listings and applications to Excel.',
+      ],
+      ja: [
+        'JobStreet、Glints、Kalibrr、Dealls、Loker.id、KitaLulus、Traveloka Careers、Google Jobs、Instagramの求人情報アカウントから実際の求人を集める、個人用の就職活動アシスタント。',
+        'スクレイパーは別ワーカー（arq + Redis）で3時間ごとに自動実行。直近3日間の求人だけを取得し、複数サイトに掲載された同じ求人を1件にまとめる。',
+        'CV（PDF。スキャン画像はTesseract OCRで読み取り）から職種・レベル・検索キーワードを導き出し、各求人のマッチ度をスコア化。',
+        'Gemini（またはClaude）で求人ごとにカスタマイズしたカバーレターを作成し、送信前に会社名・職種・置き換え忘れ・メール送信上限をチェック。',
+        '1日の上限と送信間隔を設けてCV付きのメールで応募。サイト上での応募が必須の求人には「ポータルモード」で対応。',
+        '応募状況をステータスボード（下書きから内定・不採用まで）で管理し、求人と応募をExcelに出力。',
+      ],
+    },
+    stack: [
+      {
+        group: 'Backend',
+        items: [
+          { name: 'Python', icon: pythonIcon },
+          { name: 'FastAPI', icon: fastapiIcon },
+          { name: 'PostgreSQL', icon: postgresIcon },
+          { name: 'Redis + arq', icon: redisIcon },
+        ],
+      },
+      {
+        group: { id: 'Antarmuka', en: 'Interface', ja: 'UI' },
+        items: [
+          { name: 'Jinja2 + HTMX', icon: htmxIcon },
+        ],
+      },
+      {
+        group: { id: 'AI & dokumen', en: 'AI & documents', ja: 'AI・ドキュメント' },
+        items: [
+          { name: 'Gemini API', icon: geminiIcon },
+          { name: 'Tesseract OCR', icon: ocrIcon },
+          { name: 'pypdf', icon: pdfIcon },
+          { name: 'openpyxl (Excel)', icon: excelIcon },
+          { name: 'SMTP (Gmail)', icon: gmailIcon },
+        ],
+      },
+      {
+        group: { id: 'Alat', en: 'Tools', ja: 'ツール' },
+        items: [
+          { name: 'Docker', icon: dockerIcon },
+          { name: 'Git', icon: gitIcon },
+        ],
+      },
+    ],
+    flow: [
+      {
+        title: { id: 'Studi kelayakan', en: 'Feasibility study', ja: '実現可能性の調査' },
+        text: {
+          id: 'Memeriksa sumber lowongan yang bisa diambil secara sah (API publik, JSON-LD, API resmi Meta) beserta batas dan risikonya.',
+          en: 'Checked which job sources can be collected legitimately (public APIs, JSON-LD, the official Meta API) along with their limits and risks.',
+          ja: '正当に取得できる求人ソース（公開API、JSON-LD、Metaの公式API）と、その制限やリスクを調査。',
+        },
+      },
+      {
+        title: { id: 'Connector per sumber', en: 'One connector per source', ja: 'ソースごとのコネクタ' },
+        text: {
+          id: 'Satu connector untuk tiap portal dengan httpx + selectolax, termasuk halaman detail untuk gaji, kualifikasi, dan batas lamar.',
+          en: 'A connector per portal with httpx + selectolax, including detail pages for salary, qualifications, and deadlines.',
+          ja: 'httpx + selectolaxで求人サイトごとにコネクタを作成。給与、応募条件、締切は詳細ページから取得。',
+        },
+      },
+      {
+        title: { id: 'Worker & deduplikasi', en: 'Worker & deduplication', ja: 'ワーカーと重複排除' },
+        text: {
+          id: 'Worker arq menjalankan scraping tiap 3 jam dengan progres per sumber, lalu lowongan yang sama digabung jadi satu.',
+          en: 'An arq worker runs scraping every 3 hours with per-source progress, then merges duplicate listings into one.',
+          ja: 'arqワーカーが3時間ごとにスクレイピングを実行し、ソースごとの進捗を表示。重複した求人は1件に統合。',
+        },
+      },
+      {
+        title: { id: 'Profil dari CV', en: 'Profile from the CV', ja: 'CVからプロフィール作成' },
+        text: {
+          id: 'CV dibaca (OCR untuk hasil scan) untuk menurunkan bidang, level, dan kata kunci, masing-masing dengan bukti dari CV.',
+          en: 'The CV is read (OCR for scans) to derive fields, level, and keywords, each backed by evidence from the CV.',
+          ja: 'CVを読み取り（スキャンはOCR）、職種・レベル・キーワードをCV内の根拠とともに導き出す。',
+        },
+      },
+      {
+        title: { id: 'Skor & filter', en: 'Scoring & filters', ja: 'スコアとフィルター' },
+        text: {
+          id: 'Skor kecocokan dari bidang, level, dan skill, dengan filter bidang, lokasi (kab/kota), gaji, mode kerja, dan sumber.',
+          en: 'A match score from field, level, and skills, with filters for field, location (regency/city), salary, work mode, and source.',
+          ja: '職種・レベル・スキルからマッチ度を算出。職種、勤務地（市・県）、給与、勤務形態、ソースで絞り込み可能。',
+        },
+      },
+      {
+        title: { id: 'Surat & kirim', en: 'Letters & sending', ja: 'カバーレターと送信' },
+        text: {
+          id: 'Surat lamaran ditulis AI lalu diperiksa sebelum dikirim lewat email bersama CV, dengan kuota harian.',
+          en: 'Cover letters are written by AI, checked, and then sent by email with the CV under a daily quota.',
+          ja: 'AIがカバーレターを作成し、チェックしたうえで1日の上限内でCV付きメールとして送信。',
+        },
+      },
+      {
+        title: { id: 'Pelacak & ekspor', en: 'Tracking & export', ja: '進捗管理と出力' },
+        text: {
+          id: 'Papan status lamaran, ekspor Excel, dan pengujian otomatis dengan pytest.',
+          en: 'An application status board, Excel exports, and automated tests with pytest.',
+          ja: '応募ステータスボード、Excel出力、pytestによる自動テスト。',
+        },
+      },
+    ],
+    api: [
+      {
+        group: { id: 'Lowongan', en: 'Listings', ja: '求人' },
+        routes: [
+          ['GET', '/jobs'],
+          ['GET', '/jobs/{job_id}'],
+          ['POST', '/jobs/{job_id}/refresh'],
+          ['POST', '/jobs/{job_id}/status'],
+          ['POST', '/jobs/mark-applied'],
+          ['GET', '/jobs/export.xlsx'],
+        ],
+      },
+      {
+        group: { id: 'Scraping', en: 'Scraping', ja: 'スクレイピング' },
+        routes: [
+          ['POST', '/scrape'],
+          ['GET', '/scrape/status'],
+          ['GET', '/scrape/progress'],
+        ],
+      },
+      {
+        group: { id: 'Lamaran', en: 'Applications', ja: '応募' },
+        routes: [
+          ['GET', '/applications'],
+          ['POST', '/applications/prepare'],
+          ['GET', '/applications/{app_id}/review'],
+          ['POST', '/applications/{app_id}/generate'],
+          ['POST', '/applications/{app_id}/send'],
+          ['POST', '/applications/{app_id}/{mark-applied, skip, status}'],
+          ['GET', '/applications/export.xlsx'],
+        ],
+      },
+      {
+        group: { id: 'Profil & CV', en: 'Profile & CV', ja: 'プロフィール・CV' },
+        routes: [
+          ['GET · POST', '/profile'],
+          ['POST', '/profile/cv'],
+          ['POST', '/profile/cv/{cv_id}/{scan, default, conclude, delete}'],
+          ['POST', '/profile/{targets, targets/from-cv, letter-texts}'],
+          ['GET', '/profile/{scan-status, ai-status}'],
+        ],
+      },
+      {
+        group: { id: 'Pengaturan', en: 'Settings', ja: '設定' },
+        routes: [
+          ['GET', '/settings'],
+          ['POST', '/settings/instagram'],
+          ['POST', '/settings/instagram/{acc_id}/{toggle, delete}'],
+        ],
+      },
+    ],
+    thumb: webotomatisThumb,
+    shots: [
+      { src: webotomatisThumb, caption: { id: 'Daftar lowongan dengan filter & skor kecocokan', en: 'Listings with filters & match scores', ja: 'フィルターとマッチ度付きの求人一覧' } },
+      { src: webotomatisDetail, caption: { id: 'Detail lowongan & skill yang cocok dengan CV', en: 'Listing detail & skills matching the CV', ja: '求人詳細とCVに合うスキル' } },
+      { src: webotomatisLamaran, caption: { id: 'Papan status lamaran', en: 'Application status board', ja: '応募ステータスボード' } },
+      { src: webotomatisReview, caption: { id: 'Review surat lamaran sebelum dikirim', en: 'Reviewing a cover letter before sending', ja: '送信前のカバーレター確認' } },
+      { src: webotomatisPengaturan, caption: { id: 'Progres scraping per sumber', en: 'Scraping progress per source', ja: 'ソースごとのスクレイピング進捗' } },
+    ],
+    techStack: [{ name: 'Python' }, { name: 'FastAPI' }, { name: 'PostgreSQL' }, { name: 'Gemini' }],
+    codeHref: 'https://github.com/joseparhusip/webotomatis-pencari-kerja',
   },
   {
     title: 'Dashboard KOL',
@@ -1638,7 +1828,9 @@ function preventImageAction(event) {
 }
 
 function hostLabel(project) {
-  return project.internal ? t({ id: 'Proyek kontrak', en: 'Contract project', ja: '契約案件' }) : demoHost(project.demoHref)
+  if (project.internal) return t({ id: 'Proyek kontrak', en: 'Contract project', ja: '契約案件' })
+  if (!project.demoHref) return t({ id: 'Open source · jalan lokal', en: 'Open source · runs locally', ja: 'オープンソース・ローカル実行' })
+  return demoHost(project.demoHref)
 }
 
 function demoHost(url) {
@@ -1953,7 +2145,7 @@ onUnmounted(() => {
                 {{ String(activeIndex + 1).padStart(2, '0') }}
               </span>
               <span class="gallery__category">{{ t(activeProject.category) }}</span>
-              <span v-if="!activeProject.internal" class="gallery__host">{{ demoHost(activeProject.demoHref) }}</span>
+              <span v-if="!activeProject.internal" class="gallery__host">{{ hostLabel(activeProject) }}</span>
             </div>
 
             <div class="gallery__body">
@@ -2000,7 +2192,7 @@ onUnmounted(() => {
                   <template v-else>Proyek kontrak · tanpa demo &amp; kode publik</template>
                 </span>
                 <a
-                  v-if="!activeProject.internal"
+                  v-if="!activeProject.internal && activeProject.demoHref"
                   :href="activeProject.codeHref"
                   class="gallery__icon-link"
                   target="_blank"
@@ -2027,7 +2219,20 @@ onUnmounted(() => {
                   </svg>
                 </a>
                 <a
-                  v-if="!activeProject.internal"
+                  v-if="!activeProject.internal && !activeProject.demoHref"
+                  :href="activeProject.codeHref"
+                  class="btn btn--primary gallery__demo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ t({ id: 'Lihat kode di GitHub', en: 'View code on GitHub', ja: 'GitHubでコードを見る' }) }}
+                  <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" d="M7 17 17 7M8 7h9v9" />
+                  </svg>
+                </a>
+                <a
+                  v-if="!activeProject.internal && activeProject.demoHref"
                   :href="activeProject.demoHref"
                   class="btn btn--primary gallery__demo"
                   target="_blank"

@@ -87,6 +87,7 @@ onMounted(() => {
       if (!entries[0].isIntersecting) return
       loadObserver.disconnect()
       load('last')
+      loadCoding()
     },
     { rootMargin: '400px' },
   )
@@ -94,6 +95,95 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => loadObserver?.disconnect())
+
+const coding = ref(null)
+
+async function loadCoding() {
+  try {
+    const res = await fetch('/api/coding-time')
+    if (!res.ok || !res.headers.get('content-type')?.includes('application/json')) return
+    const json = await res.json()
+    if (json.mode === 'today' && typeof json.todaySeconds === 'number') coding.value = json
+    else if (typeof json.totalSeconds === 'number' && json.totalSeconds > 0) coding.value = json
+  } catch {
+    coding.value = null
+  }
+}
+
+function hoursOf(seconds) {
+  return Math.floor(seconds / 3600)
+}
+
+function durationText(seconds) {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  return t({
+    id: h ? `${h} jam ${m} mnt` : `${m} mnt`,
+    en: h ? `${h}h ${m}m` : `${m}m`,
+    ja: h ? `${h}時間${m}分` : `${m}分`,
+  })
+}
+
+const codingTiles = computed(() => {
+  const data = coding.value
+  if (!data) return []
+  if (data.mode === 'today') {
+    const day = data.date
+      ? new Date(`${data.date}T00:00:00`).toLocaleDateString(locale.value, { weekday: 'long', day: 'numeric', month: 'short' })
+      : ''
+    const tiles = [
+      {
+        key: 'total',
+        label: t({ id: 'Ngoding hari ini', en: 'Coding today', ja: '今日のコーディング' }),
+        value: data.todaySeconds ? durationText(data.todaySeconds) : '0m',
+        sub: data.todaySeconds
+          ? day
+          : t({ id: 'belum mulai hari ini', en: 'not started yet today', ja: '今日はまだ開始前' }),
+      },
+    ]
+    if (data.languages[0]) {
+      tiles.push({
+        key: 'lang',
+        label: t({ id: 'Bahasa utama', en: 'Top language', ja: '主な言語' }),
+        value: data.languages[0].name,
+        sub: t({ id: `${data.languages[0].percent}% hari ini`, en: `${data.languages[0].percent}% today`, ja: `今日の${data.languages[0].percent}%` }),
+      })
+    }
+    return tiles
+  }
+  const since = data.since
+    ? new Date(data.since).toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' })
+    : ''
+  const tiles = [
+    {
+      key: 'total',
+      label: t({ id: 'Total ngoding', en: 'Time coding', ja: '総コーディング時間' }),
+      value: t({
+        id: `${hoursOf(data.totalSeconds).toLocaleString(locale.value)} jam`,
+        en: `${hoursOf(data.totalSeconds).toLocaleString(locale.value)} hrs`,
+        ja: `${hoursOf(data.totalSeconds).toLocaleString(locale.value)}時間`,
+      }),
+      sub: since ? t({ id: `sejak ${since}`, en: `since ${since}`, ja: `${since}から` }) : '',
+    },
+  ]
+  if (data.dailyAverageSeconds) {
+    tiles.push({
+      key: 'average',
+      label: t({ id: 'Rata-rata harian', en: 'Daily average', ja: '1日の平均' }),
+      value: durationText(data.dailyAverageSeconds),
+      sub: t({ id: '7 hari terakhir', en: 'last 7 days', ja: '直近7日間' }),
+    })
+  }
+  if (data.bestDay) {
+    tiles.push({
+      key: 'bestday',
+      label: t({ id: 'Hari terlama', en: 'Longest day', ja: '最長の日' }),
+      value: durationText(data.bestDay.seconds),
+      sub: new Date(`${data.bestDay.date}T00:00:00`).toLocaleDateString(locale.value, { day: 'numeric', month: 'short' }),
+    })
+  }
+  return tiles
+})
 
 const weeks = computed(() => {
   if (!data.value) return []
@@ -382,6 +472,34 @@ function onSkylineUnsupported() {
       </div>
     </dl>
 
+    <section v-if="coding" class="gh__coding" :aria-label="t({ id: 'Waktu ngoding dari WakaTime', en: 'Coding time from WakaTime', ja: 'WakaTimeによるコーディング時間' })">
+      <dl class="gh__coding-tiles">
+        <div v-for="tile in codingTiles" :key="tile.key" class="gh__insight" :class="`gh__insight--${tile.key}`">
+          <dt class="gh__insight-label">{{ tile.label }}</dt>
+          <dd class="gh__insight-value">{{ tile.value }}</dd>
+          <dd class="gh__insight-sub">{{ tile.sub }}</dd>
+        </div>
+      </dl>
+      <div v-if="coding.languages.length" class="gh__coding-langs">
+        <span class="gh__insight-label">{{ coding.mode === 'today'
+          ? t({ id: 'Bahasa hari ini', en: 'Languages today', ja: '今日の言語' })
+          : t({ id: 'Bahasa minggu ini', en: 'This week', ja: '今週の言語' }) }}</span>
+        <div class="gh__coding-bar" aria-hidden="true">
+          <span
+            v-for="(lang, index) in coding.languages"
+            :key="lang.name"
+            :style="{ width: `${lang.percent}%`, '--tone': index }"
+          ></span>
+        </div>
+        <ul class="gh__coding-list">
+          <li v-for="(lang, index) in coding.languages" :key="lang.name" :style="{ '--tone': index }">
+            {{ lang.name }} <span>{{ lang.percent }}%</span>
+          </li>
+        </ul>
+      </div>
+      <p class="gh__coding-note">{{ t({ id: 'Dicatat otomatis oleh WakaTime di editor.', en: 'Tracked automatically in the editor by WakaTime.', ja: 'エディタ上でWakaTimeが自動計測。' }) }}</p>
+    </section>
+
     <div ref="graphEl" class="gh__graph" :class="{ 'is-loading': status === 'loading' }">
       <div v-if="status === 'error'" class="gh__error">
         <p>{{ t({ id: 'Coba muat ulang halaman, atau lihat langsung di profil GitHub saya.', en: 'Try reloading the page, or view my GitHub profile directly.', ja: 'ページを再読み込みするか、GitHubプロフィールを直接ご覧ください。' }) }}</p>
@@ -596,6 +714,97 @@ function onSkylineUnsupported() {
   margin: 0 0 1.75rem;
   border-top: 1px solid var(--color-rule);
   border-bottom: 1px solid var(--color-rule);
+}
+
+.gh__coding {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 0 clamp(1rem, 3vw, 2.5rem);
+  margin: -0.75rem 0 1.75rem;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.gh__coding-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.gh__insight--lang .gh__insight-value {
+  font-size: clamp(1.15rem, 1.9vw, 1.55rem);
+  line-height: 1.25;
+}
+
+.gh__insight--total .gh__insight-value {
+  color: var(--color-primary);
+}
+
+.gh__coding-langs {
+  display: grid;
+  align-content: center;
+  gap: 0.55rem;
+  padding: 0.85rem 0 0.95rem;
+}
+
+.gh__coding-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-surface-soft);
+}
+
+.gh__coding-bar span,
+.gh__coding-list li::before {
+  background: color-mix(in srgb, var(--color-primary) calc(100% - var(--tone) * 22%), var(--color-surface-soft));
+}
+
+.gh__coding-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--color-text);
+}
+
+.gh__coding-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.gh__coding-list li::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+}
+
+.gh__coding-list span {
+  color: var(--color-text-soft);
+}
+
+.gh__coding-note {
+  grid-column: 1 / -1;
+  margin: 0 0 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-soft);
+}
+
+@media (max-width: 720px) {
+  .gh__coding {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gh__coding-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .gh__insight {
