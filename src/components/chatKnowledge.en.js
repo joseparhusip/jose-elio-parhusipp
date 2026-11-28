@@ -137,8 +137,8 @@ const PROJECT_TEXT = {
   },
   'Toko Kelontong Online': {
     summary:
-      'An e-commerce prototype (Vue.js, Pinia, and Vue Router) with a dynamic product catalog, category filters, a reactive shopping cart, and a complete ordering flow.',
-    tags: ['Vue.js', 'Pinia'],
+      'A full-stack online grocery store: a Vue.js storefront and admin panel with a Go, PostgreSQL, and Redis backend. It has email OTP sign-up, Midtrans payments, a sales dashboard, and RBAC (customer, admin, superadmin) that can be changed without a redeploy.',
+    tags: ['Vue.js', 'Go', 'PostgreSQL', 'Redis'],
   },
   'Kindle Coffee': {
     summary:

@@ -33,6 +33,14 @@ import mobileJecThumb from './img-proyek/img-jec/IMG-JEC-1.jpeg'
 import dashboardJecThumb from './img-proyek/img-admin-jec/img-admin-jec-1.webp'
 import securaKostThumb from './img-proyek/img-securakost/img-securakost-beranda.webp'
 import tokoKelontongThumb from './img-proyek/img-toko-kelontong/img-toko-beranda.webp'
+import tokoKelontongShotAdminDashboard from './img-proyek/img-toko-kelontong/img-toko-admin-dashboard.webp'
+import tokoKelontongShotAdminProduk from './img-proyek/img-toko-kelontong/img-toko-admin-produk.webp'
+import tokoKelontongShotAdminPesanan from './img-proyek/img-toko-kelontong/img-toko-admin-pesanan.webp'
+import tokoKelontongShotAdminRole from './img-proyek/img-toko-kelontong/img-toko-admin-role.webp'
+import tokoKelontongShotAdminPengguna from './img-proyek/img-toko-kelontong/img-toko-admin-pengguna.webp'
+import tokoKelontongShotAdminPromo from './img-proyek/img-toko-kelontong/img-toko-admin-promo.webp'
+import tokoKelontongShotMasuk from './img-proyek/img-toko-kelontong/img-toko-masuk.webp'
+import tokoKelontongShotDaftar from './img-proyek/img-toko-kelontong/img-toko-daftar.webp'
 import kindleCoffeeThumb from './img-proyek/img-kindle-coffee/img-kindle-beranda.webp'
 import securaKostShotCari from './img-proyek/img-securakost/img-securakost-cari.webp'
 import securaKostShotDetail from './img-proyek/img-securakost/img-securakost-detail.webp'
@@ -43,12 +51,6 @@ import securaKostShotKostSaya from './img-proyek/img-securakost/img-securakost-k
 import securaKostShotKontrak from './img-proyek/img-securakost/img-securakost-kontrak.webp'
 import securaKostShotEscrow from './img-proyek/img-securakost/img-securakost-escrow.webp'
 import securaKostShotMediasi from './img-proyek/img-securakost/img-securakost-mediasi.webp'
-import tokoKelontongShotProduk from './img-proyek/img-toko-kelontong/img-toko-produk.webp'
-import tokoKelontongShotCaraPesan from './img-proyek/img-toko-kelontong/img-toko-cara-pesan.webp'
-import tokoKelontongShotFaq from './img-proyek/img-toko-kelontong/img-toko-faq.webp'
-import tokoKelontongShotRiwayat from './img-proyek/img-toko-kelontong/img-toko-riwayat.webp'
-import tokoKelontongShotTentang from './img-proyek/img-toko-kelontong/img-toko-tentang.webp'
-import tokoKelontongShotKontak from './img-proyek/img-toko-kelontong/img-toko-kontak.webp'
 import kindleCoffeeShotCaraPesan from './img-proyek/img-kindle-coffee/img-kindle-cara-pesan.webp'
 import kindleCoffeeShotMenu from './img-proyek/img-kindle-coffee/img-kindle-menu.webp'
 import kindleCoffeeShotTentang from './img-proyek/img-kindle-coffee/img-kindle-tentang.webp'
@@ -95,7 +97,6 @@ import pdfIcon from './icons/icons-stack/pdf.svg'
 import mapsIcon from './icons/icons-stack/maps.svg'
 import vercelIcon from './icons/icons-stack/vercel.svg'
 import cssIcon from './icons/icons-stack/css.svg'
-import apiIcon from './icons/icons-stack/api.svg'
 import simrsLogin from './img-proyek/img-simrs/img-simrs-login.webp'
 import simrsKunjungan from './img-proyek/img-simrs/img-simrs-kunjungan.webp'
 import simrsDetailKunjungan from './img-proyek/img-simrs/img-simrs-detail-kunjungan.webp'
@@ -1386,50 +1387,33 @@ const projects = [
   },
   {
     title: 'Toko Kelontong Online',
-    category: { id: 'E-commerce', en: 'E-commerce', ja: 'ECサイト' },
+    category: { id: 'Full Stack · E-commerce', en: 'Full Stack · E-commerce', ja: 'フルスタック・ECサイト' },
     desc: {
       id: [
-        'Mengembangkan prototype website e-commerce "Toko Kelontong Online" secara end-to-end, mencakup UI/UX, struktur komponen, dan alur navigasi halaman.',
-        'Membangun frontend menggunakan Vue.js (Composition API), Vue Router, dan CSS.',
-        'Mengimplementasikan state management dengan Pinia untuk mengelola keranjang belanja dan filter kategori produk secara reaktif.',
-        'Membangun katalog produk dinamis dengan filter kategori, fallback gambar error, dan format Rupiah otomatis.',
-        'Merancang alur pemesanan lengkap dari katalog, detail pesanan, hingga riwayat pesanan pengguna.',
-        'Membangun komponen reusable (navbar, footer, page header, promo banner, testimonial) untuk konsistensi desain.',
-        'Menyusun halaman informasi pendukung (FAQ, cara pemesanan, kebijakan privasi, syarat & ketentuan, hubungi kami).',
+        'Toko online kebutuhan sehari-hari yang lengkap dari dua sisi: halaman belanja untuk pembeli dan panel admin untuk pengelola toko. Saya membangun frontend dan backend-nya sendiri.',
+        'Pembeli bisa daftar dengan verifikasi kode OTP lewat email, mencari dan memfilter 44 produk, memakai kode promo, lalu membayar lewat Midtrans (QRIS, virtual account, e-wallet).',
+        'Panel admin menampilkan pendapatan hari ini dan 7 hari terakhir, stok yang menipis, produk terlaris, serta pengelolaan produk, stok, pesanan, promo, kategori, dan pengguna.',
+        'Hak akses diatur dengan RBAC (role-based access control): customer, admin, dan superadmin. Izin tiap role bisa diubah langsung dari panel dan langsung berlaku tanpa deploy ulang.',
+        'Keamanan dibuat serius: harga selalu dihitung ulang di server, stok dikunci saat checkout bersamaan supaya tidak minus, token login berumur pendek dengan refresh token di Redis, dan pembatasan percobaan login.',
+        'Backend berupa REST API Go dengan PostgreSQL dan Redis, dijalankan lewat Docker, dilengkapi pengujian otomatis.',
       ],
       en: [
-        'Developed an end-to-end prototype of the "Toko Kelontong Online" e-commerce website, covering UI/UX, component structure, and page navigation flow.',
-        'Built the frontend with Vue.js (Composition API), Vue Router, and CSS.',
-        'Implemented state management with Pinia to reactively manage the shopping cart and product category filters.',
-        'Built a dynamic product catalog with category filters, fallbacks for broken images, and automatic Rupiah formatting.',
-        'Designed the complete ordering flow, from the catalog and order details to the user\'s order history.',
-        'Built reusable components (navbar, footer, page header, promo banner, testimonial) for design consistency.',
-        'Created supporting information pages (FAQ, how to order, privacy policy, terms & conditions, contact us).',
+        'A complete online grocery store with two sides: a storefront for shoppers and an admin panel for the store team. I built both the frontend and the backend.',
+        'Shoppers sign up with an email OTP code, search and filter 44 products, apply promo codes, and pay through Midtrans (QRIS, virtual accounts, e-wallets).',
+        'The admin panel shows today\'s and 7-day revenue, low-stock alerts, and best sellers, and manages products, stock, orders, promos, categories, and users.',
+        'Access is handled with RBAC (role-based access control): customer, admin, and superadmin. Each role\'s permissions can be changed from the panel and take effect immediately, without a redeploy.',
+        'Built with security in mind: prices are always recalculated on the server, stock rows are locked during concurrent checkouts so stock never goes negative, short-lived login tokens with refresh tokens in Redis, and login rate limiting.',
+        'The backend is a Go REST API with PostgreSQL and Redis, runs on Docker, and includes automated tests.',
       ],
       ja: [
-        'ECサイト「Toko Kelontong Online」（オンラインの食料雑貨店）のプロトタイプをエンドツーエンドで開発。UI/UX、コンポーネント構成、ページ間のナビゲーションフローまでを担当。',
-        'Vue.js（Composition API）、Vue Router、CSSでフロントエンドを構築。',
-        'Piniaによる状態管理を実装し、ショッピングカートと商品カテゴリーのフィルターをリアクティブに管理。',
-        'カテゴリーフィルター、画像読み込みエラー時の代替表示、ルピア表記の自動フォーマットを備えた動的な商品カタログを構築。',
-        'カタログから注文詳細、ユーザーの注文履歴までの一連の注文フローを設計。',
-        'デザインの一貫性を保つため、再利用可能なコンポーネント（ナビゲーションバー、フッター、ページヘッダー、プロモーションバナー、お客様の声）を構築。',
-        'よくある質問、注文方法、プライバシーポリシー、利用規約、お問い合わせといった補足情報ページを作成。',
+        '購入者向けのストアと、店舗スタッフ向けの管理画面を備えた日用品のオンラインストア。フロントエンドとバックエンドの両方を開発。',
+        '購入者はメールのOTPコードで会員登録し、44商品の検索・絞り込み、プロモコードの適用、Midtrans（QRIS、バーチャル口座、電子マネー）での支払いが可能。',
+        '管理画面では本日と直近7日間の売上、在庫不足、売れ筋を表示し、商品・在庫・注文・プロモ・カテゴリー・ユーザーを管理。',
+        'RBAC（ロールベースのアクセス制御）でcustomer、admin、superadminを管理。各ロールの権限は管理画面から変更でき、再デプロイなしで即時反映。',
+        'セキュリティを重視し、価格は常にサーバー側で再計算、同時購入時は在庫行をロックしてマイナス在庫を防止。短期間有効のトークンとRedisのリフレッシュトークン、ログイン試行回数の制限を実装。',
+        'バックエンドはPostgreSQLとRedisを使ったGoのREST APIで、Dockerで動作し、自動テストも用意。',
       ],
     },
-    thumb: tokoKelontongThumb,
-    shots: [
-      { src: tokoKelontongThumb, caption: { id: 'Beranda dengan promo & kategori', en: 'Home with promos & categories', ja: 'プロモーションとカテゴリーのあるホーム' } },
-      { src: tokoKelontongShotProduk, caption: { id: 'Katalog produk terlaris', en: 'Best-selling product catalog', ja: '売れ筋商品のカタログ' } },
-      { src: tokoKelontongShotCaraPesan, caption: { id: 'Cara pemesanan', en: 'How to order', ja: '注文方法' } },
-      { src: tokoKelontongShotFaq, caption: { id: 'FAQ', en: 'FAQ', ja: 'よくある質問' } },
-      { src: tokoKelontongShotRiwayat, caption: { id: 'Riwayat pesanan', en: 'Order history', ja: '注文履歴' } },
-      { src: tokoKelontongShotTentang, caption: { id: 'Tentang kami', en: 'About us', ja: '会社概要' } },
-      { src: tokoKelontongShotKontak, caption: { id: 'Hubungi kami', en: 'Contact us', ja: 'お問い合わせ' } },
-    ],
-    techStack: [
-      { name: 'Vue.js', icon: vueIcon },
-      { name: 'Tailwind CSS', icon: tailwindIcon },
-    ],
     stack: [
       {
         group: 'Frontend',
@@ -1442,91 +1426,140 @@ const projects = [
         ],
       },
       {
-        group: { id: 'Integrasi', en: 'Integrations', ja: '連携' },
+        group: 'Backend',
         items: [
-          { name: 'Midtrans Snap', icon: midtransIcon },
-          { name: 'Vercel Functions', icon: vercelIcon },
-          { name: 'Open Food Facts API', icon: apiIcon },
+          { name: 'Go (net/http)', icon: goIcon },
+          { name: 'GORM', icon: gormIcon },
+          { name: 'PostgreSQL', icon: postgresIcon },
+          { name: 'Redis', icon: redisIcon },
+          { name: 'JWT + RBAC', icon: jwtIcon },
         ],
       },
       {
-        group: { id: 'Alat', en: 'Tools', ja: 'ツール' },
+        group: { id: 'Integrasi & alat', en: 'Integrations & tools', ja: '連携・ツール' },
         items: [
+          { name: 'Midtrans Snap', icon: midtransIcon },
+          { name: 'Email OTP (SMTP)', icon: gmailIcon },
+          { name: 'Docker', icon: dockerIcon },
           { name: 'Git', icon: gitIcon },
         ],
       },
     ],
     flow: [
       {
-        title: { id: 'Katalog produk', en: 'Product catalog', ja: '商品カタログ' },
+        title: { id: 'Tampilan toko dulu', en: 'Storefront first', ja: 'まずストアの画面' },
         text: {
-          id: 'Harga dari katalog toko, foto dan merek asli dari Open Food Facts dengan cache 24 jam, retry, dan fallback.',
-          en: 'Prices from the store catalog, real photos and brands from Open Food Facts with a 24-hour cache, retry, and fallback.',
-          ja: '価格は店舗カタログから、商品写真とブランドはOpen Food Factsから取得し、24時間キャッシュ・リトライ・フォールバックを実装。',
+          id: 'Membangun halaman belanja dengan Vue: katalog, filter kategori, keranjang, promo, dan riwayat pesanan.',
+          en: 'Built the shopping pages in Vue: catalog, category filters, cart, promos, and order history.',
+          ja: 'Vueでカタログ、カテゴリー絞り込み、カート、プロモ、注文履歴などの購入画面を構築。',
         },
       },
       {
-        title: { id: 'Filter & pencarian', en: 'Filters & search', ja: 'フィルター・検索' },
+        title: { id: 'Backend & database', en: 'Backend & database', ja: 'バックエンドとDB' },
         text: {
-          id: 'Filter kategori dan pencarian reaktif dengan Pinia.',
-          en: 'Reactive category filters and search with Pinia.',
-          ja: 'Piniaでカテゴリーフィルターと検索をリアクティブに管理。',
+          id: 'REST API Go dengan PostgreSQL; data awal (6 kategori, 44 produk, 6 promo) dibuat otomatis saat server pertama jalan.',
+          en: 'A Go REST API on PostgreSQL; starter data (6 categories, 44 products, 6 promos) is seeded automatically on first run.',
+          ja: 'PostgreSQLを使ったGoのREST API。初回起動時に初期データ（6カテゴリー、44商品、6プロモ）を自動投入。',
         },
       },
       {
-        title: { id: 'Keranjang', en: 'Cart', ja: 'カート' },
+        title: { id: 'Akun & keamanan', en: 'Accounts & security', ja: 'アカウントとセキュリティ' },
         text: {
-          id: 'Cart drawer dengan stepper jumlah, disimpan di localStorage.',
-          en: 'A cart drawer with a quantity stepper, persisted in localStorage.',
-          ja: '数量ステッパー付きのカートドロワーを実装し、localStorageに保存。',
+          id: 'Daftar dengan OTP email, login JWT berumur pendek, refresh token di Redis yang dirotasi, dan pembatasan percobaan login.',
+          en: 'Email OTP sign-up, short-lived JWT login, rotating refresh tokens in Redis, and login rate limiting.',
+          ja: 'メールOTPでの登録、短期間有効のJWT、Redisでローテーションするリフレッシュトークン、ログイン試行制限。',
         },
       },
       {
-        title: { id: 'Checkout Midtrans', en: 'Midtrans checkout', ja: 'Midtrans決済' },
+        title: { id: 'Role & hak akses', en: 'Roles & permissions', ja: 'ロールと権限' },
         text: {
-          id: 'Serverless function membuat token Snap, lalu popup pembayaran Midtrans terbuka.',
-          en: 'A serverless function creates a Snap token, then the Midtrans payment popup opens.',
-          ja: 'サーバーレス関数でSnapトークンを発行し、Midtransの決済ポップアップを表示。',
+          id: 'RBAC berbasis permission (bukan nama role), di-cache di Redis, dan bisa diubah superadmin tanpa deploy ulang.',
+          en: 'Permission-based RBAC (not role names), cached in Redis, and editable by the superadmin without a redeploy.',
+          ja: 'ロール名ではなく権限ベースのRBAC。Redisでキャッシュし、superadminが再デプロイなしで変更可能。',
         },
       },
       {
-        title: { id: 'Riwayat pesanan', en: 'Order history', ja: '注文履歴' },
+        title: { id: 'Checkout & pembayaran', en: 'Checkout & payment', ja: '購入と決済' },
         text: {
-          id: 'Riwayat dan detail pesanan, termasuk bayar ulang pesanan yang masih pending.',
-          en: 'Order history and details, including paying again for pending orders.',
-          ja: '注文履歴と詳細を表示し、支払い待ちの注文は再決済が可能。',
+          id: 'Harga dihitung ulang di server, stok dikunci saat checkout bersamaan, lalu pembayaran Midtrans dengan notifikasi bertanda tangan.',
+          en: 'Prices recalculated on the server, stock locked during concurrent checkouts, then Midtrans payment with signed notifications.',
+          ja: '価格をサーバーで再計算し、同時購入時は在庫をロック。署名付き通知でMidtrans決済を確認。',
         },
       },
       {
-        title: { id: 'Halaman informasi', en: 'Info pages', ja: '情報ページ' },
+        title: { id: 'Panel admin', en: 'Admin panel', ja: '管理画面' },
         text: {
-          id: 'FAQ, cara pemesanan, kebijakan privasi, syarat & ketentuan, hubungi kami, dan tentang kami.',
-          en: 'FAQ, how to order, privacy policy, terms & conditions, contact us, and about us.',
-          ja: 'よくある質問、注文方法、プライバシーポリシー、利用規約、お問い合わせ、会社概要を作成。',
+          id: 'Dashboard penjualan dan halaman kelola produk, stok, pesanan, promo, kategori, pengguna, serta role.',
+          en: 'A sales dashboard plus pages to manage products, stock, orders, promos, categories, users, and roles.',
+          ja: '売上ダッシュボードと、商品・在庫・注文・プロモ・カテゴリー・ユーザー・ロールの管理画面。',
+        },
+      },
+      {
+        title: { id: 'Docker & pengujian', en: 'Docker & testing', ja: 'Dockerとテスト' },
+        text: {
+          id: 'Seluruh layanan (API, PostgreSQL, Redis) jalan dengan satu perintah Docker Compose, dan logika penting diuji dengan go test.',
+          en: 'All services (API, PostgreSQL, Redis) run with one Docker Compose command, and key logic is covered by go test.',
+          ja: 'API・PostgreSQL・RedisをDocker Composeの1コマンドで起動し、重要なロジックはgo testでテスト。',
         },
       },
     ],
     api: [
       {
-        group: { id: 'Serverless (Vercel)', en: 'Serverless (Vercel)', ja: 'サーバーレス（Vercel）' },
+        group: { id: 'Akun', en: 'Accounts', ja: 'アカウント' },
         routes: [
-          ['POST', '/api/checkout'],
+          ['POST', '/api/v1/auth/register'],
+          ['POST', '/api/v1/auth/{verify-email, resend-otp}'],
+          ['POST', '/api/v1/auth/{login, refresh, logout}'],
+          ['GET · PATCH', '/api/v1/me'],
         ],
       },
       {
-        group: { id: 'Midtrans Snap', en: 'Midtrans Snap', ja: 'Midtrans Snap' },
+        group: { id: 'Katalog & promo', en: 'Catalog & promos', ja: 'カタログ・プロモ' },
         routes: [
-          ['POST', '/snap/v1/transactions'],
+          ['GET', '/api/v1/categories'],
+          ['GET', '/api/v1/products'],
+          ['GET', '/api/v1/products/{id}'],
+          ['GET', '/api/v1/promos'],
+          ['POST', '/api/v1/promos/validate'],
         ],
       },
       {
-        group: { id: 'Open Food Facts', en: 'Open Food Facts', ja: 'Open Food Facts' },
+        group: { id: 'Pesanan & pembayaran', en: 'Orders & payment', ja: '注文・決済' },
         routes: [
-          ['GET', '/api/v2/search'],
-          ['GET', '/api/v2/product/:barcode'],
+          ['GET · POST', '/api/v1/orders'],
+          ['GET', '/api/v1/orders/{id}'],
+          ['POST', '/api/v1/orders/{id}/{cancel, sync-payment}'],
+          ['POST', '/api/v1/payments/midtrans/notification'],
+        ],
+      },
+      {
+        group: { id: 'Admin', en: 'Admin', ja: '管理' },
+        routes: [
+          ['GET', '/api/v1/admin/dashboard'],
+          ['GET · POST · PUT · DELETE', '/api/v1/admin/products'],
+          ['PATCH', '/api/v1/admin/products/{id}/stock'],
+          ['GET · POST · PUT · DELETE', '/api/v1/admin/{categories, promos}'],
+          ['GET', '/api/v1/admin/orders'],
+          ['PATCH', '/api/v1/admin/orders/{id}/status'],
+          ['GET · POST · PATCH · DELETE', '/api/v1/admin/users'],
+          ['GET · POST · PUT · DELETE', '/api/v1/admin/roles'],
+          ['PUT', '/api/v1/admin/roles/{id}/permissions'],
         ],
       },
     ],
+    thumb: tokoKelontongThumb,
+    shots: [
+      { src: tokoKelontongThumb, caption: { id: 'Toko untuk pembeli: promo, kategori, dan katalog', en: 'Customer storefront: promos, categories, and catalog', ja: '購入者向けストア：プロモ、カテゴリー、カタログ' } },
+      { src: tokoKelontongShotAdminDashboard, caption: { id: 'Dashboard admin: pendapatan, stok menipis, produk terlaris', en: 'Admin dashboard: revenue, low stock, best sellers', ja: '管理ダッシュボード：売上、在庫不足、売れ筋' } },
+      { src: tokoKelontongShotAdminProduk, caption: { id: 'Kelola produk & stok', en: 'Manage products & stock', ja: '商品・在庫管理' } },
+      { src: tokoKelontongShotAdminPesanan, caption: { id: 'Kelola pesanan & status', en: 'Manage orders & status', ja: '注文・ステータス管理' } },
+      { src: tokoKelontongShotAdminRole, caption: { id: 'Role & akses (RBAC) yang bisa diatur tanpa deploy ulang', en: 'Roles & access (RBAC), editable without redeploying', ja: '再デプロイ不要で編集できるロールと権限（RBAC）' } },
+      { src: tokoKelontongShotAdminPengguna, caption: { id: 'Kelola pengguna & role', en: 'Manage users & roles', ja: 'ユーザー・ロール管理' } },
+      { src: tokoKelontongShotAdminPromo, caption: { id: 'Kelola kode promo', en: 'Manage promo codes', ja: 'プロモコード管理' } },
+      { src: tokoKelontongShotMasuk, caption: { id: 'Halaman masuk', en: 'Sign-in page', ja: 'ログイン画面' } },
+      { src: tokoKelontongShotDaftar, caption: { id: 'Daftar akun dengan verifikasi OTP email', en: 'Sign-up with email OTP verification', ja: 'メールOTP認証付きの会員登録' } },
+    ],
+    techStack: [{ name: 'Vue.js' }, { name: 'Go' }, { name: 'PostgreSQL' }, { name: 'Redis' }],
     demoHref: 'https://toko-kelontong-online.vercel.app/',
     codeHref: 'https://github.com/joseparhusip/toko-kelontong-online',
   },

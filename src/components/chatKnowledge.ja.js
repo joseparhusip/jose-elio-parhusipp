@@ -156,8 +156,8 @@ const PROJECT_TEXT = {
   },
   'Toko Kelontong Online': {
     summary:
-      'ECサイトのプロトタイプ（Vue.js・Pinia・Vue Router）です。動的な商品カタログ、カテゴリーフィルター、リアクティブなショッピングカート、一連の注文フローを実装しています。',
-    tags: ['Vue.js', 'Pinia'],
+      'フルスタックのオンライン食料品店です。Vue.jsのストアと管理画面に、Go・PostgreSQL・Redisのバックエンドを組み合わせています。メールOTPでの登録、Midtrans決済、売上ダッシュボード、再デプロイなしで変更できるRBAC（customer・admin・superadmin）を備えています。',
+    tags: ['Vue.js', 'Go', 'PostgreSQL', 'Redis'],
   },
   'Kindle Coffee': {
     summary:

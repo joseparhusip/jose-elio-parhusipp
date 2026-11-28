@@ -172,9 +172,9 @@ export const PROJECTS = [
   {
     title: 'Toko Kelontong Online',
     summary:
-      'Prototipe <em>e-commerce</em> (Vue.js, Pinia, dan Vue Router) dengan katalog produk dinamis, filter kategori, keranjang belanja reaktif, serta alur pemesanan lengkap.',
+      'Toko online <em>full stack</em>: halaman belanja (Vue.js) dan panel admin, dengan <em>backend</em> Go, PostgreSQL, dan Redis. Ada daftar dengan OTP email, pembayaran Midtrans, dashboard penjualan, dan hak akses RBAC (customer, admin, superadmin) yang bisa diubah tanpa deploy ulang.',
     image: tokoKelontongThumb,
-    tags: ['Vue.js', 'Pinia'],
+    tags: ['Vue.js', 'Go', 'PostgreSQL', 'Redis'],
     demoHref: 'https://toko-kelontong-online.vercel.app/',
     codeHref: 'https://github.com/joseparhusip/toko-kelontong-online',
   },
